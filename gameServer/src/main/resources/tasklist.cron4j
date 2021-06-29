@@ -1,0 +1,23 @@
+#### 打印所有可到达的Actor
+#### */1 * * * * java:Cron4jUtils#displayActorSelfPath
+
+#### 打印jvm信息
+#### */10 * * * * java:Cron4jUtils#playJvmInfo
+
+#### 切日时间点  如果修改时间点，则该时间点必须小于当前系统时间  
+##00 05 * * * java:ws.gameServer.system.schedule.Cron4jUtils#tellDayChanged
+
+#### 移除缓存超时的玩家，每分钟都检测，参数为几分钟后移除  (300秒，5分钟)
+##*/1 * * * * java:ws.gameServer.system.schedule.Cron4jUtils#killOverTimeCachePlayerActor 300
+
+#### 广播每个整点
+##00 */1 * * * java:ws.gameServer.system.schedule.Cron4jUtils#broadcastEachHour
+
+#### 广播每个分钟
+##*/1 * * * * java:ws.gameServer.system.schedule.Cron4jUtils#broadcastEachMinute
+
+#### 竞技场每日排名奖励结算
+##00 21 * * * java:ws.gameServer.system.schedule.Cron4jUtils#settleDaliyRankReward
+
+#### 刷新所有有改动的策划表
+##*/5 * * * * java:ws.gameServer.system.schedule.Cron4jUtils#refreshRootTc
