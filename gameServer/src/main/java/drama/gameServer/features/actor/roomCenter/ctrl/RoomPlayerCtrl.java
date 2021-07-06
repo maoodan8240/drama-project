@@ -10,37 +10,39 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
      * 是否持有这个证物
      *
      * @param clueId
-     * @return
+     * @return boolean
      */
-    public boolean containsClueId(int clueId);
+    boolean containsClueId(int clueId);
 
     /**
      * 添加线索
      *
      * @param clueId
      */
-    public void addClueId(int clueId);
+    void addClueId(int clueId);
 
     /**
      * 扣一次搜证次数
      */
-    public void subSrchTimes();
+    void reduceSrchTimes();
 
-    public void setRoleId(int roleIdx);
+    void setRoleId(int roleIdx);
 
-    public int getRoleId();
+    int getRoleId();
 
-    public int getSrchTimes();
+    int getSrchTimes();
 
-    public String getPlayerId();
+    String getPlayerId();
+
+    boolean hasRole();
 
     boolean isReady();
 
     void setReady(boolean b);
 
-    boolean isDub();
+    int getIsDub();
 
-    void setDub(boolean b);
+    void setDub(int isDub);
 
     List<Integer> getClueIds();
 }

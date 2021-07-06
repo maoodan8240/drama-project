@@ -60,20 +60,22 @@ public class ConfigUtils {
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
         List<Boolean> conditionResult = new ArrayList<>();
         for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
+            //每遍历一个新的row就将比对结果清空
+            conditionResult.clear();
             TableDataRow row = (TableDataRow) tableDataTxt.getRows().get(rowIdx);
-            for (CommonProtos.Cm_Common_Args arg : argsList) {
-                for (int columnIdx = 0; columnIdx < row.getCells().size(); ++columnIdx) {
-                    String columnName = ((TableDataHeader) tableDataTxt.getHeaderDatas().get(columnIdx)).getName();
+            for (int columnIdx = 0; columnIdx < row.getCells().size(); ++columnIdx) {
+                String columnName = ((TableDataHeader) tableDataTxt.getHeaderDatas().get(columnIdx)).getName();
+                String columnValue = row.getCells().get(columnIdx).getCell();
+                for (CommonProtos.Cm_Common_Args arg : argsList) {
                     String name = arg.getName();
                     String value = arg.getValue();
-                    if (name.equals(columnName) && value.equals(row.getCells().get(columnIdx).getCell())) {
+                    if (name.equals(columnName) && value.equals(columnValue)) {
                         conditionResult.add(true);
                     }
                 }
-            }
-            if (conditionResult.size() != 0) {
-                boolean contains = conditionResult.contains(false);
-                if (!contains) {
+                //这个row里的字段的值都和请求的字段和值都对上了
+                //比对结果的正确数和请求的字段数量一致,直接返回这个row
+                if (conditionResult.size() == argsList.size()) {
                     result = row;
                     break;
                 }
@@ -81,5 +83,4 @@ public class ConfigUtils {
         }
         return result;
     }
-
 }

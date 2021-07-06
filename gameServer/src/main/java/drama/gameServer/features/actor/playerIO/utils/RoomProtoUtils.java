@@ -1,6 +1,7 @@
 package drama.gameServer.features.actor.playerIO.utils;
 
 import dm.relationship.table.RootTc;
+import dm.relationship.table.tableRows.Table_Murder_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
 import drama.gameServer.features.actor.roomCenter.pojo.Room;
@@ -39,8 +40,7 @@ public class RoomProtoUtils {
         broom.setState(room.getRoomState());
         broom.setStateTimes(room.getStateTimes());
         broom.setSrchNum(room.getSrchNum());
-        //TODO 读配置
-        broom.setRoomPlayerSize(2);
+        broom.setRoomPlayerSize(room.getPlayerNum());
         for (Map.Entry<String, RoomPlayer> entry : room.getIdToRoomPlayer().entrySet()) {
             broom.addRoomPlayer(createSmRoomPlayer(entry.getValue()));
         }
@@ -58,20 +58,41 @@ public class RoomProtoUtils {
         broom.setState(room.getRoomState());
         broom.setStateTimes(room.getStateTimes());
         broom.setSrchNum(room.getSrchNum());
-        //TODO 读配置
-        broom.setRoomPlayerSize(2);
-
+        broom.setRoomPlayerSize(room.getPlayerNum());
 
         return broom.build();
     }
 
+
+    public static RoomProtos.Sm_Room_Vote createSmRoomVote(String name, String rolePic, List<String> votePic) {
+        RoomProtos.Sm_Room_Vote.Builder b = RoomProtos.Sm_Room_Vote.newBuilder();
+        b.setRoleName(name);
+        b.setRolePic(rolePic);
+        b.addAllVotePic(votePic);
+        return b.build();
+    }
+
+
+    public static List<RoomProtos.Sm_Room_Vote> createSmRoomVoteList(Map<Integer, List<Integer>> roleIdToPlayerRoleId) {
+        List<RoomProtos.Sm_Room_Vote> voteList = new ArrayList<>();
+        for (Map.Entry<Integer, List<Integer>> entry : roleIdToPlayerRoleId.entrySet()) {
+            int roleId = entry.getKey();
+            //TODO row get roleName and rolePic
+            String roleName = Table_Murder_Row.getRoleNameByRoleId(roleId);
+            String rolePic = Table_Murder_Row.getRolePicByRoleId(roleId);
+            List<Integer> voteRoleIds = entry.getValue();
+            List<String> votePic = Table_Murder_Row.getRolePicByRoleIds(voteRoleIds);
+            voteList.add(createSmRoomVote(roleName, rolePic, votePic));
+        }
+        return voteList;
+    }
 
     public static RoomProtos.Sm_Room_Player createSmRoomPlayer(RoomPlayer roomPlayer) {
         RoomProtos.Sm_Room_Player.Builder bSimplePlayer = RoomProtos.Sm_Room_Player.newBuilder();
         bSimplePlayer.setPlayerId(roomPlayer.getPlayerId());
         bSimplePlayer.setIsReady(roomPlayer.isReady());
         bSimplePlayer.setRoleId(roomPlayer.getRoleId());
-        bSimplePlayer.setIsDub(roomPlayer.isDub());
+        bSimplePlayer.setIsDub(roomPlayer.getIsDub());
         bSimplePlayer.setSrchTimes(roomPlayer.getSrchTimes());
         return bSimplePlayer.build();
     }

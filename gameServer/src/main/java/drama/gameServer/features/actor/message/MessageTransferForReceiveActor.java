@@ -66,7 +66,7 @@ public class MessageTransferForReceiveActor extends DmActor {
             if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {
                 msg = new In_PlayerHeartBeatingRequest(request.getConnection());
             } else if (request.getType() == In_ConnectionStatusRequest.Type.Offline) {
-                msg = new In_PlayerOfflineRequest(connFlag, connFlag);
+                msg = new In_PlayerOfflineRequest(request.getConnection());
             } else if (request.getType() == In_ConnectionStatusRequest.Type.Disconnected) {
                 msg = new In_PlayerDisconnectedRequest(request.getConnection());
             } else {

@@ -1,38 +1,32 @@
-import dm.relationship.table.RootTc;
-import dm.relationship.table.tableRows.Table_Result_Row;
-import drama.gameServer.system.table.RootTcListener;
-import drama.protos.EnumsProtos;
 import org.junit.Test;
-import ws.common.table.data.PlanningTableData;
-import ws.common.utils.dataSource.txt._PlanningTableData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TestAnswer {
     @Test
     public void test1() throws Exception {
-        PlanningTableData planningTableData = new _PlanningTableData("D:\\work_space\\drama-project\\gameServer\\src\\main\\resources\\data.tab\\");
-        planningTableData.loadAllTablesData();
-        RootTc.init(planningTableData, new RootTcListener());
-        RootTc.loadAllTables(new Locale("zh", "CN"));
-        EnumsProtos.SexEnum sex = EnumsProtos.SexEnum.MALE;
-        List<String> optionsList = new ArrayList<>();
-        optionsList.add("A");
-        optionsList.add("A");
-        for (Table_Result_Row row : RootTc.get(Table_Result_Row.class).values()) {
-            if (row.getSex() == sex.getNumber()) {
-                if (optionsList.size() == row.getAnswer().size()) {
-//                    List<String> reuslt = row.getAnswer().stream().filter(it -> !optionsList.contains(it)).collect(Collectors.toList());
-//                    reuslt.stream().forEach(System.out::println);
-                    long count = row.getAnswer().stream().filter(it -> !optionsList.contains(it)).count();
-                    System.out.println(count);
-                }
-            }
-        }
+//        GlobalInjectorUtils.init();
+//        PlanningTableData planningTableData = new _PlanningTableData("D:\\work_space\\drama-project\\gameServer\\src\\main\\resources\\data.tab\\");
+//        planningTableData.loadAllTablesData();
+//        RootTc.init(planningTableData, new RootTcListener());
+//        RootTc.loadAllTables(new Locale("zh", "CN"));
+//        EnumsProtos.SexEnum sex = EnumsProtos.SexEnum.MALE;
+//        List<String> optionsList = new ArrayList<>();
+//        optionsList.add("A");
+//        optionsList.add("A");
+//        RoomCtrl roomCtrl = GlobalInjector.getInstance(RoomCtrl.class);
+//        String roomId = ObjectId.get().toString();
+//        String playerId = ObjectId.get().toString();
+//        roomCtrl.createRoom(roomId, playerId, 101);
+//        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(playerId);
+//        roomPlayerCtrl.setRoleId(1);
+//        roomCtrl.chooseRole(roomPlayerCtrl.getTarget());
+//        List<Integer> rightAnswerIdx = roomCtrl.getRightAnswerIdx(optionsList, 101, sex);
+//        int roleIdx = roomCtrl.getRoleIdx(rightAnswerIdx);
+//        System.out.println(roleIdx);
     }
 
     @Test

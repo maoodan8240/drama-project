@@ -1,6 +1,7 @@
 package drama.gameServer.features.actor.playerIO;
 
 import akka.actor.ActorRef;
+import akka.actor.Kill;
 import dm.relationship.appServers.loginServer.player.msg.In_LoginMsg;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.actor.DmActor;
@@ -22,6 +23,8 @@ import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnReadyRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnSwitchStateRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSearchRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSyncClueRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteResultRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_playerOnOpenDubRoomMsg;
 import drama.gameServer.features.actor.roomCenter.pojo.Room;
 import drama.gameServer.features.actor.roomCenter.pojo.RoomPlayer;
@@ -39,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import ws.common.utils.message.interfaces.InnerMsg;
 
 import java.util.List;
+import java.util.Map;
 
 
 public class PlayerIOActor extends DmActor {
@@ -85,7 +89,35 @@ public class PlayerIOActor extends DmActor {
             onPlayerSyncClueRoomMsg((In_PlayerSyncClueRoomMsg) msg);
         } else if (msg instanceof In_PlayerOnCanSearchRoomMsg) {
             onPlayerOnCanSearchRoomMsg((In_PlayerOnCanSearchRoomMsg) msg);
+        } else if (msg instanceof In_PlayerVoteRoomMsg) {
+            onPlayerVoteRoomMsg((In_PlayerVoteRoomMsg) msg);
+        } else if (msg instanceof In_PlayerVoteResultRoomMsg) {
+            onPlayerVoteResultRoomMsg((In_PlayerVoteResultRoomMsg) msg);
         }
+    }
+
+    private void onPlayerVoteResultRoomMsg(In_PlayerVoteResultRoomMsg msg) {
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_RESULT;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getRoleIdToPlayerRoleId();
+        List<RoomProtos.Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId);
+        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        b.addAllRoomVote(smRoomVoteList);
+        b.setAction(action);
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
+    }
+
+    private void onPlayerVoteRoomMsg(In_PlayerVoteRoomMsg msg) {
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setVoteNum(msg.getVoteNum());
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
     }
 
 
@@ -170,7 +202,7 @@ public class PlayerIOActor extends DmActor {
 
     private void onPlayerCreateRoomMsg(In_PlayerCreateRoomMsg msg) {
         RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CREATE;
-        playerIOCtrl.quitRoom();
+        playerIOCtrl.joinRoom(msg.getRoom().getRoomId());
         Room room = msg.getRoom();
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
@@ -180,16 +212,21 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerDisconnected() {
-        String roomId = playerIOCtrl.getRoomId();
-        playerIOCtrl.quitRoom();
-        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
+        if (playerIOCtrl.isInRoom()) {
+            //玩家在房间中,但不一定是房主,转发到房间中处理相关逻辑
+            String roomId = playerIOCtrl.getRoomId();
+            playerIOCtrl.quitRoom();
+            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
+            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
+        }
+        self().tell(Kill.getInstance(), ActorRef.noSender());
+        //所处房间的逻辑已经在In_PlayerDisconnectedAction worldCtrl执行了
     }
 
     private void onPlayerJoinRoomMsg(In_PlayerJoinRoomMsg msg) {
         Room room = msg.getRoom();
         playerIOCtrl.joinRoom(room.getRoomId());
         LOGGER.debug("玩家加入了房间: playerId={} ,roomId={},dramaName={}", playerId, room.getRoomId(), room.getDramaId());
-        //TODO 失败逻辑
         MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_JION);
         br.setResult(true);
         RoomProtos.Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, RoomProtos.Sm_Room.Action.RESP_JION);

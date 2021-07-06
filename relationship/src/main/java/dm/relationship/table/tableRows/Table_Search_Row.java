@@ -31,6 +31,7 @@ public class Table_Search_Row extends AbstractRow {
      */
     private String pic;
 
+
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
         // id column = {columnName:"Id", columnDesc:"ID"}
@@ -39,6 +40,7 @@ public class Table_Search_Row extends AbstractRow {
         srchNum = CellParser.parseSimpleCell("SrchNum", map, Integer.class);
         typeid = CellParser.parseSimpleCell("TypeId", map, Integer.class);
         pic = CellParser.parseSimpleCell("Pic", map, String.class);
+
     }
 
     public String getLine() {
@@ -61,6 +63,7 @@ public class Table_Search_Row extends AbstractRow {
         return pic;
     }
 
+   
     public static List<Table_Search_Row> getSearchByTypeNameAndStateTimes(String typeName, int roomStateTimes) {
         List<Table_Search_Row> result = new ArrayList<>();
         int typeId = Table_SearchType_Row.getTypeIdByName(typeName, roomStateTimes);

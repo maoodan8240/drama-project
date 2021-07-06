@@ -25,7 +25,6 @@ import ws.common.redis.jedis.interfaces.JedisClient;
 import ws.common.table.data.PlanningTableData;
 import ws.common.utils.dataSource.txt._PlanningTableData;
 import ws.common.utils.di.GlobalInjector;
-import ws.common.utils.schedule.GlobalScheduler;
 
 public class Launcher {
 
@@ -42,7 +41,7 @@ public class Launcher {
         try {
             AppConfig.init();
             GlobalInjectorUtils.init();
-            GlobalScheduler.init();
+//            GlobalScheduler.init();
             _redisInit();
             _mongodbInit();
             ServerGlobalData.init();

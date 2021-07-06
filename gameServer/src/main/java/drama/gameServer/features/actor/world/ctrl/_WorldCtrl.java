@@ -1,7 +1,6 @@
 package drama.gameServer.features.actor.world.ctrl;
 
 import akka.actor.ActorRef;
-import akka.actor.Kill;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.daos.player.PlayerDao;
 import drama.gameServer.features.actor.world.pojo.World;
@@ -40,13 +39,13 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
 
 
     @Override
-    public void remove(String playerId) {
+    public void removePlayerActorRef(String playerId) {
+        //只remove关联,具体的killActor还是在他自己的actor接到消息是执行
         if (playerId != null) {
             if (target.getPlayerIdToMobileNum().containsKey(playerId)) {
                 target.getPlayerIdToMobileNum().remove(playerId);
             }
             if (target.getPlayerIdToPlayerActorRef().containsKey(playerId)) {
-                target.getPlayerIdToPlayerActorRef().get(playerId).tell(Kill.getInstance(), ActorRef.noSender());
                 target.getPlayerIdToPlayerActorRef().remove(playerId);
             }
         }
@@ -63,7 +62,7 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     }
 
     @Override
-    public void putRoomActorRef(String roomId, ActorRef roomActorRef) {
+    public void addRoomActorRef(String roomId, ActorRef roomActorRef) {
         this.target.getRoomIdToRoomActorRef().put(roomId, roomActorRef);
     }
 
@@ -75,8 +74,9 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
 
 
     @Override
-    public void killRoomActor(String roomId) {
-        getRoomActorRef(roomId).tell(Kill.getInstance(), ActorRef.noSender());
+    public void removeRoomActorRef(String roomId) {
+        //只remove关联,具体的killActor还是在他自己的actor接到消息是执行
+        this.target.getRoomIdToRoomActorRef().remove(roomId);
     }
 
     @Override

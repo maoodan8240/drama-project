@@ -7,7 +7,7 @@ public class RoomPlayer {
     private String playerId;
     private boolean isReady = false;
     private int roleId;
-    private boolean isDub = false;
+    private int isDub = -1;
     private int srchTimes;
     private String roomId;
 
@@ -51,12 +51,12 @@ public class RoomPlayer {
         this.roleId = roleId;
     }
 
-    public boolean isDub() {
+    public int getIsDub() {
         return isDub;
     }
 
-    public void setDub(boolean dub) {
-        isDub = dub;
+    public void setIsDub(int isDub) {
+        this.isDub = isDub;
     }
 
     public List<Integer> getClueIds() {

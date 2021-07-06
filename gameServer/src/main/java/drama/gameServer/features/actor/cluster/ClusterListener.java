@@ -4,7 +4,17 @@ import akka.actor.ActorContext;
 import akka.actor.Address;
 import akka.actor.UntypedActor;
 import akka.cluster.Cluster;
-import akka.cluster.ClusterEvent.*;
+import akka.cluster.ClusterEvent.ClusterDomainEvent;
+import akka.cluster.ClusterEvent.CurrentClusterState;
+import akka.cluster.ClusterEvent.LeaderChanged;
+import akka.cluster.ClusterEvent.MemberExited;
+import akka.cluster.ClusterEvent.MemberJoined;
+import akka.cluster.ClusterEvent.MemberLeft;
+import akka.cluster.ClusterEvent.MemberRemoved;
+import akka.cluster.ClusterEvent.MemberUp;
+import akka.cluster.ClusterEvent.ReachableMember;
+import akka.cluster.ClusterEvent.RoleLeaderChanged;
+import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.cluster.metrics.ClusterMetricsChanged;
 import dm.relationship.utils.ClusterUtils;
 import org.slf4j.Logger;
@@ -40,10 +50,9 @@ public class ClusterListener extends UntypedActor {
     public void onReceive(Object msg) throws Throwable {
         if (msg instanceof ClusterMetricsChanged) {
             num++;
-            if (num >= 2) { // 2分钟
+            if (num >= 40) { // 2分钟
                 ClusterUtils.displayAllMemberInfo(actorContext);
                 ClusterUtils.displaySystemHealthInfo((ClusterMetricsChanged) msg);
-                System.out.println(msg.toString());
                 num = 0;
             }
         } else if (msg instanceof MemberUp) {

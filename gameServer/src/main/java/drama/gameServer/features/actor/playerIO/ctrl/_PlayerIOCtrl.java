@@ -8,6 +8,7 @@ import drama.protos.CodesProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.RoomProtos;
+import org.apache.commons.lang3.StringUtils;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.utils.mc.controler.AbstractControler;
 import ws.common.utils.message.interfaces.PrivateMsg;
@@ -67,5 +68,10 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
         bRoom.setRoomPlayer(sm_room_player);
         response.setSmRoom(bRoom.build());
         send(response.build());
+    }
+
+    @Override
+    public boolean isInRoom() {
+        return !StringUtils.isEmpty(target.getRoomId());
     }
 }

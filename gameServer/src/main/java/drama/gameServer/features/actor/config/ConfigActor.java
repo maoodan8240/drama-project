@@ -45,6 +45,9 @@ public class ConfigActor extends DmActor {
                 case CommonProtos.Cm_Common_Config.Action.SCENELIST_VALUE:
                     getConfig(cm_common_config, msg.getConnection(), CommonProtos.Sm_Common_Config.Action.RESP_SCENELIST);
                     break;
+                case CommonProtos.Cm_Common_Config.Action.RUNDOWN_VALUE:
+                    getConfig(cm_common_config, msg.getConnection(), CommonProtos.Sm_Common_Config.Action.RESP_RUNDOWN);
+                    break;
                 default:
                     break;
             }

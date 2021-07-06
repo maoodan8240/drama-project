@@ -9,18 +9,18 @@ public interface WorldCtrl extends Controler<World> {
 
     ActorRef getPlayerActorRef(String playerId);
 
-    void remove(String playerId);
+    void removePlayerActorRef(String playerId);
 
 
     boolean playerActorCanUse(String playerId);
 
     PlayerDao getPlayerDao();
 
-    void putRoomActorRef(String roomId, ActorRef roomActorRef);
+    void addRoomActorRef(String roomId, ActorRef roomActorRef);
 
     ActorRef getRoomActorRef(String roomId);
 
-    void killRoomActor(String roomId);
+    void removeRoomActorRef(String roomId);
 
     void addPlayerIdAndActor(String playerId, String mobileNum, ActorRef playerActorRef);
 

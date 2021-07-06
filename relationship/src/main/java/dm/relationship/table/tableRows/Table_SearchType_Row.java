@@ -1,6 +1,6 @@
 package dm.relationship.table.tableRows;
 
-import dm.relationship.exception.BusinessLogicMismatchConditionException;
+import dm.relationship.exception.TableRowLogicCheckFailedException;
 import dm.relationship.table.RootTc;
 import org.apache.commons.lang3.StringUtils;
 import ws.common.table.table.exception.CellParseFailedException;
@@ -28,6 +28,10 @@ public class Table_SearchType_Row extends AbstractRow {
      * string 分类图
      */
     private String typePic;
+    /***
+     * roleId 角色ID
+     */
+    private int roleId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -36,6 +40,11 @@ public class Table_SearchType_Row extends AbstractRow {
         typePic = CellParser.parseSimpleCell("TypePic", map, String.class);
         srchNum = CellParser.parseSimpleCell("SrchNum", map, Integer.class);
         typeId = CellParser.parseSimpleCell("TypeId", map, Integer.class);
+        roleId = CellParser.parseSimpleCell("RoleId", map, Integer.class);
+    }
+
+    public int getRoleId() {
+        return roleId;
     }
 
     public Integer getTypeId() {
@@ -75,7 +84,7 @@ public class Table_SearchType_Row extends AbstractRow {
             }
         }
         String msg = String.format("没有找到对应的名字, typeId=%s", typeId);
-        throw new BusinessLogicMismatchConditionException(msg);
+        throw new TableRowLogicCheckFailedException(Table_SearchType_Row.class, typeId, msg);
     }
 
     public static int getTypeIdByName(String typeName, int stateTimes) {
@@ -85,6 +94,6 @@ public class Table_SearchType_Row extends AbstractRow {
             }
         }
         String msg = String.format("没有找到对应的Id, typeName=%s", typeName);
-        throw new BusinessLogicMismatchConditionException(msg);
+        throw new TableRowLogicCheckFailedException(Table_SearchType_Row.class, 0, msg);
     }
 }

@@ -19,9 +19,9 @@ public class Table_Acter_Row extends AbstractRow {
      */
     private Integer sceneId;
     /**
-     * int 角色结局选择独白
+     * string 剧本背景音乐
      */
-    private TupleListCell<String> endPick;
+    private ListCell<String> bgm;
     /**
      * int  角色性别
      */
@@ -49,7 +49,7 @@ public class Table_Acter_Row extends AbstractRow {
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
-        endPick = CellParser.parseTupleListCell("EndPick", map, String.class);
+
         // id column = {columnName:"Id", columnDesc:"ID"}
         sceneId = CellParser.parseSimpleCell("SceneId", map, Integer.class);
         sex = CellParser.parseSimpleCell("Sex", map, Integer.class);
@@ -58,18 +58,20 @@ public class Table_Acter_Row extends AbstractRow {
         name = CellParser.parseSimpleCell("Name", map, String.class);
         scene = CellParser.parseListCell("Scene", map, String.class);
         ap = CellParser.parseTupleListCell("Ap", map, String.class);
+        bgm = CellParser.parseListCell("Bgm", map, String.class);
     }
 
     public Integer getSceneId() {
         return sceneId;
     }
 
-    public List<TupleCell<String>> getEndPick() {
-        return endPick.getAll();
-    }
 
     public Integer getSex() {
         return sex;
+    }
+
+    public List<String> getBgm() {
+        return bgm.getAll();
     }
 
     public List<String> getScene() {

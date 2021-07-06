@@ -1,6 +1,7 @@
 package drama.gameServer.features.actor.roomCenter.pojo;
 
 
+import dm.relationship.table.tableRows.Table_Murder_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import drama.gameServer.features.actor.roomCenter.ctrl.RoomPlayerCtrl;
 import drama.protos.EnumsProtos;
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+;
 
 public class Room {
     /**
@@ -64,6 +67,18 @@ public class Room {
      * 本剧本共有几次搜证环节
      */
     private int srchNum;
+    /**
+     * 剧本所需玩家人数
+     */
+    private int playerNum;
+    /**
+     * 被投凶的角色Id对应投凶角色Id
+     */
+    private Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId = new ConcurrentHashMap<>();
+    /**
+     * 下一阶段解锁时间
+     */
+    private long nextSTime;
 
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
@@ -73,6 +88,36 @@ public class Room {
         this.dramaName = tabRow.getName();
         this.runRown = new ArrayList<>(tabRow.getRunDown());
         this.srchNum = tabRow.getSrchNum();
+        this.playerNum = tabRow.getPlaNum();
+        initRoleIdToPlayerRoleId();
+    }
+
+    private void initRoleIdToPlayerRoleId() {
+        List<Integer> allRoleId = Table_Murder_Row.getAllRoleId();
+        for (Integer roleId : allRoleId) {
+            voteRoleIdToPlayerRoleId.put(roleId, new ArrayList<>());
+        }
+    }
+
+    public Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId() {
+        return voteRoleIdToPlayerRoleId;
+    }
+
+
+    public long getNextSTime() {
+        return nextSTime;
+    }
+
+    public void setNextSTime(long nextSTime) {
+        this.nextSTime = nextSTime;
+    }
+
+    public int getPlayerNum() {
+        return playerNum;
+    }
+
+    public void setPlayerNum(int playerNum) {
+        this.playerNum = playerNum;
     }
 
     public int getSrchNum() {
@@ -86,7 +131,6 @@ public class Room {
     public List<Integer> getClueIds() {
         return clueIds;
     }
-
 
     public void setClueIds(List<Integer> clueIds) {
         this.clueIds = clueIds;

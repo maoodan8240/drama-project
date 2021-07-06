@@ -1,9 +1,18 @@
 package dm.relationship.base.msg;
 
-public class In_PlayerOfflineRequest extends AbstractGateWayServerInnerMsg {
+import ws.common.network.server.interfaces.Connection;
+import ws.common.utils.message.implement.AbstractInnerMsg;
+
+public class In_PlayerOfflineRequest extends AbstractInnerMsg {
     private static final long serialVersionUID = 1L;
 
-    public In_PlayerOfflineRequest(String connFlag, String playerId) {
-        super(connFlag, playerId);
+    private Connection connection;
+
+    public In_PlayerOfflineRequest(Connection connection) {
+        this.connection = connection;
+    }
+
+    public Connection getConnection() {
+        return connection;
     }
 }

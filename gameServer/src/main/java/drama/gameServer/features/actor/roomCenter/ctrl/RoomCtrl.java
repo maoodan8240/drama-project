@@ -6,6 +6,7 @@ import drama.protos.EnumsProtos;
 import ws.common.utils.mc.controler.Controler;
 
 import java.util.List;
+import java.util.Map;
 
 public interface RoomCtrl extends Controler<Room> {
     /**
@@ -174,4 +175,49 @@ public interface RoomCtrl extends Controler<Room> {
      */
     void chooseRole(RoomPlayer roomPlayer);
 
+    /**
+     * 根据答题答案获取对应的角色优先级列表
+     *
+     * @param optionsList
+     * @param dramaId
+     * @param sex
+     * @return
+     */
+    List<Integer> getRightAnswerIdx(List<String> optionsList, int dramaId, EnumsProtos.SexEnum sex);
+
+    /**
+     * 删除角色
+     *
+     * @param roleId
+     */
+    void removeRole(int roleId);
+
+    /**
+     * 投凶
+     *
+     * @param playerId
+     * @param roleId
+     */
+    void addVote(String playerId, int roleId);
+
+    /**
+     * 剩余几人未投票
+     *
+     * @return
+     */
+    int RemainNum();
+
+    /**
+     * 获取投凶结果
+     *
+     * @return
+     */
+    Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId();
+
+    /**
+     * 是否可以解锁下一阶段
+     *
+     * @return
+     */
+    boolean isTimeCanReady();
 }

@@ -19,4 +19,6 @@ public interface PlayerIOCtrl extends Controler<Player> {
     void sendLoginResponse(Player player, PlayerLoginProtos.Sm_Login.Action action);
 
     void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer);
+
+    boolean isInRoom();
 }

@@ -70,6 +70,7 @@ public class In_RoomNetWorkMsgAction implements Action {
                         case Cm_Room.Action.SYNC_PLAYER_CLUE_VALUE:
                         case Cm_Room.Action.SYNC_CAN_SEARCH_VALUE:
                         case Cm_Room.Action.IS_DUB_VALUE:
+                        case Cm_Room.Action.VOTE_VALUE:
                             //以上Action都是需要传一个roomId的请求
                             onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                             break;
@@ -154,7 +155,7 @@ public class In_RoomNetWorkMsgAction implements Action {
         String roomActorName = ActorSystemPath.DM_GameServer_Room + roomId;
         ActorRef actorRef = worldActorContext.actorOf(Props.create(RoomActor.class, roomCtrl, roomId, player.getPlayerId()), roomActorName);
         worldActorContext.watch(actorRef);
-        worldCtrl.putRoomActorRef(roomId, actorRef);
+        worldCtrl.addRoomActorRef(roomId, actorRef);
         actorRef.tell(msg, self);
     }
 

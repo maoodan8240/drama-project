@@ -24,7 +24,7 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
         target.getClueIds().add(clueId);
     }
 
-    public void subSrchTimes() {
+    public void reduceSrchTimes() {
         target.setSrchTimes(target.getSrchTimes() - MagicNumbers.DEFAULT_ONE > MagicNumbers.DEFAULT_ZERO ? target.getSrchTimes() - MagicNumbers.DEFAULT_ONE : MagicNumbers.DEFAULT_ZERO);
     }
 
@@ -36,6 +36,11 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
     @Override
     public int getRoleId() {
         return target.getRoleId();
+    }
+
+    @Override
+    public boolean hasRole() {
+        return getRoleId() != 0;
     }
 
     @Override
@@ -59,13 +64,13 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
     }
 
     @Override
-    public boolean isDub() {
-        return target.isDub();
+    public int getIsDub() {
+        return target.getIsDub();
     }
 
     @Override
-    public void setDub(boolean b) {
-        target.setDub(b);
+    public void setDub(int isDub) {
+        target.setIsDub(isDub);
     }
 
     @Override

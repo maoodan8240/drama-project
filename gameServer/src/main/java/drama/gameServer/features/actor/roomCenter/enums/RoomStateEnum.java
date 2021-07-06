@@ -12,6 +12,7 @@ public enum RoomStateEnum {
     VOTE("VOTE", EnumsProtos.RoomStateEnum.VOTE),           //  投凶
     REVIEW("REVIEW", EnumsProtos.RoomStateEnum.REVIEW),     //  复盘
     ENDING("ENDING", EnumsProtos.RoomStateEnum.ENDING),     //  结束
+    SOLO("SOLO", EnumsProtos.RoomStateEnum.SOLO),           //  独白
     ;
 
     private String name;
