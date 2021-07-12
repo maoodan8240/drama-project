@@ -78,4 +78,9 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
         return target.getClueIds();
     }
 
+    @Override
+    public void addSoloAnswer(int soloNum, int soloDramaId) {
+        target.getSoloAnswer().put(soloNum, soloDramaId);
+    }
+
 }

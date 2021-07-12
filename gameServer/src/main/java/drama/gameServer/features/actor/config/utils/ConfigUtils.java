@@ -24,21 +24,21 @@ public class ConfigUtils {
         }
     }
 
-    public static TableDataRow getTableDataRow(String tableName, String columnName, String value) {
-        TableDataRow result = null;
-        TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
-        for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
-            TableDataRow row = (TableDataRow) tableDataTxt.getRows().get(rowIdx);
-            for (int columnIdx = 0; columnIdx < row.getCells().size(); ++columnIdx) {
-                String tableColumnName = tableDataTxt.getHeaderDatas().get(columnIdx).getName();
-                String tableValue = row.getCells().get(columnIdx).getCell();
-                if (columnName.equals(tableColumnName) && value.equals(tableValue)) {
-                    result = row;
-                }
-            }
-        }
-        return result;
-    }
+//    public static TableDataRow getTableDataRow(String tableName, String columnName, String value) {
+//        TableDataRow result = null;
+//        TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
+//        for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
+//            TableDataRow row = (TableDataRow) tableDataTxt.getRows().get(rowIdx);
+//            for (int columnIdx = 0; columnIdx < row.getCells().size(); ++columnIdx) {
+//                String tableColumnName = tableDataTxt.getHeaderDatas().get(columnIdx).getName();
+//                String tableValue = row.getCells().get(columnIdx).getCell();
+//                if (columnName.equals(tableColumnName) && value.equals(tableValue)) {
+//                    result = row;
+//                }
+//            }
+//        }
+//        return result;
+//    }
 
     public static List<TableDataRow> getTableDataRow(String tableName) {
         List<TableDataRow> result = new ArrayList<>();
@@ -55,8 +55,8 @@ public class ConfigUtils {
         return tableDataTxt.getHeaderDatas();
     }
 
-    public static TableDataRow getTableDataRow(String tableName, List<CommonProtos.Cm_Common_Args> argsList) {
-        TableDataRow result = null;
+    public static List<TableDataRow> getTableDataRow(String tableName, List<CommonProtos.Cm_Common_Args> argsList) {
+        List<TableDataRow> result = new ArrayList<>();
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
         List<Boolean> conditionResult = new ArrayList<>();
         for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
@@ -74,13 +74,48 @@ public class ConfigUtils {
                     }
                 }
                 //这个row里的字段的值都和请求的字段和值都对上了
-                //比对结果的正确数和请求的字段数量一致,直接返回这个row
+                //比对结果的正确数和请求的字段数量一致,添加row到reslut中
                 if (conditionResult.size() == argsList.size()) {
-                    result = row;
+                    result.add(row);
                     break;
                 }
             }
         }
         return result;
+    }
+
+
+    public static void setAction(CommonProtos.Sm_Common_Config.Builder b, CommonProtos.Cm_Common_Config cm_common_config) {
+        switch (cm_common_config.getAction().getNumber()) {
+            case CommonProtos.Cm_Common_Config.Action.ACTER_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_ACTER);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.STAGE_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_STAGE);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SUBJECT_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SUBJECT);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.RESULT_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_RESULT);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SCENELIST_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SCENELIST);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.RUNDOWN_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_RUNDOWN);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.MURDER_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_MURDER);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SOLO_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SOLO);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SOLODRAMA_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SOLODRAMA);
+                break;
+            default:
+                break;
+        }
     }
 }

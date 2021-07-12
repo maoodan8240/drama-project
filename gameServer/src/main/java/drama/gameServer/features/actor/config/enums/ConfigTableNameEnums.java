@@ -4,12 +4,15 @@ import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import drama.protos.CommonProtos;
 
 public enum ConfigTableNameEnums {
-    STAGE(CommonProtos.Cm_Common_Config.Action.STAGE, "Table_Stage"),                   //	小剧场
-    ACTER(CommonProtos.Cm_Common_Config.Action.ACTER, "Table_Acter"),                   //	角色表
-    SUBJECT(CommonProtos.Cm_Common_Config.Action.SUBJECT, "Table_Subject"),             //	选角题目
-    RESULT(CommonProtos.Cm_Common_Config.Action.RESULT, "Table_Result"),                //	选角答案对应角色ID
-    SCENELIST(CommonProtos.Cm_Common_Config.Action.SCENELIST, "Table_SceneList"),       //    剧本列表以及详情
-    RUNDOWN(CommonProtos.Cm_Common_Config.Action.RUNDOWN, "Table_RunDown"),             //    剧本流程
+    STAGE(CommonProtos.Cm_Common_Config.Action.STAGE, "Table_Stage"),                   //      小剧场
+    ACTER(CommonProtos.Cm_Common_Config.Action.ACTER, "Table_Acter"),                   //      角色表
+    SUBJECT(CommonProtos.Cm_Common_Config.Action.SUBJECT, "Table_Subject"),             //      选角题目
+    RESULT(CommonProtos.Cm_Common_Config.Action.RESULT, "Table_Result"),                //      选角答案对应角色ID
+    SCENELIST(CommonProtos.Cm_Common_Config.Action.SCENELIST, "Table_SceneList"),       //      剧本列表以及详情
+    RUNDOWN(CommonProtos.Cm_Common_Config.Action.RUNDOWN, "Table_RunDown"),             //      剧本流程
+    MURDER(CommonProtos.Cm_Common_Config.Action.MURDER, "Table_Murder"),                //      投凶表
+    SOLO(CommonProtos.Cm_Common_Config.Action.SOLO, "Table_Solo"),                      //      独白
+    SOLODRAMA(CommonProtos.Cm_Common_Config.Action.SOLODRAMA, "Table_SoloDrama"),       //      独白剧本
     ;
 
 

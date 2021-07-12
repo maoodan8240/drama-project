@@ -217,7 +217,29 @@ public interface RoomCtrl extends Controler<Room> {
     /**
      * 是否可以解锁下一阶段
      *
-     * @return
+     * @return boolean
      */
     boolean isTimeCanReady();
+
+    /**
+     * 凶手是否被投中
+     *
+     * @return boolean
+     */
+    boolean isVotedMurder(int roleId);
+
+    /**
+     * 房间在线玩家人数
+     *
+     * @return
+     */
+    int getRoomPlayerNum();
+
+    /**
+     * 这个角色线索是否已经搜完
+     *
+     * @param typeName
+     * @return
+     */
+    boolean isEmptyClue(String typeName);
 }

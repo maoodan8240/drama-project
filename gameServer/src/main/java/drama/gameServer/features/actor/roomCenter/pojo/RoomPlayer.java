@@ -1,7 +1,9 @@
 package drama.gameServer.features.actor.roomCenter.pojo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RoomPlayer {
     private String playerId;
@@ -10,12 +12,17 @@ public class RoomPlayer {
     private int isDub = -1;
     private int srchTimes;
     private String roomId;
+    private Map<Integer, Integer> soloAnswer = new HashMap<>();
 
     private List<Integer> clueIds = new ArrayList<>();
 
     public RoomPlayer(String playerId, String roomId) {
         this.playerId = playerId;
         this.roomId = roomId;
+    }
+
+    public Map<Integer, Integer> getSoloAnswer() {
+        return soloAnswer;
     }
 
     public String getRoomId() {

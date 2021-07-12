@@ -45,4 +45,6 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
     void setDub(int isDub);
 
     List<Integer> getClueIds();
+
+    void addSoloAnswer(int sloloNum, int soloDramaId);
 }

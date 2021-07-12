@@ -3,6 +3,7 @@ package drama.gameServer.features.actor.playerIO.ctrl;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
+import drama.gameServer.features.actor.roomCenter.msg.In_playerOnOpenDubRoomMsg;
 import drama.gameServer.features.actor.roomCenter.pojo.RoomPlayer;
 import drama.protos.CodesProtos;
 import drama.protos.MessageHandlerProtos;
@@ -11,6 +12,7 @@ import drama.protos.RoomProtos;
 import org.apache.commons.lang3.StringUtils;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.utils.mc.controler.AbstractControler;
+import ws.common.utils.message.interfaces.InnerMsg;
 import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
@@ -59,6 +61,20 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
 
+    public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, InnerMsg msg) {
+        In_playerOnOpenDubRoomMsg message = (In_playerOnOpenDubRoomMsg) msg;
+        MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
+        bRoom.setAction(action);
+        bRoom.setRoomPlayerNum(message.getPlayerNum());
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer);
+        bRoom.setRoomPlayer(sm_room_player);
+        response.setSmRoom(bRoom.build());
+        send(response.build());
+    }
+
+    @Override
     public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer) {
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
         response.setResult(true);
@@ -73,5 +89,18 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     @Override
     public boolean isInRoom() {
         return !StringUtils.isEmpty(target.getRoomId());
+    }
+
+    @Override
+    public void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum) {
+        MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
+        bRoom.setAction(action);
+        int soloDramaId = roomPlayer.getSoloAnswer().get(soloNum);
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSoloSmRoomPlayer(roomPlayer, soloDramaId);
+        bRoom.setRoomPlayer(sm_room_player);
+        response.setSmRoom(bRoom.build());
+        send(response.build());
     }
 }

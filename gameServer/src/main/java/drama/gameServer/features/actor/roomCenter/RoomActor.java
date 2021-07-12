@@ -12,8 +12,10 @@ import dm.relationship.base.msg.room.In_PlayerQuitRoomMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.table.RootTc;
 import dm.relationship.table.tableRows.Table_Acter_Row;
+import dm.relationship.table.tableRows.Table_Murder_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
+import dm.relationship.table.tableRows.Table_Solo_Row;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.roomCenter.ctrl.RoomCtrl;
@@ -21,11 +23,13 @@ import drama.gameServer.features.actor.roomCenter.ctrl.RoomPlayerCtrl;
 import drama.gameServer.features.actor.roomCenter.msg.In_CheckPlayerAllReadyMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerChooseRoleRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerCreateRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerIsVotedRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerJoinRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnCanSearchRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnReadyRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnSwitchStateRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSearchRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSoloResultRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSyncClueRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteResultRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteRoomMsg;
@@ -43,7 +47,6 @@ import drama.protos.RoomProtos.Cm_Room.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
-import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.message.interfaces.InnerMsg;
 
@@ -123,7 +126,7 @@ public class RoomActor extends DmActor {
             try {
                 switch (cm_room.getAction().getNumber()) {
                     case Action.CREAT_VALUE:
-                        onCreateRoomMsg(cm_room, msg.getConnection(), msg.getPlayer());
+                        onCreateRoomMsg(cm_room, msg.getPlayer());
                         break;
                     case Action.JION_VALUE:
                         onJoinRoomMsg(cm_room, msg.getPlayer());
@@ -138,7 +141,8 @@ public class RoomActor extends DmActor {
                         onReady(msg.getPlayer(), cm_room.getState(), cm_room.getStateTimes(), cm_room.getHandsDown());
                         break;
                     case Action.IS_DUB_VALUE:
-                        onOpenDub(msg.getPlayer(), cm_room.getIsDub());
+                    case Action.SOLO_DUB_VALUE:
+                        onOpenDub(msg.getPlayer(), cm_room.getIsDub(), cm_room.getAction(), cm_room.getSoloNum());
                         break;
                     case Action.SEARCH_VALUE:
                         onSearch(msg.getPlayer(), cm_room.getTypeName());
@@ -155,6 +159,15 @@ public class RoomActor extends DmActor {
                     case Action.VOTE_VALUE:
                         onVote(msg.getPlayer(), cm_room.getRoleId());
                         break;
+                    case Action.VOTE_RESULT_VALUE:
+                        onVoteResult(msg.getPlayer());
+                        break;
+                    case Action.SOLO_ANSWER_VALUE:
+                        onSoloAnswer(msg.getPlayer(), cm_room.getOptionsList(), cm_room.getSoloNum());
+                        break;
+                    case Action.IS_VOTED_VALUE:
+                        onIsVoted(msg.getPlayer());
+                        break;
                     default:
                         break;
                 }
@@ -165,8 +178,50 @@ public class RoomActor extends DmActor {
         }
     }
 
+    private void onIsVoted(Player player) {
+        _checkRoomContainsPlayer(player);
+        int murderRoleId = Table_Murder_Row.getMurderRoleId();
+        boolean isVoted = roomCtrl.isVotedMurder(murderRoleId);
+        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
+        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerIsVotedRoomMsg(murderRoleId, isVoted), ActorRef.noSender());
+    }
+
+    private void onVoteResult(Player player) {
+        _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
+            _tellAllRoomPlayer(new In_PlayerVoteResultRoomMsg(roomCtrl.getVoteRoleIdToPlayerRoleId()), ActorRef.noSender());
+        } else {
+            String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
+            DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerVoteResultRoomMsg(roomCtrl.getVoteRoleIdToPlayerRoleId()), ActorRef.noSender());
+        }
+    }
+
+    private void onSoloAnswer(Player player, List<String> optionsList, int soloNum) {
+        _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SOLO) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        int soloDramaId = 0;
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        Table_Solo_Row soloRow = Table_Solo_Row.getSoloRowByRoleId(roomPlayerCtrl.getRoleId(), soloNum);
+        if (Table_Murder_Row.isMurder(roomPlayerCtrl.getRoleId()) && !roomCtrl.isVotedMurder(roomPlayerCtrl.getRoleId())) {
+            //是凶手 没被投中
+            soloDramaId = Integer.valueOf(soloRow.getEscapeDramaId(optionsList.get(MagicNumbers.DEFAULT_ZERO)));
+        } else {
+            soloDramaId = soloRow.getSoloDramaId(optionsList.get(MagicNumbers.DEFAULT_ZERO));
+        }
+        roomPlayerCtrl.addSoloAnswer(soloNum, soloDramaId);
+        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
+        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSoloResultRoomMsg(soloDramaId), ActorRef.noSender());
+    }
+
     private void onVote(Player player, int roleId) {
         _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.VOTE) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
         roomCtrl.addVote(player.getPlayerId(), roleId);
         int remainNum = roomCtrl.RemainNum();
         String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
@@ -189,46 +244,6 @@ public class RoomActor extends DmActor {
     }
 
 
-    private void onSearch(Player player, String typeName) {
-        _checkRoomContainsPlayer(player);
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SEARCH) {
-            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
-        //TODO 读配置 判断剩余次数
-        List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(roomCtrl.getDramaId());
-        if (acterRowList == null) {
-            String msg = String.format("剧本ID不存在....那房间咋能创建成功呢,dramaId=%s", roomCtrl.getDramaId());
-            LOGGER.debug(msg);
-            return;
-        }
-        if (roomPlayerCtrl.getSrchTimes() == MagicNumbers.DEFAULT_ZERO) {
-            String msg = String.format("搜证次数已经用完了,这个请求应该被客户端挡住的! playerId=%s", player.getPlayerId());
-            LOGGER.debug(msg);
-            return;
-        }
-        // 获取线索配置 by typeId
-        List<Table_Search_Row> srchRowList = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, roomCtrl.getRoomStateTimes());
-        int id = MagicNumbers.DEFAULT_ZERO;
-        for (Table_Search_Row row : srchRowList) {
-            //房间线索和玩家的线索都没有这条线索才可以搜取
-            if (!roomCtrl.containsClueId(row.getId()) && !roomPlayerCtrl.containsClueId(row.getId())) {
-                roomPlayerCtrl.addClueId(row.getId());
-                roomCtrl.addClueId(row.getId());
-                //一次只能搜一条线索,搜到就break;
-                id = row.getId();
-                roomPlayerCtrl.reduceSrchTimes();
-                break;
-            }
-            //如果没进上面的判断代表关于这个typeId的线索都搜索完了
-        }
-        //发往playerActor回消息
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSearchRoomMsg(id, roomPlayerCtrl.getTarget()), ActorRef.noSender());
-        checkPlayerFinishSearchShowHideClueMsg();
-    }
-
     private void checkPlayerFinishSearchShowHideClueMsg() {
         if (roomCtrl.checkPlayerFinishSearch()) {
             //所有人都已经用完了搜证次数,并且有隐藏配置,放进房间里,然后同步给玩家
@@ -243,12 +258,19 @@ public class RoomActor extends DmActor {
     }
 
 
-    private void onOpenDub(Player player, int isDub) {
+    private void onOpenDub(Player player, int isDub, Action action, int soloNum) {
         _checkRoomContainsPlayer(player);
-        if (roomCtrl.getRoomState() == EnumsProtos.RoomStateEnum.STAGE) {
+        if (roomCtrl.getRoomState() == EnumsProtos.RoomStateEnum.STAGE || roomCtrl.getRoomState() == EnumsProtos.RoomStateEnum.SOLO) {
             RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
             roomPlayerCtrl.setDub(isDub);
-            _tellAllRoomPlayer(new In_playerOnOpenDubRoomMsg(roomPlayerCtrl.getTarget()), ActorRef.noSender());
+            RoomProtos.Sm_Room.Action respAction;
+            if (action == Action.IS_DUB) {
+                respAction = RoomProtos.Sm_Room.Action.RESP_IS_DUB;
+            } else {
+                respAction = RoomProtos.Sm_Room.Action.RESP_SOLO_DUB;
+            }
+            int roomPlayerNum = roomCtrl.getRoomPlayerNum();
+            _tellAllRoomPlayer(new In_playerOnOpenDubRoomMsg(roomPlayerCtrl.getTarget(), respAction, soloNum, roomPlayerNum), ActorRef.noSender());
         } else {
             LOGGER.debug("请求准备的状态和房间状态不匹配 playerId={}, RequestStateEnum={},RoomStateEnum={},RequestStateTimes={},RoomStateTimes={}", //
                     player.getPlayerId(), roomCtrl.getRoomState(), roomCtrl.getRoomState().toString(), roomCtrl.getRoomStateTimes(), roomCtrl.getRoomStateTimes());//
@@ -309,15 +331,55 @@ public class RoomActor extends DmActor {
         }
     }
 
+    private void onSearch(Player player, String typeName) {
+        _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SEARCH) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        //TODO 读配置 判断剩余次数
+        List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(roomCtrl.getDramaId());
+        if (acterRowList == null) {
+            String msg = String.format("剧本ID不存在....那房间咋能创建成功呢,dramaId=%s", roomCtrl.getDramaId());
+            LOGGER.debug(msg);
+            return;
+        }
+        if (roomPlayerCtrl.getSrchTimes() == MagicNumbers.DEFAULT_ZERO) {
+            String msg = String.format("搜证次数已经用完了,这个请求应该被客户端挡住的! playerId=%s", player.getPlayerId());
+            LOGGER.debug(msg);
+            return;
+        }
+        // 获取线索配置 by typeId
+        List<Table_Search_Row> srchRowList = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, roomCtrl.getRoomStateTimes());
+        int id = MagicNumbers.DEFAULT_ZERO;
+        for (Table_Search_Row row : srchRowList) {
+            //房间线索和玩家的线索都没有这条线索才可以搜取
+            if (!roomCtrl.containsClueId(row.getId()) && !roomPlayerCtrl.containsClueId(row.getId())) {
+                roomPlayerCtrl.addClueId(row.getId());
+                roomCtrl.addClueId(row.getId());
+                //一次只能搜一条线索,搜到就break;
+                id = row.getId();
+                roomPlayerCtrl.reduceSrchTimes();
+                break;
+            }
+            //如果没进上面的判断代表关于这个typeId的线索都搜索完了
+        }
+        //发往playerActor回消息
+        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
+        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSearchRoomMsg(id, roomPlayerCtrl.getTarget()), ActorRef.noSender());
+        checkPlayerFinishSearchShowHideClueMsg();
+    }
 
     private void onCanSearch(Player player) {
         _checkRoomContainsPlayer(player);
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
         List<Table_SearchType_Row> values = RootTc.get(Table_SearchType_Row.class).values();
-        List<Table_SearchType_Row> result = values.stream().filter(it -> !roomCtrl.getClueIds().contains(it.getId()) && roomCtrl.getRoomStateTimes() == it.getSrchNum()).collect(Collectors.toList());
+        List<Table_SearchType_Row> result = values.stream().filter(it -> roomCtrl.getRoomStateTimes() == it.getSrchNum()).collect(Collectors.toList());
         List<Integer> typeIds = new ArrayList<>();
         for (Table_SearchType_Row row : result) {
-            if (!typeIds.contains(row.getTypeId()) && row.getRoleId() != roomPlayerCtrl.getRoleId()) {
+            //可搜索列表中不能已经包含这个id,房间线索中不能
+            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename()) && row.getRoleId() != roomPlayerCtrl.getRoleId()) {
                 typeIds.add(row.getTypeId());
             }
         }
@@ -376,7 +438,7 @@ public class RoomActor extends DmActor {
     }
 
 
-    private void onCreateRoomMsg(Cm_Room cm_room, Connection connection, Player player) {
+    private void onCreateRoomMsg(Cm_Room cm_room, Player player) {
         LOGGER.debug("RoomActor收到消息: onCreateRoom playerId = {}, roomId ={}, dramaName={}", masterId, roomId, cm_room.getDramaId());
         roomCtrl.createRoom(roomId, player.getPlayerId(), cm_room.getDramaId());
         RoomContainer.add(roomCtrl.getTarget(), masterId);

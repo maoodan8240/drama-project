@@ -17,11 +17,13 @@ import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
 import drama.gameServer.features.actor.roomCenter.msg.In_CheckPlayerAllReadyMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerChooseRoleRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerCreateRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerIsVotedRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerJoinRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnCanSearchRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnReadyRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerOnSwitchStateRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSearchRoomMsg;
+import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSoloResultRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerSyncClueRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteResultRoomMsg;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerVoteRoomMsg;
@@ -43,6 +45,8 @@ import ws.common.utils.message.interfaces.InnerMsg;
 
 import java.util.List;
 import java.util.Map;
+
+import static drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils.createSmRoomMurder;
 
 
 public class PlayerIOActor extends DmActor {
@@ -93,7 +97,35 @@ public class PlayerIOActor extends DmActor {
             onPlayerVoteRoomMsg((In_PlayerVoteRoomMsg) msg);
         } else if (msg instanceof In_PlayerVoteResultRoomMsg) {
             onPlayerVoteResultRoomMsg((In_PlayerVoteResultRoomMsg) msg);
+        } else if (msg instanceof In_PlayerSoloResultRoomMsg) {
+            onPlayerSoloResultRoomMsg((In_PlayerSoloResultRoomMsg) msg);
+        } else if (msg instanceof In_PlayerIsVotedRoomMsg) {
+            onPlayerIsVotedRoomMsg((In_PlayerIsVotedRoomMsg) msg);
         }
+    }
+
+    private void onPlayerIsVotedRoomMsg(In_PlayerIsVotedRoomMsg msg) {
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_IS_VOTED;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        RoomProtos.Sm_Room_Murder.Builder bm = createSmRoomMurder(msg);
+        b.setAction(action);
+        b.setMurder(bm.build());
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
+    }
+
+
+    private void onPlayerSoloResultRoomMsg(In_PlayerSoloResultRoomMsg msg) {
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SOLO_ANSWER;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        b.setSoloDramaId(msg.getSoloDramaId());
+        b.setAction(action);
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
     }
 
     private void onPlayerVoteResultRoomMsg(In_PlayerVoteResultRoomMsg msg) {
@@ -170,9 +202,13 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerOnOpenDubRoomMsg(In_playerOnOpenDubRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_IS_DUB;
+        RoomProtos.Sm_Room.Action action = msg.getAction();
         RoomPlayer roomPlayer = msg.getRoomPlayer();
-        playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer);
+        if (action == RoomProtos.Sm_Room.Action.RESP_IS_DUB) {
+            playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer, msg);
+        } else if (action == RoomProtos.Sm_Room.Action.RESP_SOLO_DUB) {
+            playerIOCtrl.sendSoloRoomPlayer(action, roomPlayer, msg.getSoloNum());
+        }
     }
 
 

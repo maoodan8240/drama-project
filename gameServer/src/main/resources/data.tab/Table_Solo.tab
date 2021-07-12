@@ -1,0 +1,9 @@
+ID	状态	剧情铺垫	第几次Solo	角色ID	凶手逃脱剧情铺垫	凶手逃脱选择	凶手逃脱独白	灵魂选择	独白剧本
+Id	SoloStatus	PreShow	SoloNum	RoleId	EscapePreShow	EscapeChoice	EscapeDrama	SoloChoice	SoloDrama
+int	string	string	int	int	string	string	string	string	string
+1	solo11	presoloqq	1	6				让路之遥和你一起离开,让路之遥留下当元帅,选不出来	A:1,B:2,C:3
+2	solo12	presolojls	1	3				杀了青青,跟青青一起走	A:4,B:5
+3	solo13	presologxj	1	1				表白,不表白	A:6,B:7
+4	solo14	presololty	1	4				恢复女儿身,保守秘密	A:8,B:9
+5	solo15	presolols	1	2	escapepresolols		A:10	潜心修行,认祖归宗	A:11,B:12
+6	solo16	presoloth	1	5					A:13

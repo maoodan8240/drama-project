@@ -11,6 +11,7 @@ import dm.relationship.table.tableRows.Table_Acter_Row;
 import dm.relationship.table.tableRows.Table_Result_Row;
 import dm.relationship.table.tableRows.Table_RunDown_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
+import dm.relationship.table.tableRows.Table_Search_Row;
 import dm.relationship.topLevelPojos.simpleId.SimpleId;
 import drama.gameServer.features.actor.roomCenter.enums.RoomStateEnum;
 import drama.gameServer.features.actor.roomCenter.pojo.Room;
@@ -44,14 +45,21 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public List<Integer> getRightAnswerIdx(List<String> optionsList, int dramaId, EnumsProtos.SexEnum sex) {
         List<Integer> resIdx = new ArrayList<>();
+        List<String> result = new ArrayList<>();
         List<Table_Result_Row> rows = Table_Result_Row.getTableResultRowByDramaIdAndSex(dramaId, sex);
         for (Table_Result_Row row : rows) {
             if (optionsList.size() == row.getAnswer().size()) {
-                long count = row.getAnswer().stream().filter(it -> !optionsList.contains(it)).count();
-                if (count == MagicNumbers.DEFAULT_ZERO) {
-                    resIdx = row.getResult();
-                    break;
+                //位置和答案都对上才算完全答对
+                for (int i = 0; i < optionsList.size(); i++) {
+                    if (!row.getAnswer().get(i).equals(optionsList.get(i))) {
+                        result.add(row.getAnswer().get(i));
+                    }
                 }
+            }
+            if (result.size() == 0) {
+                resIdx = row.getResult();
+            } else {
+                result.clear();
             }
         }
         return resIdx;
@@ -136,9 +144,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public boolean checkAllPlayerReady() {
 //        Integer plaNum = RootTc.get(Table_SceneList_Row.class).get(target.getDramaId()).getPlaNum();
-//        if (target.getIdToRoomPlayer().size() < 4) {
-//            return false;
-//        }
+        //TODO
+        if (target.getIdToRoomPlayer().size() < 2) {
+            return false;
+        }
         for (Map.Entry<String, RoomPlayer> roomPlayerEntry : target.getIdToRoomPlayer().entrySet()) {
             if (!roomPlayerEntry.getValue().isReady() || roomPlayerEntry.getValue().getRoleId() == 0) {
                 return false;
@@ -239,6 +248,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             RoomPlayer player = entry.getValue();
             player.setReady(false);
             player.setSrchTimes(0);
+            player.setIsDub(-1);
             if (roomState == EnumsProtos.RoomStateEnum.SEARCH) {
                 List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(getDramaId());
                 int srchNumAndTimes = Table_Acter_Row.getSrchTimes(acterRowList, player.getRoleId(), stateTimes);
@@ -269,8 +279,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         for (Map.Entry<Integer, List<Integer>> entry : target.getVoteRoleIdToPlayerRoleId().entrySet()) {
             num += entry.getValue().size();
         }
-//        return target.getPlayerNum() - num;
-        return 0;
+        //TODO
+        return 2 - num;
+//        return 0;
     }
 
     @Override
@@ -283,5 +294,36 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 //        return System.currentTimeMillis() >= getTarget().getNextSTime();
         //TODO 打开判断
         return true;
+    }
+
+    @Override
+    public boolean isVotedMurder(int roleId) {
+        int size = target.getVoteRoleIdToPlayerRoleId().get(roleId).size();
+        boolean flag = true;
+        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteRoleIdToPlayerRoleId().entrySet()) {
+            if (entry.getKey() != roleId && entry.getValue().size() >= size) {
+                flag = false;
+            }
+        }
+        return flag;
+    }
+
+    @Override
+    public int getRoomPlayerNum() {
+        return target.getIdToRoomPlayerCtrl().size();
+    }
+
+    @Override
+    public boolean isEmptyClue(String typeName) {
+        boolean flag = true;
+        List<Table_Search_Row> rows = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, getRoomStateTimes());
+        for (Table_Search_Row row : rows) {
+            if (containsClueId(row.getId())) {
+                continue;
+            } else {
+                flag = false;
+            }
+        }
+        return flag;
     }
 }
