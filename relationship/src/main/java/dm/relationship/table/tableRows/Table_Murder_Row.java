@@ -55,7 +55,7 @@ public class Table_Murder_Row extends AbstractRow {
         return roleName;
     }
 
-    public Boolean getMurder() {
+    public Boolean isMurder() {
         return murder;
     }
 
@@ -81,32 +81,42 @@ public class Table_Murder_Row extends AbstractRow {
         return allRoleIds;
     }
 
-    public static String getRoleNameByRoleId(int roleId) {
+
+    public static boolean isMurder(int roleId) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
             if (value.getRoleId() == roleId) {
-                return value.getRoleName();
+                return value.isMurder();
             }
         }
-        String msg = String.format("getRoleNameByRoleId failed, roleId=%s", roleId);
-        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, roleId, msg);
+        return false;
     }
 
-    public static String getRolePicByRoleId(int roleId) {
+    public static Table_Murder_Row getMurderRowByRoleId(int roleId) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
             if (value.getRoleId() == roleId) {
-                return value.getRolePic();
+                return value;
             }
         }
-        String msg = String.format("getRolePicByRoleId failed, roleId=%s", roleId);
+        String msg = String.format("getMurderRowByRoleId failed, roleId=%s", roleId);
         throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, roleId, msg);
     }
 
     public static List<String> getRolePicByRoleIds(List<Integer> roleIds) {
         List<String> rolePic = new ArrayList<>();
         for (Integer roleId : roleIds) {
-            rolePic.add(getRolePicByRoleId(roleId));
+            Table_Murder_Row murderRow = getMurderRowByRoleId(roleId);
+            rolePic.add(murderRow.getRolePic());
         }
         return rolePic;
     }
 
+    public static int getMurderRoleId() {
+        for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
+            if (value.isMurder()) {
+                return value.getRoleId();
+            }
+        }
+        String msg = String.format("getMurderRoleId failed, roleId=%s", 0);
+        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, 0, msg);
+    }
 }

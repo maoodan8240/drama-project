@@ -77,15 +77,16 @@ public class Table_SearchType_Row extends AbstractRow {
         return typeNamesAndPic;
     }
 
-    public static String getTypeNameById(int typeId) {
+    public static Table_SearchType_Row getSearchTypeRow(int typeId) {
         for (Table_SearchType_Row value : RootTc.get(Table_SearchType_Row.class).values()) {
             if (value.getTypeId() == typeId) {
-                return value.getTypename();
+                return value;
             }
         }
-        String msg = String.format("没有找到对应的名字, typeId=%s", typeId);
+        String msg = String.format("没有找到对应的typeId, typeId=%s", typeId);
         throw new TableRowLogicCheckFailedException(Table_SearchType_Row.class, typeId, msg);
     }
+
 
     public static int getTypeIdByName(String typeName, int stateTimes) {
         for (Table_SearchType_Row value : RootTc.get(Table_SearchType_Row.class).values()) {

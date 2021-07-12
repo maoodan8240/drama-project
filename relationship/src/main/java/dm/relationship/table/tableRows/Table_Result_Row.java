@@ -62,17 +62,7 @@ public class Table_Result_Row extends AbstractRow {
         return sceneId;
     }
 
-    public static List<Table_Result_Row> getTableResultRowByDramaId(int dramaId) {
-        List<Table_Result_Row> dramaRowList = new ArrayList<>();
-        List<Table_Result_Row> values = RootTc.get(Table_Result_Row.class).values();
-        for (Table_Result_Row value : values) {
-            if (value.getSceneId() == dramaId) {
-                dramaRowList.add(value);
-            }
-        }
-        return dramaRowList;
-    }
-
+  
     public static List<Table_Result_Row> getTableResultRowByDramaIdAndSex(int dramaId, EnumsProtos.SexEnum sexEnum) {
         List<Table_Result_Row> dramaRowList = new ArrayList<>();
         List<Table_Result_Row> values = RootTc.get(Table_Result_Row.class).values();
@@ -86,5 +76,5 @@ public class Table_Result_Row extends AbstractRow {
         return dramaRowList;
     }
 
-   
+
 }
