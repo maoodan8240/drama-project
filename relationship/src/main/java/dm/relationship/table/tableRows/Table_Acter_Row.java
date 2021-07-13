@@ -1,5 +1,6 @@
 package dm.relationship.table.tableRows;
 
+import dm.relationship.exception.TableRowLogicCheckFailedException;
 import dm.relationship.table.RootTc;
 import drama.protos.EnumsProtos;
 import ws.common.table.table.exception.CellParseFailedException;
@@ -103,6 +104,16 @@ public class Table_Acter_Row extends AbstractRow {
 
         }
         return null;
+    }
+
+    public static Table_Acter_Row getTableActerRowByRoleId(int roleId) {
+        for (Table_Acter_Row value : RootTc.get(Table_Acter_Row.class).values()) {
+            if (value.getRoleId() == roleId) {
+                return value;
+            }
+        }
+        String msg = String.format("getTableActerRowByRoleId failed, roleId=%s", 0);
+        throw new TableRowLogicCheckFailedException(Table_Acter_Row.class, 0, msg);
     }
 
     public static List<Table_Acter_Row> getTableActerRowByDramaId(int dramaId) {

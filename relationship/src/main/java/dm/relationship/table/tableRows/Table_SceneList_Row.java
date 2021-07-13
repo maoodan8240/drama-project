@@ -33,7 +33,7 @@ public class Table_SceneList_Row extends AbstractRow {
      */
     private String theme;
     /**
-     * string 剧本流程（ANSWER:选择角色,READ:播放剧本,STAGE:小剧场,TALK:公聊,SEARCH:搜证,VOTE:投凶,REVIEW:复盘,ENDING:结束）
+     * string 剧本流程（ANSWER:选择角色,READ:播放剧本,STAGE:小剧场,TALK:公聊,SEARCH:搜证,VOTE:投凶,SOLO:内心独白,REVIEW:复盘,ENDING:结束）
      */
     private TupleListCell<String> runDown;
     /**
@@ -43,7 +43,7 @@ public class Table_SceneList_Row extends AbstractRow {
     /**
      * int 剧本图片
      */
-    private Integer pic;
+    private String pic;
     /**
      * string 剧本简介
      */
@@ -59,7 +59,7 @@ public class Table_SceneList_Row extends AbstractRow {
         // id column = {columnName:"Id", columnDesc:"ID"}
         name = CellParser.parseSimpleCell("Name", map, String.class);
         brief = CellParser.parseSimpleCell("Brief", map, String.class);
-        pic = CellParser.parseSimpleCell("Pic", map, Integer.class);
+        pic = CellParser.parseSimpleCell("Pic", map, String.class);
         time = CellParser.parseSimpleCell("Time", map, Double.class);
         theme = CellParser.parseSimpleCell("Theme", map, String.class);
         rate = CellParser.parseSimpleCell("Rate", map, Double.class);
@@ -96,7 +96,7 @@ public class Table_SceneList_Row extends AbstractRow {
         return time;
     }
 
-    public Integer getPic() {
+    public String getPic() {
         return pic;
     }
 

@@ -389,13 +389,19 @@ public class RoomActor extends DmActor {
 
     private void onJoinRoomMsg(Cm_Room cm_room, Player player) {
         Room room = roomCtrl.getTarget();
+
         if (roomCtrl.checkRoomIsFull()) {
             LOGGER.debug("房间已满,playerId={},roomId={}", player.getPlayerId(), roomId);
             throw new BusinessLogicMismatchConditionException("房间已满 roomId=" + roomId + ",playerId=" + player.getPlayerId(), EnumsProtos.ErrorCodeEnum.ROOM_FULL);
         }
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER) {
+            LOGGER.debug("请求准备的状态和房间状态不匹配 playerId={}, RequestStateEnum={},RoomStateEnum={},RequestStateTimes={},RoomStateTimes={}", //
+                    player.getPlayerId(), roomCtrl.getRoomState(), roomCtrl.getRoomState().toString(), roomCtrl.getRoomStateTimes(), roomCtrl.getRoomStateTimes());//
+            return;
+        }
         if (roomCtrl.containsPlayer(player.getPlayerId())) {
             LOGGER.debug("玩家已经在房间内 playerId={},roomId ={}", player.getPlayerId(), roomId);
-            for (String s : room.getIdToRoomPlayer().keySet()) {
+            for (String s : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
                 LOGGER.debug("onJoinRoomMsg 房间内玩家 playerId={}", s);
             }
         } else {

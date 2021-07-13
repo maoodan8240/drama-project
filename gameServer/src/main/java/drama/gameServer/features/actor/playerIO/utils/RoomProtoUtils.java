@@ -1,6 +1,8 @@
 package drama.gameServer.features.actor.playerIO.utils;
 
+import dm.relationship.base.MagicNumbers;
 import dm.relationship.table.RootTc;
+import dm.relationship.table.tableRows.Table_Acter_Row;
 import dm.relationship.table.tableRows.Table_Murder_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
@@ -97,12 +99,17 @@ public class RoomProtoUtils {
     }
 
     public static RoomProtos.Sm_Room_Player createSmRoomPlayer(RoomPlayer roomPlayer) {
+
         RoomProtos.Sm_Room_Player.Builder bRoomPlayer = RoomProtos.Sm_Room_Player.newBuilder();
         bRoomPlayer.setPlayerId(roomPlayer.getPlayerId());
         bRoomPlayer.setIsReady(roomPlayer.isReady());
         bRoomPlayer.setRoleId(roomPlayer.getRoleId());
         bRoomPlayer.setIsDub(roomPlayer.getIsDub());
         bRoomPlayer.setSrchTimes(roomPlayer.getSrchTimes());
+        if (roomPlayer.getRoleId() != MagicNumbers.DEFAULT_ZERO) {
+            Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roomPlayer.getRoleId());
+            bRoomPlayer.setPic(row.getPic());
+        }
         return bRoomPlayer.build();
     }
 

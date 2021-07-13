@@ -53,14 +53,14 @@ public class MessageTransferForReceiveActor extends DmActor {
     }
 
     private void on_In_ConnectionStatusRequest(In_ConnectionStatusRequest request) {
-        if (!ConnectionContainer.containsConnection(request.getConnection())) {
-            LOGGER.warn("链接管理中心不存在该连接，直接关闭！receiveHolder={}", request.toString());
-            request.getConnection().close();
-            return;
-        }
+//        if (!ConnectionContainer.containsConnection(request.getConnection())) {
+//            LOGGER.warn("链接管理中心不存在该连接，直接关闭！receiveHolder={}", request.toString());
+//            request.getConnection().close();
+//            return;
+//        }
         Object msg = null;
         if (ConnectionContainer.containsConnection(request.getConnection())) {
-            String connFlag = " ConnectionContainer.getFlagByConnInFlagToConn(request.getConnection())";
+//            String connFlag = " ConnectionContainer.getFlagByConnInFlagToConn(request.getConnection())";
 //            ConnectionAttachment attachment = ConnectionContainer.getAttachmentByConnInFlagToConn(request.getConnection());
 //            Address address = attachment.getAddress();
             if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {

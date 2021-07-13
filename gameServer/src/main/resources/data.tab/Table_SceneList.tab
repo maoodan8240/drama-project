@@ -1,4 +1,4 @@
 剧本ID	剧本名	剧本人数	时长	难度（1简单 2 普通 3困难 4烧脑 5 地狱）	剧本图片	剧本类型（1推理 2情感 3阵营 4撕B）	剧本题材	剧本简介	剧本评分	剧本流程（ANSWER:选择角色,READ:播放剧本,STAGE:小剧场,TALK:公聊,SEARCH:搜证,VOTE:投凶,SOLO:内心独白,REVIEW:复盘,ENDING:结束）
 Id	Name	PlaNum	Time	Diff	Pic	Type	Theme	Brief	Rate	RunDown
-int	string	int 	float	int	int	int	string	string	float	string
-101	山河永寂	6	4.5	2	1	2	古代现实	大周永徽二十—年,与大周交好的邻国南诏突然起兵侵犯周南部边境,一路势如破竹,连下十余城.执政的太后娘娘派镇守漠北多年的前天下兵马大将军,镇北侯路沉骁率领路家军南下御敌.路家军一路连胜,却在漓江之战中计遇伏,路沉骁当场战死,部众也 所剩无几,仅剩他的孙儿路之遥与一众亲兵逃回江北,随后漓江北岸的行唐关竟突然叛变,自此行唐关内再无半分音讯传来.	8.6	ANSWER:1,READ:1,TALK:1,SEARCH:1,TALK:2,READ:2,SEARCH:2,TALK:3,READ:3,SEARCH:3,TALK:4,VOTE:1,READ:4,READ:5,SOLO:1,ENDING:1
+int	string	int 	float	int	string	int	string	string	float	string
+101	山河永寂	6	4.5	2	shyj	2	古代现实	大周永徽二十—年,与大周交好的邻国南诏突然起兵侵犯周南部边境,一路势如破竹,连下十余城.执政的太后娘娘派镇守漠北多年的前天下兵马大将军,镇北侯路沉骁率领路家军南下御敌.路家军一路连胜,却在漓江之战中计遇伏,路沉骁当场战死,部众也 所剩无几,仅剩他的孙儿路之遥与一众亲兵逃回江北,随后漓江北岸的行唐关竟突然叛变,自此行唐关内再无半分音讯传来.	8.6	ANSWER:1,READ:1,STAGE:1,TALK:1,SEARCH:1,TALK:2,READ:2,SEARCH:2,TALK:3,READ:3,SEARCH:3,TALK:4,VOTE:1,READ:4,READ:5,SOLO:1,ENDING:1
