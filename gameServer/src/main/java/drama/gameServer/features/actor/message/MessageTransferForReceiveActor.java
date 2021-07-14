@@ -72,6 +72,7 @@ public class MessageTransferForReceiveActor extends DmActor {
             } else {
                 return;
             }
+            LOGGER.debug("接收到playerId={}", ConnectionContainer.getPlayerIdByConnection(request.getConnection()));
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, messageTransferContext.self());
         } else {
             needReLogin(request.getConnection());
@@ -91,6 +92,7 @@ public class MessageTransferForReceiveActor extends DmActor {
 
     private void on_In_MessageReceiveHolder(In_MessageReceiveHolder receiveHolder) {
         //注册
+        LOGGER.debug("接收到playerId={}", ConnectionContainer.getPlayerIdByConnection(receiveHolder.getConnection()));
         if (receiveHolder.getMessage() instanceof Cm_Login) {
             In_LoginMsg msg = new In_LoginMsg(receiveHolder.getMessage(), receiveHolder.getConnection());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(msg, sender());

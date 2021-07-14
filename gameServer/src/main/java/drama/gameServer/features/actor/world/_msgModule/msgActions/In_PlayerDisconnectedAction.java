@@ -22,7 +22,7 @@ public class In_PlayerDisconnectedAction implements Action {
         if (msg instanceof In_PlayerDisconnectedRequest) {
             onPlayerDisconnectedRequest((In_PlayerDisconnectedRequest) msg, worldCtrl, worldActorContext, self, sender);
         } else if (msg instanceof In_PlayerOfflineRequest) {
-            onPlayerOfflineRequest((In_PlayerOfflineRequest) msg, worldCtrl, worldActorContext, self, self);
+//            onPlayerOfflineRequest((In_PlayerOfflineRequest) msg, worldCtrl, worldActorContext, self, self);
         }
     }
 

@@ -15,7 +15,6 @@ public class BroadcastNetworkMessageListener implements NetworkListener {
 
     @Override
     public void onReceive(MessageReceiveHolder receiveHolder) {
-        LOGGER.debug("收到消息:" + receiveHolder.toString());
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_MessageTransfer).tell(new In_MessageReceiveHolder(receiveHolder), ActorRef.noSender());
     }
 

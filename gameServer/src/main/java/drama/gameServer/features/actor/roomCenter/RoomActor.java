@@ -96,9 +96,6 @@ public class RoomActor extends DmActor {
             roomCtrl.setNextStateAndTimes();
             //TODO 通知玩家房间状态已经更新成播放剧本状态
             _tellAllRoomPlayer(new In_PlayerOnSwitchStateRoomMsg(roomCtrl.getTarget()), ActorRef.noSender());
-        } else {
-            LOGGER.debug("ON CHECK ALL READY checkAllPlayerReady={}, hasNextStateAndTimes={}, isTimeCanReady={} ",//
-                    roomCtrl.checkAllPlayerReady(), roomCtrl.hasNextStateAndTimes(), roomCtrl.isTimeCanReady());
         }
     }
 
