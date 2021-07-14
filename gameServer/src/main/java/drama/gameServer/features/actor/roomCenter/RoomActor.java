@@ -378,8 +378,9 @@ public class RoomActor extends DmActor {
         List<Table_SearchType_Row> result = values.stream().filter(it -> roomCtrl.getRoomStateTimes() == it.getSrchNum()).collect(Collectors.toList());
         List<Integer> typeIds = new ArrayList<>();
         for (Table_SearchType_Row row : result) {
-            //可搜索列表中不能已经包含这个id,房间线索中不能
-            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename()) && row.getRoleId() != roomPlayerCtrl.getRoleId()) {
+            //可搜索列表中不能已经包含这个id
+//            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename()) && row.getRoleId() != roomPlayerCtrl.getRoleId()) {
+            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename())) {
                 typeIds.add(row.getTypeId());
             }
         }
