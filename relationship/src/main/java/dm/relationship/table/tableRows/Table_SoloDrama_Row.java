@@ -27,6 +27,10 @@ public class Table_SoloDrama_Row extends AbstractRow {
      * string 角色名(1顾行简 2了失 3靳来生 4路停云 5太后 6 青青 99旁白)
      */
     private String roleId;
+    /**
+     * string 文本标题名
+     */
+    private String title;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -36,6 +40,7 @@ public class Table_SoloDrama_Row extends AbstractRow {
         soloNum = CellParser.parseSimpleCell("SoloNum", map, Integer.class); //int
         duration = CellParser.parseSimpleCell("Duration", map, Integer.class); //int
         roleId = CellParser.parseSimpleCell("RoleId", map, String.class); //string
+        title = CellParser.parseSimpleCell("Title", map, String.class);//string
     }
 
     public String getLine() {
@@ -57,5 +62,9 @@ public class Table_SoloDrama_Row extends AbstractRow {
 
     public String getRoleId() {
         return roleId;
+    }
+
+    public String getTitle() {
+        return title;
     }
 }
