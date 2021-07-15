@@ -37,7 +37,7 @@ public class JmxJolokiaServer {
             server = new JolokiaServer(pConfig, pLazy);
             server.start();
             setStateMarker();
-            logger.info("Jolokia: Agent started with URL={} ", server.getUrl());
+            logger.debug("Jolokia: Agent started with URL={} ", server.getUrl());
         } catch (Exception e) {
             throw new JmxJolokiaServerStartException("JolokiaServer start 异常！", e);
         }

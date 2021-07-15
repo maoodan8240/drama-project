@@ -2,6 +2,7 @@ package drama.gameServer.system.jmx;
 
 
 import dm.relationship.exception.JmxMBeanManagerInitException;
+import drama.gameServer.features.manager.AppDebugger;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -11,8 +12,9 @@ public class JmxMBeanManager {
     public static void init() {
         MBeanServer server = MBeanServerFactory.createMBeanServer("Http");
         try {
-            ObjectName appDebugger = new ObjectName("PiecesFunctionServerRuntimeInfo:name=AppDebugger");
-            server.createMBean("qhGame.mProject.piecesFunctionServer.features.manager.AppDebugger", appDebugger);
+            ObjectName appDebuggerMBeanName = new ObjectName("drama.gameServer.features.manager:name=AppDebugger");
+            AppDebugger appDebugger = new AppDebugger();
+            server.registerMBean(appDebugger, appDebuggerMBeanName);
         } catch (Exception e) {
             throw new JmxMBeanManagerInitException("JMX MBean 创建失败！", e);
         }

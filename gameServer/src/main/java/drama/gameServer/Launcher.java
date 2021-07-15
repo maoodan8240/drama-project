@@ -7,6 +7,8 @@ import drama.gameServer.system.ServerGlobalData;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.gameServer.system.config.AppConfig;
 import drama.gameServer.system.di.GlobalInjectorUtils;
+import drama.gameServer.system.jmx.JmxJolokiaServer;
+import drama.gameServer.system.jmx.JmxMBeanManager;
 import drama.gameServer.system.table.RootTcListener;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +34,7 @@ public class Launcher {
 
     public static void main(String[] args) {
         _init();
+        _startJmxJolokiaServer();
         _startActorSystem();
         _waitForSeconds("TcpServer");
         _startTcpServer();
@@ -105,6 +108,14 @@ public class Launcher {
         planningTableData.loadAllTablesData();
         RootTc.init(planningTableData, new RootTcListener());
         RootTc.loadAllTables(ServerGlobalData.getLocale());
+    }
+
+    private static void _startJmxJolokiaServer() {
+        if (!"true".equals(AppConfig.getString(AppConfig.Key.DM_Common_Config_jmx_conf_jmx_server_enabled))) {
+            return;
+        }
+        JmxJolokiaServer.start();
+        JmxMBeanManager.init();
     }
 
     /**
