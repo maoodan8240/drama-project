@@ -70,6 +70,10 @@ public class HandleRoomNetWorkMsgAction implements Action {
                         case Cm_Room.Action.SYNC_PLAYER_CLUE_VALUE:
                         case Cm_Room.Action.SYNC_CAN_SEARCH_VALUE:
                         case Cm_Room.Action.IS_DUB_VALUE:
+                        case Cm_Room.Action.VOTE_VALUE:
+                        case Cm_Room.Action.SOLO_ANSWER_VALUE:
+                        case Cm_Room.Action.SOLO_DUB_VALUE:
+                        case Cm_Room.Action.VOTE_RESULT_VALUE:
                             //以上Action都是需要传一个roomId的请求
                             onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                             break;
