@@ -12,6 +12,7 @@ import drama.protos.PlayerProtos.Sm_HeartBeat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
+import ws.common.network.server.interfaces.Connection;
 
 import java.util.ArrayList;
 
@@ -32,6 +33,13 @@ public class In_PlayerHeartBeatingAction implements Action {
         b.setAction(Sm_HeartBeat.Action.RESP_SYNC);
         br.setSmHeartBeat(b.build());
         msg.getConnection().send(new MessageSendHolder(br.build(), "", new ArrayList<>()));
+        Connection conn = msg.getConnection();
+        if (!worldCtrl.contains(conn)) {
+            return;
+        }
+        String playerId = worldCtrl.getPlayerId(conn);
+        worldCtrl.setHeartBeating(playerId);
+        LOGGER.info("玩家PlayerId={} 接受到客户端发送的心跳包......", playerId);
     }
 
 

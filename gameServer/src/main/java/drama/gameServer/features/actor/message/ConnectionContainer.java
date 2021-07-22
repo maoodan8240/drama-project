@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.interfaces.Connection;
 
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,7 +17,7 @@ public class ConnectionContainer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionContainer.class);
     private static final OneToOneConcurrentMapWithAttachment<String, Connection, ConnectionAttachment> FLAG_TO_CONN = new OneToOneConcurrentMapWithAttachment<>();
     private static final OneToOneConcurrentMapWithoutAttachment<String, String> GAMEID_TO_FLAG = new OneToOneConcurrentMapWithoutAttachment<>();
-    private static final ConcurrentHashMap<String, Connection> PLAYERID_CONNECTION = new ConcurrentHashMap<>();
+    private static final Map<String, Connection> PLAYERID_CONNECTION = new ConcurrentHashMap<>();
 
     /**
      * flag 和 conn 必须一一对应
@@ -40,6 +41,10 @@ public class ConnectionContainer {
             }
         }
         return playerId;
+    }
+
+    public static Connection getConnectionByPlayerId(String playerId) {
+        return PLAYERID_CONNECTION.get(playerId);
     }
 
     /**
@@ -84,13 +89,14 @@ public class ConnectionContainer {
         return PLAYERID_CONNECTION.containsValue(connection);
     }
 
-   
+
     public static void removeConnByPlayerId(String playerId) {
         if (!StringUtils.isEmpty(playerId)) {
             LOGGER.debug("playerId={},断开了, 移除连接", playerId);
             if (containsConnByPlayerId(playerId)) {
                 Connection conn = PLAYERID_CONNECTION.remove(playerId);
                 LOGGER.debug("remove playerId ={} <--> conn={} ", playerId, conn);
+                conn.close();
             } else {
                 LOGGER.debug("remove playerId ={} conn is not exist", playerId);
             }

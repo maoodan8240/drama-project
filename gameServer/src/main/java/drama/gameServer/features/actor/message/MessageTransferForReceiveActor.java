@@ -9,7 +9,7 @@ import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
 import dm.relationship.base.msg.In_PlayerHeartBeatingRequest;
 import dm.relationship.base.msg.In_PlayerOfflineRequest;
 import dm.relationship.base.msg.implement._ConfigNetWorkMsg;
-import dm.relationship.base.msg.implement._Player_NetWorkMsg;
+import dm.relationship.base.msg.implement._PlayerNetWorkMsg;
 import dm.relationship.base.msg.implement._RoomNetWorkMsg;
 import dm.relationship.base.msg.interfaces.ConfigNetWorkMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
@@ -53,16 +53,8 @@ public class MessageTransferForReceiveActor extends DmActor {
     }
 
     private void on_In_ConnectionStatusRequest(In_ConnectionStatusRequest request) {
-//        if (!ConnectionContainer.containsConnection(request.getConnection())) {
-//            LOGGER.warn("链接管理中心不存在该连接，直接关闭！receiveHolder={}", request.toString());
-//            request.getConnection().close();
-//            return;
-//        }
         Object msg = null;
         if (ConnectionContainer.containsConnection(request.getConnection())) {
-//            String connFlag = " ConnectionContainer.getFlagByConnInFlagToConn(request.getConnection())";
-//            ConnectionAttachment attachment = ConnectionContainer.getAttachmentByConnInFlagToConn(request.getConnection());
-//            Address address = attachment.getAddress();
             if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {
                 msg = new In_PlayerHeartBeatingRequest(request.getConnection());
             } else if (request.getType() == In_ConnectionStatusRequest.Type.Offline) {
@@ -103,9 +95,8 @@ public class MessageTransferForReceiveActor extends DmActor {
             ConfigNetWorkMsg msg = new _ConfigNetWorkMsg(receiveHolder.getConnection(), receiveHolder.getMessage());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());
         } else { //转换成InnerMessage转发给worldActor
-            PlayerNetWorkMsg playerNetWorkMsg = new _Player_NetWorkMsg(receiveHolder.getConnection(), receiveHolder.getMessage());
+            PlayerNetWorkMsg playerNetWorkMsg = new _PlayerNetWorkMsg(receiveHolder.getConnection(), receiveHolder.getMessage());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(playerNetWorkMsg, sender());
         }
-
     }
 }

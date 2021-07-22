@@ -31,8 +31,8 @@ import ws.common.utils.di.GlobalInjector;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class In_RoomNetWorkMsgAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(In_RoomNetWorkMsgAction.class);
+public class HandleRoomNetWorkMsgAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandleRoomNetWorkMsgAction.class);
 
     @Override
     public void onRecv(Object msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
@@ -49,7 +49,7 @@ public class In_RoomNetWorkMsgAction implements Action {
                 msg.getConnection().close();
                 throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
             }
-            if (worldCtrl.playerActorCanUse(playerId)) {
+            if (worldCtrl.containsPlayerActorRef(playerId)) {
                 RoomProtos.Cm_Room cm_room = (RoomProtos.Cm_Room) msg.getMessage();
                 RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
                 b = RoomProtoUtils.setAction(b, cm_room);
@@ -70,11 +70,6 @@ public class In_RoomNetWorkMsgAction implements Action {
                         case Cm_Room.Action.SYNC_PLAYER_CLUE_VALUE:
                         case Cm_Room.Action.SYNC_CAN_SEARCH_VALUE:
                         case Cm_Room.Action.IS_DUB_VALUE:
-                        case Cm_Room.Action.VOTE_VALUE:
-                        case Cm_Room.Action.SOLO_ANSWER_VALUE:
-                        case Cm_Room.Action.SOLO_DUB_VALUE:
-                        case Cm_Room.Action.VOTE_RESULT_VALUE:
-                        case Cm_Room.Action.IS_VOTED_VALUE:
                             //以上Action都是需要传一个roomId的请求
                             onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                             break;
@@ -164,7 +159,7 @@ public class In_RoomNetWorkMsgAction implements Action {
     }
 
     private Player getPlayer(String playerId, WorldCtrl worldCtrl) {
-        if (playerId == null || !worldCtrl.playerActorCanUse(playerId)) {
+        if (playerId == null || !worldCtrl.containsPlayerActorRef(playerId)) {
             LOGGER.debug("没有找到玩家或玩家不可用 connection={}, playerId={}", ((playerId != null) ? playerId : "null"));
             throw new BusinessLogicMismatchConditionException("没有找到玩家或玩家不可用");
         }

@@ -124,4 +124,9 @@ public class Table_SceneList_Row extends AbstractRow {
         }
         return maxSrchNum;
     }
+
+    public static String getPicByDramaId(int dramaId) {
+        Table_SceneList_Row row = RootTc.get(Table_SceneList_Row.class).get(dramaId);
+        return row.getPic();
+    }
 }

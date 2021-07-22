@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.interfaces.Connection;
 
-public class In_PlayerNetWorMsgkAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(In_PlayerNetWorMsgkAction.class);
+public class HandlePlayerNetWorMsgkAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandlePlayerNetWorMsgkAction.class);
 
     @Override
     public void onRecv(Object msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
@@ -35,7 +35,7 @@ public class In_PlayerNetWorMsgkAction implements Action {
             connection.close();
             throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
         }
-        if (worldCtrl.playerActorCanUse(playerId)) {
+        if (worldCtrl.containsPlayerActorRef(playerId)) {
             String playerActorPath = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", playerId);
             worldActorContext.actorSelection(playerActorPath).tell(playerNetWorkMsg, sender);
         } else {

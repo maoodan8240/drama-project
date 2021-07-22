@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.playerIO.ctrl;
 
+import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import drama.gameServer.features.actor.roomCenter.pojo.RoomPlayer;
 import drama.protos.MessageHandlerProtos;
@@ -7,6 +8,7 @@ import drama.protos.PlayerLoginProtos;
 import drama.protos.RoomProtos;
 import ws.common.utils.mc.controler.Controler;
 import ws.common.utils.message.interfaces.InnerMsg;
+
 
 public interface PlayerIOCtrl extends Controler<Player> {
     void send(MessageHandlerProtos.Response build);
@@ -26,4 +28,6 @@ public interface PlayerIOCtrl extends Controler<Player> {
     boolean isInRoom();
 
     void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum);
+
+    PlayerDao getPlayerDao();
 }

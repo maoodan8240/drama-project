@@ -4,6 +4,7 @@ import dm.relationship.base.MagicNumbers;
 import dm.relationship.table.RootTc;
 import dm.relationship.table.tableRows.Table_Acter_Row;
 import dm.relationship.table.tableRows.Table_Murder_Row;
+import dm.relationship.table.tableRows.Table_SceneList_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
 import drama.gameServer.features.actor.roomCenter.msg.In_PlayerIsVotedRoomMsg;
@@ -44,6 +45,7 @@ public class RoomProtoUtils {
         broom.setStateTimes(room.getStateTimes());
         broom.setSrchNum(room.getSrchNum());
         broom.setRoomPlayerSize(room.getPlayerNum());
+        broom.setPic(Table_SceneList_Row.getPicByDramaId(room.getDramaId()));
         for (Map.Entry<String, RoomPlayer> entry : room.getIdToRoomPlayer().entrySet()) {
             broom.addRoomPlayer(createSmRoomPlayer(entry.getValue()));
         }
@@ -62,7 +64,7 @@ public class RoomProtoUtils {
         broom.setStateTimes(room.getStateTimes());
         broom.setSrchNum(room.getSrchNum());
         broom.setRoomPlayerSize(room.getPlayerNum());
-
+        broom.setPic(Table_SceneList_Row.getPicByDramaId(room.getDramaId()));
         return broom.build();
     }
 

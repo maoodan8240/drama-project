@@ -2,15 +2,20 @@ package drama.gameServer.features.actor.playerIO;
 
 import akka.actor.ActorRef;
 import akka.actor.Kill;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Message;
 import dm.relationship.appServers.loginServer.player.msg.In_LoginMsg;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
+import dm.relationship.base.msg.In_PlayerReconnectMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.base.msg.room.In_PlayerDisconnectedQuitRoomMsg;
 import dm.relationship.base.msg.room.In_PlayerQuitRoomMsg;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
+import dm.relationship.topLevelPojos.player.Player;
+import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
 import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
@@ -38,7 +43,9 @@ import drama.protos.MessageHandlerProtos;
 import drama.protos.MessageHandlerProtos.Response;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.PlayerLoginProtos.Sm_Login.Action;
+import drama.protos.PlayerProtos;
 import drama.protos.RoomProtos;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.utils.message.interfaces.InnerMsg;
@@ -59,6 +66,10 @@ public class PlayerIOActor extends DmActor {
         this.playerIOCtrl = playerIOCtrl;
     }
 
+    public void setPlayerCtrl() {
+
+    }
+
     @Override
     public void onRecv(Object msg) throws Exception {
         if (msg instanceof In_LoginMsg) {
@@ -68,6 +79,51 @@ public class PlayerIOActor extends DmActor {
         } else if (msg instanceof InnerMsg) {
             onInnerMsg((InnerMsg) msg);
         }
+    }
+
+    private void onNetWorkMsg(PlayerNetWorkMsg msg) {
+        Message message = msg.getMessage();
+        if (message instanceof PlayerProtos.Cm_Player) {
+            PlayerProtos.Cm_Player cmPlayer = (PlayerProtos.Cm_Player) message;
+            switch (cmPlayer.getAction().getNumber()) {
+                case PlayerProtos.Cm_Player.Action.UPDATE_VALUE:
+                    onUpdate(cmPlayer);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void onUpdate(PlayerProtos.Cm_Player cmPlayer) {
+        Player target = playerIOCtrl.getTarget();
+        PlayerBase base = target.getBase();
+
+        String name = cmPlayer.getName();
+        EnumsProtos.SexEnum sex = cmPlayer.getSex();
+        base.setName(name);
+        base.setSex(sex);
+        byte[] bytes = cmPlayer.getIcon().toByteArray();
+        String icon = new String(bytes);
+        String icon1 = !StringUtils.isEmpty(icon) ? icon : "";
+        String birthday = !StringUtils.isEmpty(cmPlayer.getBirthday()) ? cmPlayer.getBirthday() : "";
+        String place = !StringUtils.isEmpty(cmPlayer.getPlace()) ? cmPlayer.getPlace() : "";
+        base.setIcon(icon);
+        base.setBirthday(birthday);
+        base.setPlace(place);
+        PlayerProtos.Sm_Player.Action action = PlayerProtos.Sm_Player.Action.RESP_UPDATE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Player, action);
+        response.setResult(true);
+        PlayerProtos.Sm_Player.Builder b = PlayerProtos.Sm_Player.newBuilder();
+        b.setAction(action);
+        b.setName(name);
+        b.setSex(sex);
+        b.setIcon(ByteString.copyFrom(icon1.getBytes()));
+        b.setBirthday(birthday);
+        b.setPlace(place);
+        response.setSmPlayer(b.build());
+        playerIOCtrl.send(response.build());
+        playerIOCtrl.getPlayerDao().insertIfExistThenReplace(target);
     }
 
     private void onInnerMsg(InnerMsg msg) {
@@ -101,7 +157,13 @@ public class PlayerIOActor extends DmActor {
             onPlayerSoloResultRoomMsg((In_PlayerSoloResultRoomMsg) msg);
         } else if (msg instanceof In_PlayerIsVotedRoomMsg) {
             onPlayerIsVotedRoomMsg((In_PlayerIsVotedRoomMsg) msg);
+        } else if (msg instanceof In_PlayerReconnectMsg) {
+            onPlayerReconnectMsg((In_PlayerReconnectMsg) msg);
         }
+    }
+
+    private void onPlayerReconnectMsg(In_PlayerReconnectMsg msg) {
+        playerIOCtrl.getTarget().setConnection(msg.getConnection());
     }
 
     private void onPlayerIsVotedRoomMsg(In_PlayerIsVotedRoomMsg msg) {
@@ -307,7 +369,4 @@ public class PlayerIOActor extends DmActor {
     }
 
 
-    private void onNetWorkMsg(PlayerNetWorkMsg msg) {
-
-    }
 }

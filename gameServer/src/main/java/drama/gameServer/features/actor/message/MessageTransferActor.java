@@ -5,7 +5,6 @@ import akka.actor.Kill;
 import akka.actor.Props;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
-import dm.relationship.base.msg.In_MessagePassToGatewayServer;
 import dm.relationship.base.msg.In_MessageReceiveHolder;
 import drama.gameServer.system.network.In_ConnectionStatusRequest;
 
@@ -56,11 +55,6 @@ public class MessageTransferActor extends DmActor {
             actorRefsForReceive.get(RD.nextInt(forReceive)).tell(msg, self());
         } else if (msg instanceof In_ConnectionStatusRequest) {
             actorRefsForReceive.get(RD.nextInt(forReceive)).tell(msg, self());
-        }
-
-        // 向客户端发送消息,随机分发个下面的MessageTransferForSendActor执行 暂时未启用
-        else if (msg instanceof In_MessagePassToGatewayServer) {
-            actorRefsForSend.get(RD.nextInt(forSend)).tell(msg, self());
         }
     }
 }

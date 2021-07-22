@@ -312,11 +312,18 @@ public class RoomActor extends DmActor {
         List<String> optionsList = cm_room.getOptionsList();
         List<Integer> rightAnswerIdx = roomCtrl.getRightAnswerIdx(optionsList, roomCtrl.getDramaId(), sex);
         int roleIdx = roomCtrl.getRoleIdx(rightAnswerIdx);
-        if (roleIdx != MagicNumbers.DEFAULT_ZERO && !roomCtrl.hasChooseRole(roleIdx, roomPlayerCtrl.getPlayerId())) {
+        if (roleIdx != MagicNumbers.DEFAULT_ZERO) {
             roomPlayerCtrl.setRoleId(roleIdx);
             roomCtrl.chooseRole(roomPlayerCtrl.getTarget());
             //通知房间内所有玩家
             _tellAllRoomPlayer(new In_PlayerChooseRoleRoomMsg(roomPlayerCtrl.getTarget()), ActorRef.noSender());
+        } else if (roomCtrl.hasChooseRole(roleIdx, roomPlayerCtrl.getPlayerId())) {
+            String answer = "";
+            for (String s : cm_room.getOptionsList()) {
+                answer = answer + s;
+            }
+            String msg = String.format("已经选过角色了 playerId=%s, answer=%s, roleId=%s", player.getPlayerId(), answer, roomPlayerCtrl.getRoleId());
+            LOGGER.debug(msg);
         } else {
             String answer = "";
             for (String s : cm_room.getOptionsList()) {

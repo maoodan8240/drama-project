@@ -71,8 +71,8 @@ public class RegisterUtils {
         player.getBase().setLevel(MagicNumbers.DEFAULT_ONE);
         player.getBase().setName(playerName);
         player.getBase().setSex(centerPlayer.getSex());
-        player.getBase().setIconId(centerPlayer.getPlayerIcon());
 
+        player.getBase().setIcon("");
         player.getAccount().setOuterRealmId(centerPlayer.getOuterRealmId());
         player.getAccount().setPlatformType(centerPlayer.getPlatformType());
         player.getAccount().setSubPlatform(centerPlayer.getSubPlatform());

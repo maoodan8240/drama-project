@@ -12,8 +12,8 @@ import drama.protos.CommonProtos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class In_ConfigNetWorkMsgAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(In_ConfigNetWorkMsgAction.class);
+public class HandleConfigNetWorkMsgAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandleConfigNetWorkMsgAction.class);
 
 
     @Override
@@ -32,7 +32,7 @@ public class In_ConfigNetWorkMsgAction implements Action {
                 msg.getConnection().close();
                 throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
             }
-            if (worldCtrl.playerActorCanUse(playerId)) {
+            if (worldCtrl.containsPlayerActorRef(playerId)) {
                 worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Config).tell(msg, ActorRef.noSender());
             } else {
                 throw new BusinessLogicMismatchConditionException("玩家不在线或Actor不可用 playerId=" + playerId);

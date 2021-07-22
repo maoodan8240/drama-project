@@ -1,5 +1,8 @@
 package drama.gameServer.features.actor.playerIO.ctrl;
 
+import dm.relationship.base.MagicWords_Mongodb;
+import dm.relationship.daos.DaoContainer;
+import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
@@ -10,7 +13,9 @@ import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.RoomProtos;
 import org.apache.commons.lang3.StringUtils;
+import ws.common.mongoDB.interfaces.MongoDBClient;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
+import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.mc.controler.AbstractControler;
 import ws.common.utils.message.interfaces.InnerMsg;
 import ws.common.utils.message.interfaces.PrivateMsg;
@@ -18,7 +23,16 @@ import ws.common.utils.message.interfaces.PrivateMsg;
 import java.util.ArrayList;
 
 public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIOCtrl {
+    private static final PlayerDao PLAYER_DAO = DaoContainer.getDao(Player.class);
+    private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
 
+    static {
+        PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Common);
+    }
+
+    public PlayerDao getPlayerDao() {
+        return PLAYER_DAO;
+    }
 
     @Override
     public void sendPrivateMsg(PrivateMsg privateMsg) {

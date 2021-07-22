@@ -77,9 +77,8 @@ public class In_LoginAction implements Action {
         PlayerIOCtrl playerIOCtrl = GlobalInjector.getInstance(PlayerIOCtrl.class);
         playerIOCtrl.setTarget(player);
         ActorRef actorRef = null;
-        if (worldCtrl.playerActorCanUse(player.getPlayerId())) {
-            //连接是新链接,但是Actor早已存在 kill掉重新创建
-            LOGGER.debug("连接是新链接,但是Actor早已存在 kill掉重新创建 playerId={}", player.getPlayerId());
+        if (worldCtrl.containsPlayerActorRef(player.getPlayerId())) {
+            //连接是新链接,但是Actor早已创建 kill掉重新创建
             worldCtrl.getPlayerActorRef(player.getPlayerId()).tell(Kill.getInstance(), ActorRef.noSender());
         }
         //创建PlayerActor
