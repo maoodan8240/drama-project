@@ -571,7 +571,7 @@ public class RoomActor extends DmActor {
         }
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
         List<Table_SearchType_Row> values = RootTc.get(Table_SearchType_Row.class).values();
-        List<Table_SearchType_Row> result = values.stream().filter(it -> roomCtrl.getRoomStateTimes() == it.getSrchNum()).collect(Collectors.toList());
+        List<Table_SearchType_Row> result = values.stream().filter(it -> roomCtrl.getRoomStateTimes() == it.getSrchNum() && roomCtrl.getDramaId() == it.getDramaId()).collect(Collectors.toList());
         List<Integer> typeIds = new ArrayList<>();
         for (Table_SearchType_Row row : result) {
             //可搜索列表中不能已经包含这个id

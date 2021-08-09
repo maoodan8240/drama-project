@@ -78,6 +78,7 @@ public class HandleRoomNetWorkMsgAction implements Action {
                         case Cm_Room.Action.VOTE_SEARCH_VALUE:
                         case Cm_Room.Action.SELECT_DRAFT_VALUE:
                         case Cm_Room.Action.CAN_SELECT_DRAFT_VALUE:
+                        case Cm_Room.Action.IS_VOTED_VALUE:
                             //以上Action都是需要传一个roomId的请求
                             onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                             break;
