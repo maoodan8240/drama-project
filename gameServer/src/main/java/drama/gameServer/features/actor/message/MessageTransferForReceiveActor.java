@@ -5,32 +5,19 @@ import dm.relationship.appServers.loginServer.player.msg.In_LoginMsg;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.In_MessageReceiveHolder;
-import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
-import dm.relationship.base.msg.In_PlayerHeartBeatingRequest;
-import dm.relationship.base.msg.In_PlayerOfflineRequest;
 import dm.relationship.base.msg.implement._ConfigNetWorkMsg;
 import dm.relationship.base.msg.implement._PlayerNetWorkMsg;
 import dm.relationship.base.msg.implement._RoomNetWorkMsg;
 import dm.relationship.base.msg.interfaces.ConfigNetWorkMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
-import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.gameServer.system.network.In_ConnectionStatusRequest;
-import drama.protos.CodesProtos.ProtoCodes.Code;
 import drama.protos.CommonProtos;
-import drama.protos.EnumsProtos;
-import drama.protos.MessageHandlerProtos.Response;
 import drama.protos.PlayerLoginProtos.Cm_Login;
-import drama.protos.PlayerLoginProtos.Sm_NeedReLogin;
-import drama.protos.PlayerLoginProtos.Sm_NeedReLogin.Action;
 import drama.protos.RoomProtos.Cm_Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ws.common.network.server.handler.tcp.MessageSendHolder;
-import ws.common.network.server.interfaces.Connection;
-
-import java.util.ArrayList;
 
 public class MessageTransferForReceiveActor extends DmActor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageTransferForReceiveActor.class);
@@ -53,41 +40,25 @@ public class MessageTransferForReceiveActor extends DmActor {
     }
 
     private void on_In_ConnectionStatusRequest(In_ConnectionStatusRequest request) {
-        Object msg = null;
-        if (ConnectionContainer.containsConnection(request.getConnection())) {
-            if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {
-                msg = new In_PlayerHeartBeatingRequest(request.getConnection());
-            } else if (request.getType() == In_ConnectionStatusRequest.Type.Offline) {
-                msg = new In_PlayerOfflineRequest(request.getConnection());
-            } else if (request.getType() == In_ConnectionStatusRequest.Type.Disconnected) {
-                msg = new In_PlayerDisconnectedRequest(request.getConnection());
-            } else {
-                return;
-            }
-            LOGGER.debug("接收到playerId={}", ConnectionContainer.getPlayerIdByConnection(request.getConnection()));
-            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, messageTransferContext.self());
-        } else {
-            needReLogin(request.getConnection());
-            LOGGER.warn("有请求发送到Gameserver！但是玩家还没有成功登录Gameserver,通知客户端重新登录！ requestType={}", request.getType());
-        }
+//        Object msg = null;
+//        if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {
+//            msg = new In_PlayerHeartBeatingRequest(request.getConnection());
+//        } else if (request.getType() == In_ConnectionStatusRequest.Type.Offline) {
+//            msg = new In_PlayerOfflineRequest(request.getConnection());
+//        } else if (request.getType() == In_ConnectionStatusRequest.Type.Disconnected) {
+//            msg = new In_PlayerDisconnectedRequest(request.getConnection());
+//        } else {
+//            return;
+//        }
+//        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, messageTransferContext.self());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(request, messageTransferContext.self());
     }
 
-    private void needReLogin(Connection connection) {
-        Sm_NeedReLogin.Builder builder = Sm_NeedReLogin.newBuilder();
-        builder.setAction(Action.RESP_RELOGIN);
-        Response.Builder resp = ProtoUtils.create_Response(Code.Sm_NeedReLogin, Action.RESP_RELOGIN);
-        resp.setResult(true);
-        resp.setErrorCode(EnumsProtos.ErrorCodeEnum.UNKNOWN);
-        resp.setSmNeedReLogin(builder);
-        connection.send(new MessageSendHolder(resp.build(), resp.getSmMsgAction(), new ArrayList<>()));
-    }
 
     private void on_In_MessageReceiveHolder(In_MessageReceiveHolder receiveHolder) {
-        //注册
-        LOGGER.debug("接收到playerId={}", ConnectionContainer.getPlayerIdByConnection(receiveHolder.getConnection()));
         if (receiveHolder.getMessage() instanceof Cm_Login) {
             In_LoginMsg msg = new In_LoginMsg(receiveHolder.getMessage(), receiveHolder.getConnection());
-            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(msg, sender());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());
         } else if (receiveHolder.getMessage() instanceof Cm_Room) {
             RoomNetWorkMsg msg = new _RoomNetWorkMsg(receiveHolder.getConnection(), receiveHolder.getMessage());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());

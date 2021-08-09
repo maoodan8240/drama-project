@@ -2,6 +2,7 @@ package drama.gameServer.features.actor.world.ctrl;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
+import akka.actor.Kill;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.daos.player.PlayerDao;
 import drama.gameServer.features.actor.world.pojo.World;
@@ -203,5 +204,9 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
         return target.getConnToId().keySet().contains(conn);
     }
 
-
+    @Override
+    public void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self) {
+        worldCtrl.setCanNotUse(playerId);
+        worldCtrl.getPlayerActorRef(playerId).tell(Kill.getInstance(), self);
+    }
 }

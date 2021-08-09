@@ -4,6 +4,8 @@ import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import dm.relationship.appServers.loginServer.player.msg.In_LoginMsg;
 import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.In_PlayerReconnectMsg;
+import drama.gameServer.features.actor.login.msg.In_PlayerNewLoginMsg;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import drama.protos.PlayerLoginProtos;
@@ -34,23 +36,28 @@ public class HandleLoginMsgAction implements Action {
             Connection connection = msg.getConnection();
             PlayerLoginProtos.Cm_Login cmLogin = (PlayerLoginProtos.Cm_Login) msg.getMessage();
             String rpid = cmLogin.getRpid();
-            // PlayerActor不在内存中,新登录 发往LoginActor处理
-            if (!worldCtrl.containsPlayerActorRef(rpid)) {
-                LOGGER.debug("PlayerActor不在内存中,新登录 playerId={}", rpid);
-                worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(msg, self);
-                return;
-            }
-            if (!worldCtrl.canUse(rpid)) {
-                //playerActor存在,但不可用,有可能刚刚 登出或被清出掉线区
-                LOGGER.debug("playerActor存在,但不可用,有可能刚刚 登出或被清出掉线区 执行新登录 playerId={}", rpid);
-                worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(msg, self);
-                return;
+            if (!worldCtrl.contains(connection)) {
+                // PlayerActor不在内存中,新登录 发往LoginActor处理
+                if (!worldCtrl.containsPlayerActorRef(rpid)) {
+                    LOGGER.debug("PlayerActor不在内存中,新登录 playerId={}", rpid);
+                    worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(new In_PlayerNewLoginMsg(msg), self);
+                } else if (!worldCtrl.canUse(rpid)) {
+                    LOGGER.debug("或者playerActor存在,但不可用,有可能刚刚 登出或被清出掉线区 执行新登录");
+                    worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_Login).tell(new In_PlayerNewLoginMsg(msg), self);
+                } else {
+                    //PlayerActor存在而且可用,但连接是新的,断线重连,plaeyrActor在说明库里有玩家信息无需处理读库,发往world处理
+                    LOGGER.debug("PlayerActor存在而且可用,但连接是新的,断线重连,playerActor已经存在,代表库里有玩家信息无需处理读库,发往world处理， playerId={}", rpid);
+                    worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerReconnectMsg(connection, msg.getMessage()), self);
+                }
             } else {
-                //PlayerActor存在而且可用,重新登录
-                worldCtrl.beforeReconn(rpid);
-                worldCtrl.login(rpid, connection);
-//                worldCtrl.getPlayerActorRef(rpid).tell(new IN);
+                if (!worldCtrl.canUse(rpid)) {
+                    //连接在,但playerActor不存在,基本不可能发生,先不处理
+                    LOGGER.debug("连接在,但playerActor不存在,基本不可能发生,先不处理 playerId={}", rpid);
 
+                } else {
+                    //重复登录
+                    LOGGER.debug("重复登录,基本不可能发生,不处理 playerId={}", rpid);
+                }
             }
         }
     }

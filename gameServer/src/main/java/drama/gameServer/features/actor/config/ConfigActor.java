@@ -36,13 +36,14 @@ public class ConfigActor extends DmActor {
     private void getConfig(CommonProtos.Cm_Common_Config cm_common_config, Connection connection, CommonProtos.Sm_Common_Config.Builder br) {
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Common_Config, br.getAction());
         br.setRequest(cm_common_config);
-        String tableName = ConfigTableNameEnums.getTableNameByAction(cm_common_config.getAction());
+        int dramaId = cm_common_config.getDramaId();
+        String tableName = ConfigTableNameEnums.getTableNameByAction(cm_common_config.getAction(), dramaId);
         List<TableDataHeader> tableDataHeader = ConfigUtils.getTableDataHeader(tableName);
         if (cm_common_config.getArgsList().size() != MagicNumbers.DEFAULT_ZERO) {
             List<CommonProtos.Cm_Common_Args> argsList = cm_common_config.getArgsList();
-            multiCondition(argsList, br, tableName, tableDataHeader);
+            multiCondition(argsList, br, tableName, tableDataHeader, dramaId);
         } else {
-            allTable(br, tableName, tableDataHeader);
+            allTable(br, tableName, tableDataHeader, dramaId);
         }
         response.setResult(true);
         response.setSmCommonConfig(br.build());
@@ -52,16 +53,16 @@ public class ConfigActor extends DmActor {
 
     private void multiCondition
             (List<CommonProtos.Cm_Common_Args> argsList, CommonProtos.Sm_Common_Config.Builder br, String
-                    tableName, List<TableDataHeader> tableDataHeader) {
-        List<TableDataRow> tableDataRow = ConfigUtils.getTableDataRow(tableName, argsList);
+                    tableName, List<TableDataHeader> tableDataHeader, int dramaId) {
+        List<TableDataRow> tableDataRow = ConfigUtils.getTableDataRow(tableName, argsList, dramaId);
         for (TableDataRow dataRow : tableDataRow) {
             transBuilder(br, tableDataHeader, dataRow);
         }
     }
 
     private void allTable(CommonProtos.Sm_Common_Config.Builder br, String
-            tableName, List<TableDataHeader> tableDataHeader) {
-        List<TableDataRow> tableDataRow = ConfigUtils.getTableDataRow(tableName);
+            tableName, List<TableDataHeader> tableDataHeader, int dramaId) {
+        List<TableDataRow> tableDataRow = ConfigUtils.getTableDataRow(tableName, dramaId);
         for (TableDataRow dataRow : tableDataRow) {
             transBuilder(br, tableDataHeader, dataRow);
         }

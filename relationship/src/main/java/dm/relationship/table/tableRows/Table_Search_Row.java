@@ -3,6 +3,7 @@ package dm.relationship.table.tableRows;
 import dm.relationship.table.RootTc;
 import ws.common.table.table.exception.CellParseFailedException;
 import ws.common.table.table.implement.AbstractRow;
+import ws.common.table.table.interfaces.cell.ListCell;
 import ws.common.table.table.utils.CellParser;
 
 import java.util.ArrayList;
@@ -30,7 +31,15 @@ public class Table_Search_Row extends AbstractRow {
      * string 线索图
      */
     private String pic;
-
+    /**
+     * int 音频文件
+     */
+    private Integer sound;
+    /**
+     * int 详情图
+     */
+    private ListCell<Integer> detailPic;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -40,7 +49,13 @@ public class Table_Search_Row extends AbstractRow {
         srchNum = CellParser.parseSimpleCell("SrchNum", map, Integer.class);
         typeid = CellParser.parseSimpleCell("TypeId", map, Integer.class);
         pic = CellParser.parseSimpleCell("Pic", map, String.class);
+        sound = CellParser.parseSimpleCell("Sound", map, Integer.class);
+        detailPic = CellParser.parseListCell("DetailPic", map, Integer.class);
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+    }
 
+    public Integer getDramaId() {
+        return dramaId;
     }
 
     public String getLine() {
@@ -63,26 +78,48 @@ public class Table_Search_Row extends AbstractRow {
         return pic;
     }
 
-   
-    public static List<Table_Search_Row> getSearchByTypeNameAndStateTimes(String typeName, int roomStateTimes) {
+    public Integer getSound() {
+        return sound;
+    }
+
+    public List<Integer> getDetailPic() {
+        return detailPic.getAll();
+    }
+
+    public static List<Table_Search_Row> getSearchByTypeNameAndStateTimes(String typeName, int roomStateTimes, int dramaId) {
         List<Table_Search_Row> result = new ArrayList<>();
-        int typeId = Table_SearchType_Row.getTypeIdByName(typeName, roomStateTimes);
+        int typeId = Table_SearchType_Row.getTypeIdByName(typeName, dramaId);
         for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
-            if (row.getTypeid() == typeId && row.getSrchNum() == roomStateTimes) {
+            if (row.getTypeid() == typeId && row.getSrchNum() == roomStateTimes && row.getDramaId() == dramaId) {
                 result.add(row);
             }
         }
         return result;
     }
 
-    public static List<Integer> getAllHideClueIds(int stateTimes) {
+    public static List<Integer> getAllHideClueIds(int stateTimes, int dramaId) {
         List<Integer> result = new ArrayList<>();
         for (Table_Search_Row value : RootTc.get(Table_Search_Row.class).values()) {
-            if (value.getHide() == true && value.getSrchNum() == stateTimes) {
+            if (value.getHide() == true && value.getSrchNum() == stateTimes && value.getDramaId() == dramaId) {
                 result.add(value.getId());
             }
         }
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Table_Search_Row{" +
+                "line='" + line + '\'' +
+                ", hide=" + hide +
+                ", typeid=" + typeid +
+                ", srchNum=" + srchNum +
+                ", pic='" + pic + '\'' +
+                ", sound=" + sound +
+                ", detailPic=" + detailPic +
+                ", dramaId=" + dramaId +
+                ", id=" + id +
+                '}';
     }
 }
 

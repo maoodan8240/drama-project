@@ -123,4 +123,13 @@ public interface WorldCtrl extends Controler<World> {
      * @return
      */
     boolean contains(Connection conn);
+
+    /**
+     * 登出
+     *
+     * @param playerId
+     * @param worldCtrl
+     * @param self
+     */
+    void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self);
 }

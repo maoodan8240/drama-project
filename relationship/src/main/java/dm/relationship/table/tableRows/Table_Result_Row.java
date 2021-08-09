@@ -31,7 +31,7 @@ public class Table_Result_Row extends AbstractRow {
     /***
      * int 剧本ID
      */
-    private Integer sceneId;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -40,10 +40,12 @@ public class Table_Result_Row extends AbstractRow {
 
         // id column = {columnName:"ID", columnDesc:"ID"}
         sex = CellParser.parseSimpleCell("Sex", map, Integer.class);
-        sceneId = CellParser.parseSimpleCell("SceneId", map, Integer.class);
-
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
     }
 
+    public Integer getDramaId() {
+        return dramaId;
+    }
 
     public List<String> getAnswer() {
         return answer.getAll();
@@ -58,16 +60,11 @@ public class Table_Result_Row extends AbstractRow {
     }
 
 
-    public Integer getSceneId() {
-        return sceneId;
-    }
-
-  
     public static List<Table_Result_Row> getTableResultRowByDramaIdAndSex(int dramaId, EnumsProtos.SexEnum sexEnum) {
         List<Table_Result_Row> dramaRowList = new ArrayList<>();
         List<Table_Result_Row> values = RootTc.get(Table_Result_Row.class).values();
         for (Table_Result_Row value : values) {
-            if (value.getSceneId() == dramaId) {
+            if (value.getDramaId() == dramaId) {
                 if (value.getSex() == sexEnum.getNumber()) {
                     dramaRowList.add(value);
                 }

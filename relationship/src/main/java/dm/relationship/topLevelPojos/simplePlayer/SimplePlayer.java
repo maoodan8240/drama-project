@@ -1,11 +1,7 @@
 package dm.relationship.topLevelPojos.simplePlayer;
 
-import drama.protos.EnumsProtos.HeroPositionEnum;
-import drama.protos.EnumsProtos.SexEnum;
 import dm.relationship.topLevelPojos.PlayerTopLevelPojo;
-
-import java.util.HashMap;
-import java.util.Map;
+import drama.protos.EnumsProtos.SexEnum;
 
 /**
  * Created by leetony on 16-8-25.
@@ -177,7 +173,6 @@ public class SimplePlayer extends PlayerTopLevelPojo {
     public void setPvpDeclaration(String pvpDeclaration) {
         this.pvpDeclaration = pvpDeclaration;
     }
-
 
 
     public int getUltimateTestLevel() {

@@ -1,16 +1,18 @@
 package dm.relationship.base.msg.implement;
 
 import com.google.protobuf.Message;
+import dm.relationship.base.msg.AbstractWorldMsg;
 import dm.relationship.base.msg.interfaces.ConfigNetWorkMsg;
 import dm.relationship.topLevelPojos.player.Player;
 import ws.common.network.server.interfaces.Connection;
 
-public class _ConfigNetWorkMsg implements ConfigNetWorkMsg {
+public class _ConfigNetWorkMsg extends AbstractWorldMsg implements ConfigNetWorkMsg {
     private Connection connection;
     private Message message;
     private Player player;
 
     public _ConfigNetWorkMsg(Connection connection, Message message) {
+        super(connection);
         this.connection = connection;
         this.message = message;
     }

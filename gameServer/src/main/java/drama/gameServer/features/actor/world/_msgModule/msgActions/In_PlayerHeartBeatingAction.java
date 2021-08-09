@@ -27,20 +27,18 @@ public class In_PlayerHeartBeatingAction implements Action {
     }
 
     private void onHeartBeating(In_PlayerHeartBeatingRequest msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+        Connection conn = msg.getConnection();
+        if (!worldCtrl.contains(conn)) {
+            return;
+        }
         Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_HeartBeat, Sm_HeartBeat.Action.RESP_SYNC);
         br.setResult(true);
         Sm_HeartBeat.Builder b = Sm_HeartBeat.newBuilder();
         b.setAction(Sm_HeartBeat.Action.RESP_SYNC);
         br.setSmHeartBeat(b.build());
         msg.getConnection().send(new MessageSendHolder(br.build(), "", new ArrayList<>()));
-        Connection conn = msg.getConnection();
-        if (!worldCtrl.contains(conn)) {
-            return;
-        }
         String playerId = worldCtrl.getPlayerId(conn);
         worldCtrl.setHeartBeating(playerId);
         LOGGER.info("玩家PlayerId={} 接受到客户端发送的心跳包......", playerId);
     }
-
-
 }

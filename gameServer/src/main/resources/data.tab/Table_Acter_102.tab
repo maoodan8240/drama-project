@@ -1,0 +1,10 @@
+ID	角色ID	角色名	角色性别	选取角色后的立绘	角色头像	角色对应剧本动画	剧本背景音乐	搜证次数	投票搜证次数
+Id	RoleId	Name	Sex	Pic	Profile	Scene	Bgm	Ap	VSAp
+int	int	string	int 	string	string	string	string	string	string
+1	1	姚青峰	1	yqflh	yqftx	ygfintro,ygfchapter1,yqfchapter2,yqfchapter3,yqfchapter4,yqfchapter5			1:4,2:4,3:4
+2	2	谢雨晴	2	xyqlh	xyqtx	xyqintro,xyqchapter1,xyqchapter2,xyqchapter3,xyqchapter4,xyqchapter5			1:4,2:4,3:4
+3	3	吕思琦	2	lsqlh	lsqtx	lsqintro,lsqchapter1,lsqchapter2,lsqchapter3,lsqchapter4,lsqchapter5			1:4,2:4,3:4
+4	4	叶冷星	1	ylxlh	ylxtx	ylxintro,ylxchapter1,ylxchapter2,ylxchapter3,ylxchapter4,ylxchapter5			1:4,2:4,3:4
+5	5	李萱萱	2	lxxlh	lxxtx	lxxintro,lxxchapter1,lxxchapter2,lxxchapter3,lxxchapter4,lxxchapter5			1:4,2:4,3:4
+6	6	皇甫青	1	hfqlh	hfqtx	hfqintro,hfqchapter1,hfqchapter2,hfqchapter3,hfqchapter4,hfqchapter5			1:4,2:4,3:4
+7	7	白穆	1	bmlh	bmtx	bmintro,bmchapter1,bmchapter2,bmchapter3,bmchapter4,bmchapter5			1:4,2:4,3:4

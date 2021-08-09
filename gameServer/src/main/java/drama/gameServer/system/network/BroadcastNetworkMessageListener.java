@@ -21,7 +21,6 @@ public class BroadcastNetworkMessageListener implements NetworkListener {
     @Override
     public void onHeartBeating(Connection connection) {
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_MessageTransfer).tell(new In_ConnectionStatusRequest(connection, In_ConnectionStatusRequest.Type.HeartBeating), ActorRef.noSender());
-        LOGGER.debug("==================onHeartBeating=================");
     }
 
     @Override

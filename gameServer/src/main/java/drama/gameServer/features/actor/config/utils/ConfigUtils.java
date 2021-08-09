@@ -40,7 +40,7 @@ public class ConfigUtils {
 //        return result;
 //    }
 
-    public static List<TableDataRow> getTableDataRow(String tableName) {
+    public static List<TableDataRow> getTableDataRow(String tableName, int dramaId) {
         List<TableDataRow> result = new ArrayList<>();
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
         for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
@@ -50,12 +50,13 @@ public class ConfigUtils {
         return result;
     }
 
+
     public static List<TableDataHeader> getTableDataHeader(String tableName) {
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
         return tableDataTxt.getHeaderDatas();
     }
 
-    public static List<TableDataRow> getTableDataRow(String tableName, List<CommonProtos.Cm_Common_Args> argsList) {
+    public static List<TableDataRow> getTableDataRow(String tableName, List<CommonProtos.Cm_Common_Args> argsList, int dramaId) {
         List<TableDataRow> result = new ArrayList<>();
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
         List<Boolean> conditionResult = new ArrayList<>();
@@ -113,6 +114,9 @@ public class ConfigUtils {
                 break;
             case CommonProtos.Cm_Common_Config.Action.SOLODRAMA_VALUE:
                 b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SOLODRAMA);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.DRAFT_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_DRAFT);
                 break;
             default:
                 break;

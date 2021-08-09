@@ -4,6 +4,7 @@ import dm.relationship.base.IdMaptoCount;
 import dm.relationship.base.MagicWords;
 import dm.relationship.enums.item.IdItemTypeEnum;
 import dm.relationship.utils.RelationshipCommonUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.table.container.RefreshableTableContainer;
@@ -71,11 +72,32 @@ public class RootTc {
 
 
     private static void _addTable(Class<? extends Row> rowClass, String tableName) throws Exception {
-        if (planningTableData.getTableNameToTableData().containsKey(tableName)) {
+        boolean flag = false;
+        if (tableName.equals("Table_SceneList")) {
+            flag = true;
             TableData tableDataTxt = planningTableData.getTableNameToTableData().get(tableName);
             LOGGER.debug("class={}  tableName={} ！", rowClass, tableName);
             RTC.addTable(rowClass, tableDataTxt);
         } else {
+            for (TableData value : planningTableData.getTableNameToTableData().values()) {
+                String name = value.getTableName().substring(0, value.getTableName().lastIndexOf("_"));
+                if (name.equals(tableName)) {
+                    flag = true;
+                    String strDramaId = value.getTableName().substring(tableName.length() + 1);
+                    if (StringUtils.isEmpty(strDramaId)) {
+                        TableData tableDataTxt = planningTableData.getTableNameToTableData().get(value.getTableName());
+                        LOGGER.debug("class={}  tableName={} ！", rowClass, tableName);
+                        RTC.addTable(rowClass, tableDataTxt);
+                    } else {
+                        int dramaId = Integer.valueOf(strDramaId);
+                        TableData tableDataTxt = planningTableData.getTableNameToTableData().get(value.getTableName());
+                        LOGGER.debug("class={}  tableName={} ！", rowClass, tableName);
+                        RTC.addTable(rowClass, tableDataTxt, dramaId);
+                    }
+                }
+            }
+        }
+        if (!flag) {
             LOGGER.warn("class={} 没有对应的tab文件！", rowClass);
         }
     }
@@ -111,6 +133,10 @@ public class RootTc {
      */
     public static <RowType extends Row> Table<RowType> get(Class<RowType> rowType) {
         return RTC.get(rowType);
+    }
+
+    public static <RowType extends Row> Table<RowType> get(String tableName) {
+        return RTC.get(tableName);
     }
 
     public static <RowType extends Row> RowType get(Class<RowType> rowType, Integer id) {

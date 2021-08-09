@@ -27,6 +27,7 @@ public class Table_Stage_Row extends AbstractRow {
      * int 配音时长
      */
     private int duration;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -36,9 +37,12 @@ public class Table_Stage_Row extends AbstractRow {
         stgNum = CellParser.parseSimpleCell("StgNum", map, Integer.class); //int
         roleId = CellParser.parseSimpleCell("RoleId", map, String.class); //string
         duration = CellParser.parseSimpleCell("Duration", map, Integer.class);//int
-
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
     }
 
+    public Integer getDramaId() {
+        return dramaId;
+    }
 
     public String getLine() {
         return line;

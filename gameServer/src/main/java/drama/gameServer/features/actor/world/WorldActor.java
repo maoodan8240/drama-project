@@ -3,6 +3,7 @@ package drama.gameServer.features.actor.world;
 import akka.actor.Props;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.AbstractWorldMsg;
 import drama.gameServer.features.actor.config.ConfigActor;
 import drama.gameServer.features.actor.world._msgModule.WorldActorMsgHandleEnums;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
@@ -24,6 +25,11 @@ public class WorldActor extends DmActor {
 
     @Override
     public void onRecv(Object msg) throws Exception {
+        if (msg instanceof AbstractWorldMsg) {
+            AbstractWorldMsg worldMsg = (AbstractWorldMsg) msg;
+            String playerId = worldCtrl.getPlayerId(worldMsg.getConnection());
+            LOGGER.debug("接收到playerId={}的消息", playerId);
+        }
         WorldActorMsgHandleEnums.onRecv(msg, worldCtrl, getContext(), getSelf(), getSender());
     }
 

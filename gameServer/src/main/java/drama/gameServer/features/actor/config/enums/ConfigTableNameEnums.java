@@ -13,8 +13,10 @@ public enum ConfigTableNameEnums {
     MURDER(CommonProtos.Cm_Common_Config.Action.MURDER, "Table_Murder"),                //      投凶表
     SOLO(CommonProtos.Cm_Common_Config.Action.SOLO, "Table_Solo"),                      //      独白
     SOLODRAMA(CommonProtos.Cm_Common_Config.Action.SOLODRAMA, "Table_SoloDrama"),       //      独白剧本
-    ;
+    DRAFT(CommonProtos.Cm_Common_Config.Action.DRAFT, "Table_Draft"),                   //      轮抽
+    
 
+    NULL(null, "");
 
     private String tableName;
     private CommonProtos.Cm_Common_Config.Action action;
@@ -32,10 +34,14 @@ public enum ConfigTableNameEnums {
         return action;
     }
 
-    public static String getTableNameByAction(CommonProtos.Cm_Common_Config.Action action) {
+    public static String getTableNameByAction(CommonProtos.Cm_Common_Config.Action action, int dramaId) {
         for (ConfigTableNameEnums value : ConfigTableNameEnums.values()) {
             if (value.action == action) {
-                return value.getTableName();
+                if (value.action == CommonProtos.Cm_Common_Config.Action.SCENELIST) {
+                    return value.getTableName();
+                } else {
+                    return value.getTableName() + "_" + dramaId;
+                }
             }
         }
         String msg = String.format("TableName 解析失败 aciton=%s", action);

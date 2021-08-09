@@ -35,6 +35,11 @@ public class Table_Murder_Row extends AbstractRow {
      * bool 是否显示真凶
      */
     private boolean truth;
+    /**
+     * string 角色大图
+     */
+    private String roleBigPic;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -45,6 +50,20 @@ public class Table_Murder_Row extends AbstractRow {
         murder = CellParser.parseSimpleCell("Murder", map, Boolean.class);
         roleId = CellParser.parseSimpleCell("RoleId", map, Integer.class);
         truth = CellParser.parseSimpleCell("Truth", map, Boolean.class);
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+        roleBigPic = CellParser.parseSimpleCell("RoleBigPic", map, String.class);
+    }
+
+    public Integer getDramaId() {
+        return dramaId;
+    }
+
+    public Boolean getMurder() {
+        return murder;
+    }
+
+    public String getRoleBigPic() {
+        return roleBigPic;
     }
 
     public int getRoleId() {
@@ -71,10 +90,10 @@ public class Table_Murder_Row extends AbstractRow {
         return truth;
     }
 
-    public static List<Integer> getAllRoleId() {
+    public static List<Integer> getAllRoleId(int dramaId) {
         List<Integer> allRoleIds = new ArrayList<>();
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (!allRoleIds.contains(value.getRoleId())) {
+            if (!allRoleIds.contains(value.getRoleId()) && value.getDramaId() == dramaId) {
                 allRoleIds.add(value.getRoleId());
             }
         }
@@ -82,18 +101,18 @@ public class Table_Murder_Row extends AbstractRow {
     }
 
 
-    public static boolean isMurder(int roleId) {
+    public static boolean isMurder(int roleId, int dramaId) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.getRoleId() == roleId) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
                 return value.isMurder();
             }
         }
         return false;
     }
 
-    public static Table_Murder_Row getMurderRowByRoleId(int roleId) {
+    public static Table_Murder_Row getMurderRowByRoleId(int roleId, int dramaId) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.getRoleId() == roleId) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
                 return value;
             }
         }
@@ -101,18 +120,28 @@ public class Table_Murder_Row extends AbstractRow {
         throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, roleId, msg);
     }
 
-    public static List<String> getRolePicByRoleIds(List<Integer> roleIds) {
+    public static List<String> getRolePicByRoleIds(List<Integer> roleIds, int dramaId) {
         List<String> rolePic = new ArrayList<>();
         for (Integer roleId : roleIds) {
-            Table_Murder_Row murderRow = getMurderRowByRoleId(roleId);
+            Table_Murder_Row murderRow = getMurderRowByRoleId(roleId, dramaId);
             rolePic.add(murderRow.getRolePic());
         }
         return rolePic;
     }
 
-    public static int getMurderRoleId() {
+    public static int getMurderRoleId(int dramaId) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.isMurder()) {
+            if (value.isMurder() && value.getDramaId() == dramaId) {
+                return value.getRoleId();
+            }
+        }
+        String msg = String.format("getMurderRoleId failed, roleId=%s", 0);
+        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, 0, msg);
+    }
+
+    public static int getMurderRoleId(int dramaId, int voteNum) {
+        for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
+            if (value.isMurder() && value.getDramaId() == dramaId && value.getVoteNum() == voteNum) {
                 return value.getRoleId();
             }
         }

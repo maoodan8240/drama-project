@@ -2,7 +2,6 @@ package dm.relationship.utils;
 
 import dm.relationship.base.IdAndCount;
 import dm.relationship.base.IdMaptoCount;
-import dm.relationship.base.RedisRankAndScore;
 import dm.relationship.topLevelPojos.common.Iac;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.protos.CodesProtos.ProtoCodes.Code;
@@ -11,16 +10,18 @@ import drama.protos.CommonProtos.Sm_Common_IdAndCountList;
 import drama.protos.CommonProtos.Sm_Common_IdMaptoCount;
 import drama.protos.CommonProtos.Sm_Common_IdMaptoCountList;
 import drama.protos.CommonProtos.Sm_Common_Rank;
-import drama.protos.CommonProtos.Sm_Common_RankList;
 import drama.protos.CommonProtos.Sm_Common_Round;
-import drama.protos.EnumsProtos.CommonRankTypeEnum;
+import drama.protos.EnumsProtos;
 import drama.protos.EnumsProtos.ErrorCodeEnum;
 import drama.protos.MessageHandlerProtos.Response;
+import drama.protos.PlayerLoginProtos.Sm_NeedReLogin;
+import drama.protos.PlayerLoginProtos.Sm_NeedReLogin.Action;
+import ws.common.network.server.handler.tcp.MessageSendHolder;
+import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.general.EnumUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class ProtoUtils {
 
@@ -38,6 +39,15 @@ public class ProtoUtils {
         return br;
     }
 
+    public static void needReLogin(Connection connection) {
+        Sm_NeedReLogin.Builder builder = Sm_NeedReLogin.newBuilder();
+        builder.setAction(Action.RESP_RELOGIN);
+        Response.Builder resp = ProtoUtils.create_Response(Code.Sm_NeedReLogin, Action.RESP_RELOGIN);
+        resp.setResult(true);
+        resp.setErrorCode(EnumsProtos.ErrorCodeEnum.UNKNOWN);
+        resp.setSmNeedReLogin(builder);
+        connection.send(new MessageSendHolder(resp.build(), resp.getSmMsgAction(), new ArrayList<>()));
+    }
 
     public static Sm_Common_IdMaptoCountList create_Sm_Common_IdMaptoCountList(List<IdMaptoCount> idMaptoCounts) {
 //        ExampleProtos.Sm_Example.Builder b = ExampleProtos.Sm_Example.newBuilder();
@@ -100,26 +110,6 @@ public class ProtoUtils {
         return idAndCountList;
     }
 
-
-    /**
-     * 通用排行榜，适用于展示SimplePlayer信息
-     *
-     * @param rankType
-     * @param playerIdToSimplePlayer
-     * @param redisRankAndScores
-     * @return
-     */
-    public static Sm_Common_RankList create_Sm_Common_Rank_List(CommonRankTypeEnum rankType, Map<String, SimplePlayer> playerIdToSimplePlayer, List<RedisRankAndScore> redisRankAndScores) {
-        Sm_Common_RankList.Builder b = Sm_Common_RankList.newBuilder();
-        b.setRankType(rankType);
-        for (RedisRankAndScore rankAndScore : redisRankAndScores) {
-            if (!playerIdToSimplePlayer.containsKey(rankAndScore.getMember())) {
-                continue;
-            }
-            b.addRanks(create_Sm_Common_Rank(playerIdToSimplePlayer.get(rankAndScore.getMember()), rankAndScore.getRank(), rankAndScore.getScore()));
-        }
-        return b.build();
-    }
 
     /**
      * 通用排行榜，适用于展示SimpleGuild信息

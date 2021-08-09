@@ -2,7 +2,7 @@ package drama.gameServer.features.actor.playerIO.ctrl;
 
 import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
-import drama.gameServer.features.actor.roomCenter.pojo.RoomPlayer;
+import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.RoomProtos;
@@ -23,7 +23,7 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, InnerMsg msg);
 
-    void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer);
+    void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId);
 
     boolean isInRoom();
 

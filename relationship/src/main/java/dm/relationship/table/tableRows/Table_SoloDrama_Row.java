@@ -31,6 +31,7 @@ public class Table_SoloDrama_Row extends AbstractRow {
      * string 文本标题名
      */
     private String title;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -41,6 +42,11 @@ public class Table_SoloDrama_Row extends AbstractRow {
         duration = CellParser.parseSimpleCell("Duration", map, Integer.class); //int
         roleId = CellParser.parseSimpleCell("RoleId", map, String.class); //string
         title = CellParser.parseSimpleCell("Title", map, String.class);//string
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+    }
+
+    public Integer getDramaId() {
+        return dramaId;
     }
 
     public String getLine() {

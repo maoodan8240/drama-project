@@ -5,7 +5,7 @@ import akka.actor.ActorRef;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.interfaces.ConfigNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
-import drama.gameServer.features.actor.message.ConnectionContainer;
+import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import drama.protos.CommonProtos;
@@ -26,12 +26,11 @@ public class HandleConfigNetWorkMsgAction implements Action {
 
     private void onConfigNetWorkMsg(ConfigNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (msg.getMessage() instanceof CommonProtos.Cm_Common_Config) {
-            String playerId = ConnectionContainer.getPlayerIdByConnection(msg.getConnection());
-            if (playerId == null) {
-                LOGGER.debug("从ConnectionContainer中得到的playerId是空的!!! 把连接给它断开!!!");
-                msg.getConnection().close();
-                throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
+            if (!worldCtrl.contains(msg.getConnection())) {
+                ProtoUtils.needReLogin(msg.getConnection());
+                return;
             }
+            String playerId = worldCtrl.getPlayerId(msg.getConnection());
             if (worldCtrl.containsPlayerActorRef(playerId)) {
                 worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Config).tell(msg, ActorRef.noSender());
             } else {

@@ -68,6 +68,7 @@ public class Table_SceneList_Row extends AbstractRow {
         type = CellParser.parseSimpleCell("Type", map, Integer.class);
     }
 
+
     public Integer getType() {
         return type;
     }
@@ -125,8 +126,25 @@ public class Table_SceneList_Row extends AbstractRow {
         return maxSrchNum;
     }
 
-    public static String getPicByDramaId(int dramaId) {
+    public static Table_SceneList_Row getRowByDramaId(int dramaId) {
         Table_SceneList_Row row = RootTc.get(Table_SceneList_Row.class).get(dramaId);
-        return row.getPic();
+        return row;
+    }
+
+    @Override
+    public String toString() {
+        return "Table_SceneList_Row{" +
+                "type=" + type +
+                ", plaNum=" + plaNum +
+                ", diff=" + diff +
+                ", rate=" + rate +
+                ", theme='" + theme + '\'' +
+                ", runDown=" + runDown +
+                ", time=" + time +
+                ", pic='" + pic + '\'' +
+                ", brief='" + brief + '\'' +
+                ", name='" + name + '\'' +
+                ", id='" + id + '\'' +
+                '}';
     }
 }

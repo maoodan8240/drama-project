@@ -5,7 +5,7 @@ import akka.actor.ActorRef;
 import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
 import dm.relationship.base.msg.room.In_PlayerDisconnectedQuitRoomMsg;
 import drama.gameServer.features.actor.message.ConnectionContainer;
-import drama.gameServer.features.actor.roomCenter.utils.RoomContainer;
+import drama.gameServer.features.actor.room.utils.RoomContainer;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import org.slf4j.Logger;

@@ -48,6 +48,7 @@ public class Table_Solo_Row extends AbstractRow {
      * string 凶手逃脱剧情铺垫
      */
     private String escapePreShow;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -61,6 +62,11 @@ public class Table_Solo_Row extends AbstractRow {
         roleId = CellParser.parseSimpleCell("RoleId", map, Integer.class); //int
         escapeChoice = CellParser.parseSimpleCell("EscapeChoice", map, String.class); //string
         escapePreShow = CellParser.parseSimpleCell("EscapePreShow", map, String.class); //string
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+    }
+
+    public Integer getDramaId() {
+        return dramaId;
     }
 
     public String getSoloStatus() {
@@ -100,9 +106,9 @@ public class Table_Solo_Row extends AbstractRow {
     }
 
 
-    public static Table_Solo_Row getSoloRowByRoleId(int roleId, int soloNum) {
+    public static Table_Solo_Row getSoloRowByRoleId(int roleId, int soloNum, int dramaId) {
         for (Table_Solo_Row value : RootTc.get(Table_Solo_Row.class).values()) {
-            if (value.getRoleId() == roleId && value.getSoloNum() == soloNum) {
+            if (value.getRoleId() == roleId && value.getSoloNum() == soloNum && value.getDramaId() == dramaId) {
                 return value;
             }
         }

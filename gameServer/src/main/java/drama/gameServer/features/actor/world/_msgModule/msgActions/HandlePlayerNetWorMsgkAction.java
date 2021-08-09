@@ -6,7 +6,7 @@ import com.google.protobuf.Message;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
-import drama.gameServer.features.actor.message.ConnectionContainer;
+import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import org.slf4j.Logger;
@@ -29,11 +29,15 @@ public class HandlePlayerNetWorMsgkAction implements Action {
     }
 
     private void sendNetWorkMsgToPlayer(Connection connection, PlayerNetWorkMsg playerNetWorkMsg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef sender) {
-        String playerId = ConnectionContainer.getPlayerIdByConnection(connection);
+        if (!worldCtrl.contains(connection)) {
+            ProtoUtils.needReLogin(connection);
+            return;
+        }
+        String playerId = worldCtrl.getPlayerId(connection);
         if (playerId == null) {
-            LOGGER.debug("从ConnectionContainer中得到的playerId是空的!!! 把连接给它断开!!!");
+            LOGGER.debug("从world中得到的playerId是空的!!! 把连接给它断开!!!");
             connection.close();
-            throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
+            throw new BusinessLogicMismatchConditionException("从world中得到的playerId是空的!!!");
         }
         if (worldCtrl.containsPlayerActorRef(playerId)) {
             String playerActorPath = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", playerId);

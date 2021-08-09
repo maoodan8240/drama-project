@@ -8,12 +8,11 @@ import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
-import drama.gameServer.features.actor.message.ConnectionContainer;
-import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
-import drama.gameServer.features.actor.roomCenter.RoomActor;
-import drama.gameServer.features.actor.roomCenter.ctrl.RoomCtrl;
-import drama.gameServer.features.actor.roomCenter.pojo.Room;
-import drama.gameServer.features.actor.roomCenter.utils.RoomContainer;
+import drama.gameServer.features.actor.room.RoomActor;
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
+import drama.gameServer.features.actor.room.pojo.Room;
+import drama.gameServer.features.actor.room.utils.RoomContainer;
+import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import drama.protos.CodesProtos;
@@ -43,12 +42,11 @@ public class HandleRoomNetWorkMsgAction implements Action {
 
     private void onCreateRoomMsg(RoomNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
-            String playerId = ConnectionContainer.getPlayerIdByConnection(msg.getConnection());
-            if (playerId == null) {
-                LOGGER.debug("从ConnectionContainer中得到的playerId是空的!!! 把连接给它断开!!!");
-                msg.getConnection().close();
-                throw new BusinessLogicMismatchConditionException("从ConnectionContainer中得到的playerId是空的!!!");
+            if (!worldCtrl.contains(msg.getConnection())) {
+                ProtoUtils.needReLogin(msg.getConnection());
+                return;
             }
+            String playerId = worldCtrl.getPlayerId(msg.getConnection());
             if (worldCtrl.containsPlayerActorRef(playerId)) {
                 RoomProtos.Cm_Room cm_room = (RoomProtos.Cm_Room) msg.getMessage();
                 RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
@@ -74,6 +72,12 @@ public class HandleRoomNetWorkMsgAction implements Action {
                         case Cm_Room.Action.SOLO_ANSWER_VALUE:
                         case Cm_Room.Action.SOLO_DUB_VALUE:
                         case Cm_Room.Action.VOTE_RESULT_VALUE:
+                        case Cm_Room.Action.SELECT_VALUE:
+                        case Cm_Room.Action.CAN_SELECT_VALUE:
+                        case Cm_Room.Action.CAN_VOTE_SEARCH_VALUE:
+                        case Cm_Room.Action.VOTE_SEARCH_VALUE:
+                        case Cm_Room.Action.SELECT_DRAFT_VALUE:
+                        case Cm_Room.Action.CAN_SELECT_DRAFT_VALUE:
                             //以上Action都是需要传一个roomId的请求
                             onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                             break;

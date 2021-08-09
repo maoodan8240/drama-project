@@ -21,7 +21,7 @@ public class Table_Subject_Row extends AbstractRow {
     /***
      * int 剧本ID
      */
-    private Integer sceneId;
+    private Integer dramaId;
     /***
      * string 答案衔接后续题目，0为答题结束
      */
@@ -39,6 +39,7 @@ public class Table_Subject_Row extends AbstractRow {
      */
     private String question;
 
+
     public Table_Subject_Row() {
     }
 
@@ -46,12 +47,12 @@ public class Table_Subject_Row extends AbstractRow {
         this.answer = CellParser.parseTupleListCell("Answer", map, String.class);
         this.answerData = CellParser.parseListCell("AnswerData", map, String.class);
         this.question = CellParser.parseSimpleCell("Question", map, String.class);
-        this.sceneId = (Integer) CellParser.parseSimpleCell("SceneId", map, Integer.class);
         this.sex = (Integer) CellParser.parseSimpleCell("Sex", map, Integer.class);
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
     }
 
-    public Integer getSceneId() {
-        return this.sceneId;
+    public Integer getDramaId() {
+        return dramaId;
     }
 
     public List<TupleCell<String>> getAnswer() {
@@ -70,12 +71,12 @@ public class Table_Subject_Row extends AbstractRow {
         return this.question;
     }
 
-  
+
     public static List<Table_Subject_Row> getTableSubjectRowByDramaId(int dramaId) {
         List<Table_Subject_Row> rowList = new ArrayList<>();
         List<Table_Subject_Row> values = RootTc.get(Table_Subject_Row.class).values();
         for (Table_Subject_Row value : values) {
-            if (value.getSceneId() == dramaId) {
+            if (value.getDramaId() == dramaId) {
                 rowList.add(value);
             }
         }

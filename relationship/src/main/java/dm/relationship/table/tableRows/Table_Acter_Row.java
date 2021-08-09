@@ -16,10 +16,6 @@ import java.util.Map;
 
 public class Table_Acter_Row extends AbstractRow {
     /**
-     * int 剧本ID
-     */
-    private Integer sceneId;
-    /**
      * string 剧本背景音乐
      */
     private ListCell<String> bgm;
@@ -40,6 +36,10 @@ public class Table_Acter_Row extends AbstractRow {
      */
     private Integer roleId;
     /**
+     * string 角色头像
+     */
+    private String profile;
+    /**
      * string 角色名
      */
     private String name;
@@ -47,23 +47,30 @@ public class Table_Acter_Row extends AbstractRow {
      * string 搜证次数 key对应search出现的幕数
      */
     private TupleListCell<String> ap;
+    /**
+     * string 投票搜证次数
+     */
+    private TupleListCell<String> vSAp;
+    private Integer dramaId;
+
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
-
         // id column = {columnName:"Id", columnDesc:"ID"}
-        sceneId = CellParser.parseSimpleCell("SceneId", map, Integer.class);
         sex = CellParser.parseSimpleCell("Sex", map, Integer.class);
         pic = CellParser.parseSimpleCell("Pic", map, String.class);
         roleId = CellParser.parseSimpleCell("RoleId", map, Integer.class);
+        profile = CellParser.parseSimpleCell("Profile", map, String.class); //string
         name = CellParser.parseSimpleCell("Name", map, String.class);
         scene = CellParser.parseListCell("Scene", map, String.class);
         ap = CellParser.parseTupleListCell("Ap", map, String.class);
         bgm = CellParser.parseListCell("Bgm", map, String.class);
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+        vSAp = CellParser.parseTupleListCell("VSAp", map, String.class);//string
     }
 
-    public Integer getSceneId() {
-        return sceneId;
+    public Integer getDramaId() {
+        return dramaId;
     }
 
 
@@ -87,12 +94,20 @@ public class Table_Acter_Row extends AbstractRow {
         return roleId;
     }
 
+    public String getProfile() {
+        return profile;
+    }
+
     public String getName() {
         return name;
     }
 
     public List<TupleCell<String>> getAp() {
         return ap.getAll();
+    }
+
+    public List<TupleCell<String>> getvSAp() {
+        return vSAp.getAll();
     }
 
     public static EnumsProtos.SexEnum getSex(int roleIdx, int dramaId) {
@@ -106,9 +121,9 @@ public class Table_Acter_Row extends AbstractRow {
         return null;
     }
 
-    public static Table_Acter_Row getTableActerRowByRoleId(int roleId) {
+    public static Table_Acter_Row getTableActerRowByRoleId(int roleId, int dramaId) {
         for (Table_Acter_Row value : RootTc.get(Table_Acter_Row.class).values()) {
-            if (value.getRoleId() == roleId) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
                 return value;
             }
         }
@@ -120,12 +135,13 @@ public class Table_Acter_Row extends AbstractRow {
         List<Table_Acter_Row> rowList = new ArrayList<>();
         List<Table_Acter_Row> values = RootTc.get(Table_Acter_Row.class).values();
         for (Table_Acter_Row value : values) {
-            if (value.getSceneId() == dramaId) {
+            if (value.getDramaId() == dramaId) {
                 rowList.add(value);
             }
         }
         return rowList;
     }
+
 
     /**
      * 获取对应幕数的搜索次数
@@ -137,19 +153,59 @@ public class Table_Acter_Row extends AbstractRow {
      */
     public static int getSrchTimes(List<Table_Acter_Row> rowList, int roleId, int roomStateTimes) {
         TupleCell<String> tupleCell = null;
+        List<TupleCell<String>> ap = null;
         for (Table_Acter_Row row : rowList) {
             if (row.getRoleId() == roleId) {
-                List<TupleCell<String>> ap = row.getAp();
-                for (TupleCell<String> tuple : ap) {
-                    Integer stateTimes = Integer.valueOf(tuple.get(TupleCell.FIRST));
-                    if (stateTimes == roomStateTimes) {
-                        tupleCell = tuple;
-                    }
-                }
+                ap = row.getAp();
             }
         }
-
+        for (TupleCell<String> tuple : ap) {
+            Integer stateTimes = Integer.valueOf(tuple.get(TupleCell.FIRST));
+            if (stateTimes == roomStateTimes) {
+                tupleCell = tuple;
+            }
+        }
         return Integer.valueOf(tupleCell.get(TupleCell.SECOND));
     }
 
+    public static int getVoteSrchTimes(List<Table_Acter_Row> rowList, int roleId, int roomStateTimes) {
+        TupleCell<String> tupleCell = null;
+        List<TupleCell<String>> vSAp = null;
+        for (Table_Acter_Row row : rowList) {
+            if (row.getRoleId() == roleId) {
+                vSAp = row.getvSAp();
+            }
+        }
+        for (TupleCell<String> tuple : vSAp) {
+            Integer stateTimes = Integer.valueOf(tuple.get(TupleCell.FIRST));
+            if (stateTimes == roomStateTimes) {
+                tupleCell = tuple;
+            }
+        }
+        return Integer.valueOf(tupleCell.get(TupleCell.SECOND));
+    }
+
+    public static List<String> getRolePicByRoleIds(List<Integer> voteRoleIds, int dramaId) {
+        List<String> rolePic = new ArrayList<>();
+        for (Integer voteRoleId : voteRoleIds) {
+            Table_Acter_Row row = getTableActerRowByRoleId(voteRoleId, dramaId);
+            rolePic.add(row.getProfile());
+        }
+        return rolePic;
+    }
+
+    @Override
+    public String toString() {
+        return "Table_Acter_Row{" +
+                ", bgm=" + bgm +
+                ", sex=" + sex +
+                ", scene=" + scene +
+                ", pic='" + pic + '\'' +
+                ", roleId=" + roleId +
+                ", profile='" + profile + '\'' +
+                ", name='" + name + '\'' +
+                ", ap=" + ap +
+                ", dramaId=" + dramaId +
+                '}';
+    }
 }

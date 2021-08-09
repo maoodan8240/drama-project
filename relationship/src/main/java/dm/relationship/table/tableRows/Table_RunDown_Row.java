@@ -6,10 +6,15 @@ import ws.common.table.table.implement.AbstractRow;
 import ws.common.table.table.interfaces.cell.ListCell;
 import ws.common.table.table.utils.CellParser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class Table_RunDown_Row extends AbstractRow {
+    /**
+     * string 青青剧本
+     */
+    private ListCell<String> text7;
     /**
      * string 青青剧本
      */
@@ -79,6 +84,10 @@ public class Table_RunDown_Row extends AbstractRow {
      */
     private String task5;
     /**
+     * string 青青任务
+     */
+    private String task7;
+    /**
      * string 提示文案
      */
     private String tips;
@@ -86,12 +95,18 @@ public class Table_RunDown_Row extends AbstractRow {
      * string 配音提示文案
      */
     private String dubTips;
+    /**
+     * int 解锁线索
+     */
+    private int unlockClueId;
+    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
         // id column = {columnName:"Id", columnDesc:"唯一id"}
         tips = CellParser.parseSimpleCell("Tips", map, String.class);
         task5 = CellParser.parseSimpleCell("Task5", map, String.class);
+        task7 = CellParser.parseSimpleCell("Task7", map, String.class);
         task6 = CellParser.parseSimpleCell("Task6", map, String.class);
         task4 = CellParser.parseSimpleCell("Task4", map, String.class);
         task3 = CellParser.parseSimpleCell("Task3", map, String.class);
@@ -104,13 +119,23 @@ public class Table_RunDown_Row extends AbstractRow {
         nextSTime = CellParser.parseSimpleCell("NextSTime", map, Integer.class);
         text5 = CellParser.parseListCell("Text5", map, String.class);
         text6 = CellParser.parseListCell("Text6", map, String.class);
+        text7 = CellParser.parseListCell("Text7", map, String.class);
         text4 = CellParser.parseListCell("Text4", map, String.class);
         text3 = CellParser.parseListCell("Text3", map, String.class);
         text2 = CellParser.parseListCell("Text2", map, String.class);
         text1 = CellParser.parseListCell("Text1", map, String.class);
         dubTips = CellParser.parseSimpleCell("DubTips", map, String.class);
+        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+        unlockClueId = CellParser.parseSimpleCell("UnlockClueId", map, Integer.class);
     }
 
+    public int getUnlockClueId() {
+        return unlockClueId;
+    }
+
+    public Integer getDramaId() {
+        return dramaId;
+    }
 
     public Integer getNextSTime() {
         return nextSTime;
@@ -188,13 +213,31 @@ public class Table_RunDown_Row extends AbstractRow {
         return dubTips;
     }
 
-    public static long getNextSTime(String status, int num) {
+    public List<String> getText7() {
+        return text7.getAll();
+    }
+
+    public String getTask7() {
+        return task7;
+    }
+
+    public static long getNextSTime(String status, int num, int dramaId) {
         int nextSTime = 0;
         for (Table_RunDown_Row value : RootTc.get(Table_RunDown_Row.class).values()) {
-            if (value.getNum() == num && value.getStatus().equals(status)) {
+            if (value.getNum() == num && value.getStatus().equals(status) && value.getDramaId() == dramaId) {
                 nextSTime += value.getNextSTime();
             }
         }
         return nextSTime;
+    }
+
+    public static List<Integer> getUnlockClueIds(int dramaId, int stateTimes, String statusName) {
+        List<Integer> clueIds = new ArrayList<>();
+        for (Table_RunDown_Row value : RootTc.get(Table_RunDown_Row.class).values()) {
+            if (value.getDramaId() == dramaId && stateTimes == value.getNum() && value.getStatus().equals(statusName)) {
+                clueIds.add(value.getUnlockClueId());
+            }
+        }
+        return clueIds;
     }
 }

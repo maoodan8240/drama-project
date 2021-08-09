@@ -5,9 +5,9 @@ import dm.relationship.daos.DaoContainer;
 import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
-import drama.gameServer.features.actor.playerIO.utils.RoomProtoUtils;
-import drama.gameServer.features.actor.roomCenter.msg.In_playerOnOpenDubRoomMsg;
-import drama.gameServer.features.actor.roomCenter.pojo.RoomPlayer;
+import drama.gameServer.features.actor.room.msg.In_PlayerOnOpenDubRoomMsg;
+import drama.gameServer.features.actor.room.pojo.RoomPlayer;
+import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
 import drama.protos.CodesProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
@@ -76,25 +76,25 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
 
 
     public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, InnerMsg msg) {
-        In_playerOnOpenDubRoomMsg message = (In_playerOnOpenDubRoomMsg) msg;
+        In_PlayerOnOpenDubRoomMsg message = (In_PlayerOnOpenDubRoomMsg) msg;
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
         response.setResult(true);
         RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
         bRoom.setAction(action);
         bRoom.setRoomPlayerNum(message.getPlayerNum());
-        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer);
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer, message.getDramaId());
         bRoom.setRoomPlayer(sm_room_player);
         response.setSmRoom(bRoom.build());
         send(response.build());
     }
 
     @Override
-    public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer) {
+    public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId) {
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
         response.setResult(true);
         RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
         bRoom.setAction(action);
-        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer);
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer, dramaId);
         bRoom.setRoomPlayer(sm_room_player);
         response.setSmRoom(bRoom.build());
         send(response.build());
