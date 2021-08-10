@@ -591,7 +591,7 @@ public class RoomActor extends DmActor {
             LOGGER.debug("房间已满,playerId={},roomId={}", player.getPlayerId(), roomId);
             throw new BusinessLogicMismatchConditionException("房间已满 roomId=" + roomId + ",playerId=" + player.getPlayerId(), EnumsProtos.ErrorCodeEnum.ROOM_FULL);
         }
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER) {
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER || roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SELECT) {
             LOGGER.debug("请求准备的状态和房间状态不匹配 playerId={}, RequestStateEnum={},RoomStateEnum={},RequestStateTimes={},RoomStateTimes={}", //
                     player.getPlayerId(), roomCtrl.getRoomState(), roomCtrl.getRoomState().toString(), roomCtrl.getRoomStateTimes(), roomCtrl.getRoomStateTimes());//
             return;
