@@ -16,7 +16,7 @@ public interface RoomCtrl extends Controler<Room> {
      * @param playerId
      * @param dramaId
      */
-    void createRoom(String roomId, String playerId, int dramaId);
+    void createRoom(String roomId, String playerId, String playerName, int dramaId);
 
     /**
      * 清出玩家

@@ -52,6 +52,11 @@ public class Table_SceneList_Row extends AbstractRow {
      * string 剧本名
      */
     private String name;
+    /**
+     * string 背景图片
+     */
+    private String bgPic;
+
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -66,8 +71,12 @@ public class Table_SceneList_Row extends AbstractRow {
         diff = CellParser.parseSimpleCell("Diff", map, Integer.class);
         plaNum = CellParser.parseSimpleCell("PlaNum", map, Integer.class);
         type = CellParser.parseSimpleCell("Type", map, Integer.class);
+        bgPic = CellParser.parseSimpleCell("BgPic", map, String.class);
     }
 
+    public String getBgPic() {
+        return bgPic;
+    }
 
     public Integer getType() {
         return type;

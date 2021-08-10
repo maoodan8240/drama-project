@@ -71,6 +71,10 @@ public class Room {
      */
     private int playerNum;
     /**
+     * 房主名字
+     */
+    private String masterName;
+    /**
      * 被投凶的角色Id对应投凶角色Id
      */
     private Map<Integer, Map<Integer, List<Integer>>> voteNumToVoteRoleIdToRoleId = new ConcurrentHashMap<>();
@@ -91,7 +95,8 @@ public class Room {
      */
     private Map<Integer, Map<Integer, Integer>> draftNumToSelectDraftIdToRoleId = new ConcurrentHashMap<>();
 
-    public Room(String roomId, int dramaId, String masterId, int simpleRoomId, Table_SceneList_Row tabRow) {
+
+    public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
         this.dramaId = dramaId;
         this.masterId = masterId;
@@ -100,6 +105,7 @@ public class Room {
         this.runRown = new ArrayList<>(tabRow.getRunDown());
         this.srchNum = tabRow.getSrchNum();
         this.playerNum = tabRow.getPlaNum();
+        this.masterName = masterName;
     }
 
 
@@ -124,6 +130,13 @@ public class Room {
         return draftNumToSelectDraftIdToRoleId;
     }
 
+    public String getMasterName() {
+        return masterName;
+    }
+
+    public void setMasterName(String masterName) {
+        this.masterName = masterName;
+    }
 
     public long getNextSTime() {
         return nextSTime;
@@ -236,8 +249,20 @@ public class Room {
                 ", masterId='" + masterId + '\'' +
                 ", simpleRoomId=" + simpleRoomId +
                 ", idToRoomPlayer=" + idToRoomPlayer +
+                ", idToRoomPlayerCtrl=" + idToRoomPlayerCtrl +
                 ", roomState=" + roomState +
+                ", stateTimes=" + stateTimes +
+                ", runRown=" + runRown +
                 ", roleIdToPlayerId=" + roleIdToPlayerId +
+                ", clueIds=" + clueIds +
+                ", srchNum=" + srchNum +
+                ", playerNum=" + playerNum +
+                ", masterName='" + masterName + '\'' +
+                ", voteNumToVoteRoleIdToRoleId=" + voteNumToVoteRoleIdToRoleId +
+                ", nextSTime=" + nextSTime +
+                ", voteTypeIdToRoleId=" + voteTypeIdToRoleId +
+                ", canVoteSearchCuleId=" + canVoteSearchCuleId +
+                ", draftNumToSelectDraftIdToRoleId=" + draftNumToSelectDraftIdToRoleId +
                 '}';
     }
 }

@@ -8,7 +8,9 @@ import java.util.Map;
 public class RoomPlayer {
     private String playerId;
     private String roomId;
+    private String playerName;
     private int roleId;
+    private String playerIcon;
     /**
      * 是否已经举手准备
      */
@@ -41,6 +43,21 @@ public class RoomPlayer {
         this.roomId = roomId;
     }
 
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public String getPlayerIcon() {
+        return playerIcon;
+    }
+
+    public void setPlayerIcon(String playerIcon) {
+        this.playerIcon = playerIcon;
+    }
 
     public boolean isSelectDraft() {
         return selectDraft;

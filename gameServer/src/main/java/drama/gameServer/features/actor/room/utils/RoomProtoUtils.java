@@ -68,6 +68,7 @@ public class RoomProtoUtils {
         broom.setRate(row.getRate());
         broom.setDiff(row.getDiff());
         broom.setTime(row.getTime());
+        broom.setMasterName(room.getMasterName());
     }
 
 
