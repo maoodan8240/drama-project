@@ -152,9 +152,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public boolean checkAllPlayerReady() {
         Integer plaNum = RootTc.get(Table_SceneList_Row.class).get(target.getDramaId()).getPlaNum();
-//        if (target.getIdToRoomPlayer().size() < plaNum) {
-//            return false;
-//        }
+        if (target.getIdToRoomPlayer().size() < plaNum) {
+            return false;
+        }
         for (Map.Entry<String, RoomPlayer> roomPlayerEntry : target.getIdToRoomPlayer().entrySet()) {
             if (!roomPlayerEntry.getValue().isReady() || roomPlayerEntry.getValue().getRoleId() == 0) {
                 return false;
