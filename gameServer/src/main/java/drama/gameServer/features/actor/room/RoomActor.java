@@ -22,7 +22,6 @@ import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
-import drama.gameServer.features.actor.room.msg.In_CheckAfterSwitchStateRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllVoteSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
@@ -101,13 +100,11 @@ public class RoomActor extends DmActor {
             onCheckPlayerAllReadyMsg((In_CheckPlayerAllReadyRoomMsg) msg);
         } else if (msg instanceof In_CheckPlayerAllVoteSearchRoomMsg) {
             onCheckPlayerAllVoteSearchRoomMsg((In_CheckPlayerAllVoteSearchRoomMsg) msg);
-        } else if (msg instanceof In_CheckAfterSwitchStateRoomMsg) {
-            onCheckAfterSwitchStateRoomMsg((In_CheckAfterSwitchStateRoomMsg) msg);
         }
     }
 
-    private void onCheckAfterSwitchStateRoomMsg(In_CheckAfterSwitchStateRoomMsg msg) {
-        switch (msg.getRoomState()) {
+    private void onCheckAfterSwitchStateRoomMsg() {
+        switch (roomCtrl.getRoomState()) {
             case UNLOCK:
                 String stateName = roomCtrl.getRoomState().toString();
                 List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(roomCtrl.getDramaId(), roomCtrl.getRoomStateTimes(), stateName);
@@ -166,6 +163,7 @@ public class RoomActor extends DmActor {
             roomCtrl.setNextStateAndTimes();
             //TODO 通知玩家房间状态已经更新成播放剧本状态
             _tellAllRoomPlayer(new In_PlayerOnSwitchStateRoomMsg(roomCtrl.getTarget()), ActorRef.noSender());
+            onCheckAfterSwitchStateRoomMsg();
         }
     }
 
@@ -477,6 +475,7 @@ public class RoomActor extends DmActor {
         if (!canSelectRoleIds.contains(roleId)) {
             String msg = String.format("这个角色已经被选了 playerId=%s, roleId=%s", player.getPlayerId(), roomPlayerCtrl.getRoleId());
             LOGGER.debug(msg);
+            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_ROLE);
         } else {
             roomPlayerCtrl.setRoleId(roleId);
             roomCtrl.chooseRole(roomPlayerCtrl.getTarget());

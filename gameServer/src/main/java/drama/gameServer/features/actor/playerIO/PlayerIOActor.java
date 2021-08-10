@@ -18,7 +18,6 @@ import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
-import drama.gameServer.features.actor.room.msg.In_CheckAfterSwitchStateRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllVoteSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
@@ -449,14 +448,8 @@ public class PlayerIOActor extends DmActor {
         RoomProtos.Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, action);
         response.setSmRoom(b);
         playerIOCtrl.send(response.build());
-        afterSwitchStateCheck(msg.getRoom());
     }
 
-    private void afterSwitchStateCheck(Room room) {
-        InnerMsg msg = new In_CheckAfterSwitchStateRoomMsg(room.getRoomState());
-        String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + room.getRoomId();
-        DmActorSystem.get().actorSelection(roomActorName).tell(msg, ActorRef.noSender());
-    }
 
     private void onPlayerCreateRoomMsg(In_PlayerCreateRoomMsg msg) {
         RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CREATE;
