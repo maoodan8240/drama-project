@@ -284,7 +284,7 @@ public class RoomActor extends DmActor {
             LOGGER.debug("已经选择过轮抽了 playerId={}", player.getPlayerId());
             return;
         }
-        if (!roomCtrl.containsSelectDraft(draftId)) {
+        if (!roomCtrl.canSelectDraft(draftId)) {
             String msg = String.format("手慢了,被别人选走了 playerId=%s, draftId=%s", player.getPlayerId(), draftId);
             LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_DRAFT);

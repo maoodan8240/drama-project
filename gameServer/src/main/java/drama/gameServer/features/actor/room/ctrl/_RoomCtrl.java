@@ -298,7 +298,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
         Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
         for (Integer draftId : draftIds) {
-            selectDraftIdToRoleId.put(draftId, 0);
+            selectDraftIdToRoleId.put(draftId, MagicNumbers.DEFAULT_ZERO);
         }
     }
 
@@ -446,19 +446,21 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean containsSelectDraft(int typeId) {
+    public boolean canSelectDraft(int draftId) {
         Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
-        return selectDraftIdToRoleId.containsKey(typeId);
+        return selectDraftIdToRoleId.get(draftId) == MagicNumbers.DEFAULT_ZERO;
     }
 
     @Override
     public void selectDraft(RoomPlayerCtrl roomPlayerCtrl, int draftId) {
         Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
-        if (selectDraftIdToRoleId.containsKey(draftId)) {
+        if (selectDraftIdToRoleId.get(draftId) == MagicNumbers.DEFAULT_ZERO) {
             selectDraftIdToRoleId.put(draftId, roomPlayerCtrl.getRoleId());
             roomPlayerCtrl.setSelectDraft(true);
         } else {
-            LOGGER.debug("手慢了,被别人选走了 playerId={}, draftId={}", roomPlayerCtrl.getPlayerId(), draftId);
+            String msg = String.format("手慢了,被别人选走了selectDraft playerId=%s, draftId=%s", roomPlayerCtrl.getPlayerId(), draftId);
+            LOGGER.debug(msg);
+            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_DRAFT);
         }
     }
 

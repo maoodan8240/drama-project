@@ -304,7 +304,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @param draftId
      */
-    boolean containsSelectDraft(int draftId);
+    boolean canSelectDraft(int draftId);
 
     /**
      * 选择轮抽
