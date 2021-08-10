@@ -270,8 +270,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 int srchNumAndTimes = Table_Acter_Row.getSrchTimes(acterRowList, roomPlayerCtrl.getRoleId(), stateTimes);
                 roomPlayerCtrl.setSrchTimes(srchNumAndTimes);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTESEARCH) {
-                List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId());
-                target.getCanVoteSearchCuleId().addAll(searchTypeIds);
+                List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId(), target.getCanVoteSearchCuleId());
                 List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(getDramaId());
                 int voteSrchTimes = Table_Acter_Row.getVoteSrchTimes(acterRowList, roomPlayerCtrl.getRoleId(), stateTimes);
                 roomPlayerCtrl.setVoteSrchTimes(voteSrchTimes);

@@ -7,7 +7,6 @@ import ws.common.table.table.exception.CellParseFailedException;
 import ws.common.table.table.implement.AbstractRow;
 import ws.common.table.table.utils.CellParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +117,13 @@ public class Table_SearchType_Row extends AbstractRow {
         throw new TableRowLogicCheckFailedException(Table_SearchType_Row.class, 0, msg);
     }
 
-    public static List<Integer> getSearchTypeRowByStateTimes(int stateTimes, int dramaId) {
-        List<Integer> searchTypeIds = new ArrayList<>();
+    public static List<Integer> getSearchTypeRowByStateTimes(int stateTimes, int dramaId, List<Integer> searchTypeIds) {
         List<Table_SearchType_Row> values = RootTc.get(Table_SearchType_Row.class).values();
         for (Table_SearchType_Row row : values) {
             if (row.getSrchNum() == stateTimes && row.getDramaId() == dramaId) {
-                searchTypeIds.add(row.getTypeId());
+                if (!searchTypeIds.contains(row.getTypeId())) {
+                    searchTypeIds.add(row.getTypeId());
+                }
             }
         }
         return searchTypeIds;
