@@ -164,9 +164,9 @@ public class RoomProtoUtils {
         return arr;
     }
 
-    public static RoomProtos.Sm_Room_Clue.Builder createSmRoomClue(int rowId, int dramaId) {
+    public static RoomProtos.Sm_Room_Clue.Builder createSmRoomClue(int id, int dramaId) {
         RoomProtos.Sm_Room_Clue.Builder bClue = RoomProtos.Sm_Room_Clue.newBuilder();
-        Table_Search_Row row = RootTc.get(Table_Search_Row.class).get(rowId);
+        Table_Search_Row row = Table_Search_Row.getTableSearchRowByTypeIdAndDramaId(id, dramaId);
         Table_SearchType_Row searchTypeRow = Table_SearchType_Row.getSearchTypeRow(row.getTypeid(), dramaId);
         bClue.setTypeName(searchTypeRow.getTypename());
         bClue.setLine(row.getLine());

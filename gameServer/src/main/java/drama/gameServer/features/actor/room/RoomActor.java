@@ -548,7 +548,7 @@ public class RoomActor extends DmActor {
             //房间线索和玩家的线索都没有这条线索才可以搜取
             if (!roomCtrl.containsClueId(row.getId()) && !roomPlayerCtrl.containsClueId(row.getId())) {
                 roomPlayerCtrl.addClueId(row.getId());
-                roomCtrl.addClueId(row.getId());
+                roomCtrl.addClueId(row.getTypeid());
                 //一次只能搜一条线索,搜到就break;
                 id = row.getId();
                 roomPlayerCtrl.reduceSrchTimes();

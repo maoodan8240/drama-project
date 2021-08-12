@@ -1,5 +1,6 @@
 package dm.relationship.table.tableRows;
 
+import dm.relationship.exception.TableRowLogicCheckFailedException;
 import dm.relationship.table.RootTc;
 import ws.common.table.table.exception.CellParseFailedException;
 import ws.common.table.table.implement.AbstractRow;
@@ -97,6 +98,17 @@ public class Table_Search_Row extends AbstractRow {
         return result;
     }
 
+
+    public static Table_Search_Row getTableSearchRowByTypeIdAndDramaId(int id, int dramaId) {
+        for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
+            if (row.getId() == id && row.getDramaId() == dramaId) {
+                return row;
+            }
+        }
+        String msg = String.format("getTableSearchRowByTypeIdAndDramaId failed, roleId=%s", id);
+        throw new TableRowLogicCheckFailedException(Table_Search_Row.class, id, msg);
+    }
+
     public static List<Integer> getAllHideClueIds(int stateTimes, int dramaId) {
         List<Integer> result = new ArrayList<>();
         for (Table_Search_Row value : RootTc.get(Table_Search_Row.class).values()) {
@@ -110,6 +122,8 @@ public class Table_Search_Row extends AbstractRow {
     @Override
     public String toString() {
         return "Table_Search_Row{" +
+                ", dramaId=" + dramaId +
+                ", id=" + id +
                 "line='" + line + '\'' +
                 ", hide=" + hide +
                 ", typeid=" + typeid +
@@ -117,8 +131,6 @@ public class Table_Search_Row extends AbstractRow {
                 ", pic='" + pic + '\'' +
                 ", sound=" + sound +
                 ", detailPic=" + detailPic +
-                ", dramaId=" + dramaId +
-                ", id=" + id +
                 '}';
     }
 }
