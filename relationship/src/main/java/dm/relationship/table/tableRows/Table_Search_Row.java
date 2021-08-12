@@ -99,14 +99,26 @@ public class Table_Search_Row extends AbstractRow {
     }
 
 
-    public static Table_Search_Row getTableSearchRowByTypeIdAndDramaId(int id, int dramaId) {
+    public static Table_Search_Row getTableSearchRowByIdAndDramaId(int id, int dramaId) {
+        System.out.println("getTableSearchRowByTypeIdAndDramaId：" + id);
         for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
             if (row.getId() == id && row.getDramaId() == dramaId) {
                 return row;
             }
         }
-        String msg = String.format("getTableSearchRowByTypeIdAndDramaId failed, roleId=%s", id);
+        String msg = String.format("getTableSearchRowByTypeIdAndDramaId failed, id=%s", id);
         throw new TableRowLogicCheckFailedException(Table_Search_Row.class, id, msg);
+    }
+
+    public static int getRowIdByIdAndDramaId(int typeid, int dramaId) {
+        System.out.println("getTableSearchRowByTypeIdAndDramaId：" + typeid);
+        for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
+            if (row.getTypeid() == typeid && row.getDramaId() == dramaId) {
+                return row.getId();
+            }
+        }
+        String msg = String.format("getTableSearchRowByTypeIdAndDramaId failed, typeid=%s", typeid);
+        throw new TableRowLogicCheckFailedException(Table_Search_Row.class, typeid, msg);
     }
 
     public static List<Integer> getAllHideClueIds(int stateTimes, int dramaId) {
@@ -124,7 +136,7 @@ public class Table_Search_Row extends AbstractRow {
         return "Table_Search_Row{" +
                 ", dramaId=" + dramaId +
                 ", id=" + id +
-                "line='" + line + '\'' +
+                ", line='" + line + '\'' +
                 ", hide=" + hide +
                 ", typeid=" + typeid +
                 ", srchNum=" + srchNum +

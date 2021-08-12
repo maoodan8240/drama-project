@@ -423,14 +423,14 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public int getVoteSearchClueId() {
         int maxCount = 0;
-        int clueId = 0;
+        int typeId = 0;
         for (Map.Entry<Integer, List<Integer>> entry : target.getVoteTypeIdToRoleId().entrySet()) {
             if (entry.getValue().size() > maxCount) {
                 maxCount = entry.getValue().size();
-                clueId = entry.getKey();
+                typeId = entry.getKey();
             }
         }
-        return clueId;
+        return Table_Search_Row.getRowIdByIdAndDramaId(typeId, getDramaId());
     }
 
     @Override

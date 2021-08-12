@@ -166,7 +166,7 @@ public class RoomProtoUtils {
 
     public static RoomProtos.Sm_Room_Clue.Builder createSmRoomClue(int id, int dramaId) {
         RoomProtos.Sm_Room_Clue.Builder bClue = RoomProtos.Sm_Room_Clue.newBuilder();
-        Table_Search_Row row = Table_Search_Row.getTableSearchRowByTypeIdAndDramaId(id, dramaId);
+        Table_Search_Row row = Table_Search_Row.getTableSearchRowByIdAndDramaId(id, dramaId);
         Table_SearchType_Row searchTypeRow = Table_SearchType_Row.getSearchTypeRow(row.getTypeid(), dramaId);
         bClue.setTypeName(searchTypeRow.getTypename());
         bClue.setLine(row.getLine());
