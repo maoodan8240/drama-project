@@ -271,7 +271,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @return
      */
-    List<Integer> canVoteSearchClueIds();
+    List<Integer> canVoteSearchTypeIds();
 
     /**
      * 投票搜证
@@ -298,7 +298,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @param typeId
      */
-    void removeCanVoteSearchClue(int typeId);
+    void removeCanVoteSearchTypeId(int typeId);
 
     /**
      * 是否包含这个可以选择的轮抽(是否被比人选走了)

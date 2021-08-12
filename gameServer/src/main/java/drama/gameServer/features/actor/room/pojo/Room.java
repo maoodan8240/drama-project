@@ -89,7 +89,7 @@ public class Room {
     /**
      * 可以被投票搜索的线索Id
      */
-    private List<Integer> canVoteSearchCuleId = new ArrayList<>();
+    private List<Integer> canVoteSearchTypeId = new ArrayList<>();
     /**
      * 可以被选择的轮抽
      */
@@ -118,12 +118,12 @@ public class Room {
     }
 
 
-    public List<Integer> getCanVoteSearchCuleId() {
-        return canVoteSearchCuleId;
+    public List<Integer> getCanVoteSearchTypeId() {
+        return canVoteSearchTypeId;
     }
 
-    public void setCanVoteSearchCuleId(List<Integer> canVoteSearchCuleId) {
-        this.canVoteSearchCuleId = canVoteSearchCuleId;
+    public void setCanVoteSearchTypeId(List<Integer> canVoteSearchTypeId) {
+        this.canVoteSearchTypeId = canVoteSearchTypeId;
     }
 
     public Map<Integer, Map<Integer, Integer>> getDraftNumToSelectDraftIdToRoleId() {
@@ -261,7 +261,7 @@ public class Room {
                 ", voteNumToVoteRoleIdToRoleId=" + voteNumToVoteRoleIdToRoleId +
                 ", nextSTime=" + nextSTime +
                 ", voteTypeIdToRoleId=" + voteTypeIdToRoleId +
-                ", canVoteSearchCuleId=" + canVoteSearchCuleId +
+                ", canVoteSearchCuleId=" + canVoteSearchTypeId +
                 ", draftNumToSelectDraftIdToRoleId=" + draftNumToSelectDraftIdToRoleId +
                 '}';
     }

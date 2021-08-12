@@ -20,7 +20,6 @@ import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
 import drama.gameServer.features.actor.playerIO.utils.PlayerIConUploadUtils;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
-import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllVoteSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerChooseRoleRoomMsg;
@@ -281,13 +280,8 @@ public class PlayerIOActor extends DmActor {
         b.setTypeName(msg.getTypeName());
         response.setSmRoom(b.build());
         playerIOCtrl.send(response.build());
-        checkRoomPlayerAllVoteSearch(playerIOCtrl.getRoomId());
     }
 
-    private void checkRoomPlayerAllVoteSearch(String roomId) {
-        String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
-        DmActorSystem.get().actorSelection(roomActorName).tell(new In_CheckPlayerAllVoteSearchRoomMsg(playerId), ActorRef.noSender());
-    }
 
     private void onPlayerOnCanVoteSearchRoomMsg(In_PlayerOnCanVoteSearchRoomMsg msg) {
         RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CAN_VOTE_SEARCH;

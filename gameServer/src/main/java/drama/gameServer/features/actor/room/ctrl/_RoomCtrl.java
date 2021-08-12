@@ -271,10 +271,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 int srchNumAndTimes = Table_Acter_Row.getSrchTimes(acterRowList, roomPlayerCtrl.getRoleId(), stateTimes);
                 roomPlayerCtrl.setSrchTimes(srchNumAndTimes);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTESEARCH) {
-                List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId(), target.getCanVoteSearchCuleId());
                 List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(getDramaId());
                 int voteSrchTimes = Table_Acter_Row.getVoteSrchTimes(acterRowList, roomPlayerCtrl.getRoleId(), stateTimes);
                 roomPlayerCtrl.setVoteSrchTimes(voteSrchTimes);
+                addCanVoteSearchTypeIds();
             } else if (roomState == EnumsProtos.RoomStateEnum.DRAFT) {
                 List<Integer> draftIds = Table_Draft_Row.getDraftIds(getDramaId());
                 addSelectDraftIdToRoleId(draftIds);
@@ -288,6 +288,15 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 for (Integer roleId : allRoleId) {
                     target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
                 }
+            }
+        }
+    }
+
+    private void addCanVoteSearchTypeIds() {
+        List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId(), target.getCanVoteSearchTypeId());
+        for (Integer searchTypeId : searchTypeIds) {
+            if (!target.getCanVoteSearchTypeId().contains(searchTypeId)) {
+                target.getCanVoteSearchTypeId().add(searchTypeId);
             }
         }
     }
@@ -400,8 +409,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public List<Integer> canVoteSearchClueIds() {
-        return target.getCanVoteSearchCuleId();
+    public List<Integer> canVoteSearchTypeIds() {
+        return target.getCanVoteSearchTypeId();
     }
 
     @Override
@@ -442,8 +451,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void removeCanVoteSearchClue(int typeId) {
-        target.getCanVoteSearchCuleId().remove(Integer.valueOf(typeId));
+    public void removeCanVoteSearchTypeId(int clueId) {
+        Table_Search_Row row = Table_Search_Row.getTableSearchRowByIdAndDramaId(clueId, getDramaId());
+        target.getCanVoteSearchTypeId().remove(Integer.valueOf(row.getTypeid()));
     }
 
     @Override

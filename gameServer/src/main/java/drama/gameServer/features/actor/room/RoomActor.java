@@ -23,7 +23,6 @@ import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
-import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllVoteSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerChooseRoleRoomMsg;
@@ -98,8 +97,6 @@ public class RoomActor extends DmActor {
             onPlayerDisconnectedQuitRoom((In_PlayerDisconnectedQuitRoomMsg) msg);
         } else if (msg instanceof In_CheckPlayerAllReadyRoomMsg) {
             onCheckPlayerAllReadyMsg((In_CheckPlayerAllReadyRoomMsg) msg);
-        } else if (msg instanceof In_CheckPlayerAllVoteSearchRoomMsg) {
-            onCheckPlayerAllVoteSearchRoomMsg((In_CheckPlayerAllVoteSearchRoomMsg) msg);
         }
     }
 
@@ -143,15 +140,15 @@ public class RoomActor extends DmActor {
     }
 
 
-    private void onCheckPlayerAllVoteSearchRoomMsg(In_CheckPlayerAllVoteSearchRoomMsg msg) {
+    private void onCheckPlayerAllVoteSearchRoomMsg() {
         if (roomCtrl.checkPlayerFinishVoteSearch()) {
             // 通知所有玩家投票结果和最终投票选中的线索
             int clueId = roomCtrl.getVoteSearchClueId();
             if (!roomCtrl.containsClueId(clueId)) {
                 roomCtrl.addClueId(clueId);
-                roomCtrl.removeCanVoteSearchClue(clueId);
+                roomCtrl.removeCanVoteSearchTypeId(clueId);
                 Map<Integer, List<Integer>> voteResult = roomCtrl.clearVoteSearchTypeIdToPlayerRoleId();
-                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(msg.getPlayerId());
+                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
                 _tellAllRoomPlayer(new In_PlayerVoteSearchResultRoomMsg(voteResult, clueId, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId()), ActorRef.noSender());
             }
         }
@@ -309,6 +306,7 @@ public class RoomActor extends DmActor {
         roomCtrl.voteSearch(roomPlayerCtrl, typeName);
         String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
         DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerVoteSearchRoomMsg(typeName), ActorRef.noSender());
+        onCheckPlayerAllVoteSearchRoomMsg();
     }
 
     private void onCanVoteSearch() {
@@ -317,7 +315,7 @@ public class RoomActor extends DmActor {
             LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
             return;
         }
-        List<Integer> clueIds = roomCtrl.canVoteSearchClueIds();
+        List<Integer> clueIds = roomCtrl.canVoteSearchTypeIds();
         String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
         DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerOnCanVoteSearchRoomMsg(clueIds, roomCtrl.getDramaId(), roomCtrl.getRoomPlayer(player.getPlayerId())), ActorRef.noSender());
     }
