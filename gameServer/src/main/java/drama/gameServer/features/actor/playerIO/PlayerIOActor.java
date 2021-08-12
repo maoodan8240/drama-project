@@ -18,6 +18,7 @@ import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
+import drama.gameServer.features.actor.playerIO.utils.PlayerIConUploadUtils;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllVoteSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
@@ -57,10 +58,12 @@ import drama.protos.PlayerLoginProtos.Sm_Login.Action;
 import drama.protos.PlayerProtos;
 import drama.protos.RoomProtos;
 import org.apache.commons.lang3.StringUtils;
+import org.jolokia.util.Base64Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.utils.message.interfaces.InnerMsg;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -119,17 +122,24 @@ public class PlayerIOActor extends DmActor {
     private void onUpdate(PlayerProtos.Cm_Player cmPlayer) {
         Player target = playerIOCtrl.getTarget();
         PlayerBase base = target.getBase();
-
         String name = cmPlayer.getName();
         EnumsProtos.SexEnum sex = cmPlayer.getSex();
         base.setName(name);
         base.setSex(sex);
-        byte[] bytes = cmPlayer.getIcon().toByteArray();
-        String icon = new String(bytes);
-        String icon1 = !StringUtils.isEmpty(icon) ? icon : "";
+
+        byte[] bytes = new byte[0];
+        try {
+            bytes = Base64Util.decode(cmPlayer.getIcon().toString("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String iconUrl = "";
+        if (bytes.length != 0) {
+            iconUrl = PlayerIConUploadUtils.uploadPlayerIcon(target.getPlayerId(), bytes);
+        }
         String birthday = !StringUtils.isEmpty(cmPlayer.getBirthday()) ? cmPlayer.getBirthday() : "";
         String place = !StringUtils.isEmpty(cmPlayer.getPlace()) ? cmPlayer.getPlace() : "";
-        base.setIcon(icon);
+        base.setIcon(iconUrl);
         base.setBirthday(birthday);
         base.setPlace(place);
         PlayerProtos.Sm_Player.Action action = PlayerProtos.Sm_Player.Action.RESP_UPDATE;
@@ -139,7 +149,7 @@ public class PlayerIOActor extends DmActor {
         b.setAction(action);
         b.setName(name);
         b.setSex(sex);
-//        b.setIcon(ByteString.copyFrom(icon1.getBytes()));
+        b.setIcon(iconUrl);
         b.setBirthday(birthday);
         b.setPlace(place);
         response.setSmPlayer(b.build());

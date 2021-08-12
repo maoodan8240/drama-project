@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.room.ctrl;
 
+import dm.relationship.topLevelPojos.player.Player;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
@@ -13,10 +14,10 @@ public interface RoomCtrl extends Controler<Room> {
      * 创建房间
      *
      * @param roomId
-     * @param playerId
+     * @param player
      * @param dramaId
      */
-    void createRoom(String roomId, String playerId, String playerName, int dramaId);
+    void createRoom(String roomId, Player player, int dramaId);
 
     /**
      * 清出玩家

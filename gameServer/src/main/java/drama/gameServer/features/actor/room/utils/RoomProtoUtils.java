@@ -131,6 +131,8 @@ public class RoomProtoUtils {
         bRoomPlayer.setIsDub(roomPlayer.getIsDub());
         bRoomPlayer.setSrchTimes(roomPlayer.getSrchTimes());
         bRoomPlayer.setVoteSrchTimes(roomPlayer.getVoteSrchTimes());
+        bRoomPlayer.setPlayerName(roomPlayer.getPlayerName());
+        bRoomPlayer.setPlayerIcon(roomPlayer.getPlayerIcon());
         if (roomPlayer.getRoleId() != MagicNumbers.DEFAULT_ZERO) {
             Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roomPlayer.getRoleId(), dramaId);
             bRoomPlayer.setPic(row.getPic());
@@ -148,6 +150,8 @@ public class RoomProtoUtils {
         bRoomPlayer.setSrchTimes(roomPlayer.getSrchTimes());
         bRoomPlayer.setSoloDramaId(soloDramaId);
         bRoomPlayer.setVoteSrchTimes(roomPlayer.getVoteSrchTimes());
+        bRoomPlayer.setPlayerName(roomPlayer.getPlayerName());
+        bRoomPlayer.setPlayerIcon(roomPlayer.getPlayerIcon());
         return bRoomPlayer.build();
     }
 

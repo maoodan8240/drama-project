@@ -1,5 +1,7 @@
 package drama.gameServer.features.actor.room.pojo;
 
+import dm.relationship.topLevelPojos.player.Player;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +40,11 @@ public class RoomPlayer {
 
     private List<Integer> clueIds = new ArrayList<>();
 
-    public RoomPlayer(String playerId, String roomId) {
-        this.playerId = playerId;
+    public RoomPlayer(Player player, String roomId) {
+        this.playerId = player.getPlayerId();
         this.roomId = roomId;
+        this.playerName = player.getBase().getName();
+        this.playerIcon = player.getBase().getIcon();
     }
 
     public String getPlayerName() {

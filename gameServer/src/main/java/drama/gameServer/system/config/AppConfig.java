@@ -51,6 +51,11 @@ public class AppConfig {
         public static final String DM_Common_Config_mongodb_port = "DM-Common-Config.mongodb.port";
         public static final String DM_Common_Config_mongodb_userName = "DM-Common-Config.mongodb.userName";
 
+        public static final String DM_Common_Config_ftp_userName = "DM-Common-Config.ftp.userName";
+        public static final String DM_Common_Config_ftp_password = "DM-Common-Config.ftp.password";
+        public static final String DM_Common_Config_ftp_host = "DM-Common-Config.ftp.host";
+        public static final String DM_Common_Config_ftp_port = "DM-Common-Config.ftp.port";
+        public static final String DM_Common_Config_ftp_basePath = "DM-Common-Config.ftp.basePath";
     }
 
     private static Config config;

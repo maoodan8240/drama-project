@@ -601,7 +601,7 @@ public class RoomActor extends DmActor {
                 LOGGER.debug("onJoinRoomMsg 房间内玩家 playerId={}", s);
             }
         } else {
-            RoomPlayer roomPlayer = new RoomPlayer(player.getPlayerId(), roomId);
+            RoomPlayer roomPlayer = new RoomPlayer(player, roomId);
             RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
             roomPlayerCtrl.setTarget(roomPlayer);
             roomCtrl.addPlayer(roomPlayer, roomPlayerCtrl);
@@ -642,7 +642,7 @@ public class RoomActor extends DmActor {
 
     private void onCreateRoomMsg(Cm_Room cm_room) {
         LOGGER.debug("RoomActor收到消息: onCreateRoom playerId = {}, roomId ={}, dramaName={}", masterId, roomId, cm_room.getDramaId());
-        roomCtrl.createRoom(roomId, player.getPlayerId(), player.getBase().getName(), cm_room.getDramaId());
+        roomCtrl.createRoom(roomId, player, cm_room.getDramaId());
         RoomContainer.add(roomCtrl.getTarget(), masterId);
         MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_CREATE);
         br.setResult(true);

@@ -15,6 +15,7 @@ import dm.relationship.table.tableRows.Table_RunDown_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
+import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.topLevelPojos.simpleId.SimpleId;
 import drama.gameServer.features.actor.room.enums.RoomStateEnum;
 import drama.gameServer.features.actor.room.pojo.Room;
@@ -74,17 +75,17 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void createRoom(String roomId, String playerId, String playerName, int dramaId) {
+    public void createRoom(String roomId, Player player, int dramaId) {
         int simpleRoomId = SIMPLE_ID_DAO.nextSimpleId(SimpleIdTypeEnum.ROOM);
 //        int simpleRoomId = 10001;
         if (!Table_SceneList_Row.containsDramaId(dramaId)) {
             throw new BusinessLogicMismatchConditionException("剧本ID不存在 dramaId:" + dramaId);
         }
         Table_SceneList_Row tabRow = RootTc.get(Table_SceneList_Row.class).get(dramaId);
-        target = new Room(roomId, dramaId, playerId, simpleRoomId, playerName, tabRow);
+        target = new Room(roomId, dramaId, player.getPlayerId(), simpleRoomId, player.getBase().getName(), tabRow);
         setNextStateAndTimes();
         setTarget(target);
-        RoomPlayer roomPlayer = new RoomPlayer(playerId, roomId);
+        RoomPlayer roomPlayer = new RoomPlayer(player, roomId);
         RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
         roomPlayerCtrl.setTarget(roomPlayer);
         addPlayer(roomPlayer, roomPlayerCtrl);
