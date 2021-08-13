@@ -33,7 +33,7 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     }
 
     private void add(String playerId, String mobileNum) {
-        target.getPlayerIdToMobileNum().put(playerId, mobileNum);
+        target.getPlayerIdToPlayerName().put(playerId, mobileNum);
     }
 
 
@@ -48,6 +48,11 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     }
 
     @Override
+    public String getPlayerNameById(String playerId) {
+        return target.getPlayerIdToPlayerName().get(playerId);
+    }
+
+    @Override
     public ActorRef getPlayerActorRef(String playerId) {
         return target.getPlayerIdToPlayerActorRef().get(playerId);
     }
@@ -57,8 +62,8 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     public void removePlayerActorRef(String playerId) {
         //只remove关联,具体的killActor还是在他自己的actor接到消息是执行
         if (playerId != null) {
-            if (target.getPlayerIdToMobileNum().containsKey(playerId)) {
-                target.getPlayerIdToMobileNum().remove(playerId);
+            if (target.getPlayerIdToPlayerName().containsKey(playerId)) {
+                target.getPlayerIdToPlayerName().remove(playerId);
             }
             if (target.getPlayerIdToPlayerActorRef().containsKey(playerId)) {
                 target.getPlayerIdToPlayerActorRef().remove(playerId);
@@ -134,6 +139,7 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
 
         target.getIdToOffline().remove(playerId);
         target.getIdToOfflineTime().remove(playerId);
+        target.getPlayerIdToPlayerName().remove(playerId);
         Connection conn = target.getIdToConn().remove(playerId);
         if (conn != null) {
             conn.close();

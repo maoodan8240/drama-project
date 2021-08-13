@@ -7,7 +7,6 @@ import ws.common.utils.message.implement.AbstractInnerMsg;
 public class AbstractWorldMsg extends AbstractInnerMsg {
     private Connection connection;
 
-
     public AbstractWorldMsg(Connection connection) {
         this.connection = connection;
     }

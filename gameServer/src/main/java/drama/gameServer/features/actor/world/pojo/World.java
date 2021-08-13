@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class World {
-    private Map<String, String> playerIdToMobileNum = new ConcurrentHashMap<>();//玩家Id<->电话
+    private Map<String, String> playerIdToPlayerName = new ConcurrentHashMap<>();//玩家Id<->PlayerName
 
     //
     private Map<String, ActorRef> playerIdToPlayerActorRef = new ConcurrentHashMap<>(); //玩家Id<-> playerActorRef
@@ -52,8 +52,8 @@ public class World {
         return idToOfflineTime;
     }
 
-    public Map<String, String> getPlayerIdToMobileNum() {
-        return playerIdToMobileNum;
+    public Map<String, String> getPlayerIdToPlayerName() {
+        return playerIdToPlayerName;
     }
 
     public Map<String, ActorRef> getPlayerIdToPlayerActorRef() {

@@ -13,6 +13,8 @@ public interface WorldCtrl extends Controler<World> {
 
     void setActorContext(ActorContext actorContext);
 
+    String getPlayerNameById(String playerId);
+
     ActorRef getPlayerActorRef(String playerId);
 
     void removePlayerActorRef(String playerId);
@@ -28,7 +30,7 @@ public interface WorldCtrl extends Controler<World> {
 
     void removeRoomActorRef(String roomId);
 
-    void addPlayerIdAndActor(String playerId, String mobileNum, ActorRef playerActorRef);
+    void addPlayerIdAndActor(String playerId, String playerName, ActorRef playerActorRef);
 
     boolean roomActorCanUse(String roomId);
 

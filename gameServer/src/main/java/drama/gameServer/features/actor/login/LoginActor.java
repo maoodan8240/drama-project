@@ -10,7 +10,8 @@ import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
-import drama.gameServer.features.actor.message.ConnectionContainer;
+import drama.gameServer.features.actor.login.msg.In_PlayerNewLoginMsg;
+import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.protos.CodesProtos.ProtoCodes.Code;
 import drama.protos.MessageHandlerProtos.Response;
@@ -51,31 +52,23 @@ public class LoginActor extends DmActor {
 
     @Override
     public void onRecv(Object innerMsg) throws Exception {
-        if (innerMsg instanceof In_LoginMsg) {
-            In_LoginMsg message = (In_LoginMsg) innerMsg;
-            Cm_Login cm_login = (Cm_Login) message.getMessage();
-            if (cm_login instanceof Cm_Login) {
-                switch (cm_login.getAction()) {
-                    case REGISTER:
-                        _register(cm_login, message.getConnection());
-                        break;
-                    case LOGIN:
-                        _login(message);
-                        break;
-                    case AUTH:
-                        break;
-                    case RECONNECT:
-                        _reconncet();
-                        break;
-                    case GUEST_LOGIN:
-                        _guestLogin(message);
-                        break;
-                    default:
-                        break;
-                }
+        if (innerMsg instanceof In_PlayerNewLoginMsg) {
+            In_LoginMsg msg = ((In_PlayerNewLoginMsg) innerMsg).getMessage();
+            onNewLoginMsg(msg);
+        }
+    }
 
-
-            }
+    private void onNewLoginMsg(In_LoginMsg msg) {
+        Cm_Login cmLogin = (Cm_Login) msg.getMessage();
+        switch (cmLogin.getAction()) {
+            case GUEST_LOGIN:
+                _guestLogin(msg);
+                break;
+            case LOGIN:
+                _login(msg);
+                break;
+            default:
+                break;
         }
     }
 
@@ -87,7 +80,7 @@ public class LoginActor extends DmActor {
             LOGGER.debug("参数为空 执行游客注册");
             player = new Player();
             player.setPlayerId(ObjectId.get().toString());
-            guestRegister(message, player);
+            guestRegister(player);
         }
         //查库
         player = PLAYER_DAO.findPlayerByPlayerId(cm_login.getRpid());
@@ -96,43 +89,26 @@ public class LoginActor extends DmActor {
             LOGGER.debug("库里也没查到 执行游客注册");
             player = new Player();
             player.setPlayerId(ObjectId.get().toString());
-            guestRegister(message, player);
+            guestRegister(player);
         }
         LOGGER.debug("PlayerId={},查询到发往world执行登录", player.getPlayerId());
-        message.setPlayer(player);
-        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(message, ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new NewLoginResponseMsg(message.getConnection(), player, cm_login), ActorRef.noSender());
     }
 
-    private void guestRegister(In_LoginMsg message, Player player) {
-        if (ConnectionContainer.containsConnection(message.getConnection())) {
-            // 同一个连接上发送的多次注册请求
-            LOGGER.warn("同一个连接上发送的多次游客注册登录请求:connection={}", message.getConnection().toString());
-        } else {
-            //存库
-            PLAYER_DAO.insert(player);
-            LOGGER.debug("游客注册GameServer玩家 playerId={} 成功!", player.getPlayerId());
-        }
+    private void guestRegister(Player player) {
+        //存库
+        PLAYER_DAO.insert(player);
+        LOGGER.debug("游客注册GameServer玩家 playerId={} 成功!", player.getPlayerId());
     }
 
-
-    private void _reconncet() {
-
-    }
 
     private void _login(In_LoginMsg loginMsg) {
         Cm_Login cm_login = (Cm_Login) loginMsg.getMessage();
         Connection connection = loginMsg.getConnection();
         Player player = _findPlayerByMobileNum(cm_login.getMobileNum());
         if (player != null) {
-            //查询连接
-            if (ConnectionContainer.containsConnection(connection)) {
-                // 同一个连接上发送的多次登录请求
-                LOGGER.warn("同一个连接上发送的多次登录请求:mobilNum={} <--> connection={}", cm_login.getMobileNum(), connection.toString());
-            } else {
-                loginMsg.setPlayer(player);
-                // 发给worldActor 创建PlayerActor
-                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(loginMsg, ActorRef.noSender());
-            }
+            // 发给worldActor 创建PlayerActor
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new NewLoginResponseMsg(connection, player, cm_login), ActorRef.noSender());
         } else {
             //没有找到用户,无法登录
             LOGGER.warn("没有找到用户,无法登录:mobilNum={} <--> connection={}", cm_login.getMobileNum(), connection.toString());
@@ -157,24 +133,18 @@ public class LoginActor extends DmActor {
         boolean result = false;
         Player player = null;
         //检查用户是否存在
-        if (ConnectionContainer.containsConnection(connection)) {
-            // 同一个连接上发送的多次注册请求
-            LOGGER.warn("同一个连接上发送的多次注册请求:mobilNum={} <--> connection={}", mobileNum, connection.toString());
+        //查缓存 TODO
+        //查库存库
+        boolean isExist = _isPlayerExist(mobileNum);
+        if (isExist) {
+            LOGGER.debug("注册GameServer玩家 mobileNum={},playerName={} 玩家已经存在,不需要注册!", mobileNum, playerName);
         } else {
-            //查缓存 TODO
-            //查库存库
-            boolean isExist = _isPlayerExist(mobileNum);
-            if (isExist) {
-                LOGGER.debug("注册GameServer玩家 mobileNum={},playerName={} 玩家已经存在,不需要注册!", mobileNum, playerName);
-            } else {
-                player = _createPlayer(mobileNum, playerName);
-                PLAYER_DAO.insert(player);
-                LOGGER.debug("注册GameServer玩家 mobileNum={},playerName={} playerId={} 成功!", mobileNum, playerName, player.getPlayerId());
-                result = true;
-            }
-            _sendRegisterResponse(connection, mobileNum, playerName, result, isExist, player);
-
+            player = _createPlayer(mobileNum, playerName);
+            PLAYER_DAO.insert(player);
+            LOGGER.debug("注册GameServer玩家 mobileNum={},playerName={} playerId={} 成功!", mobileNum, playerName, player.getPlayerId());
+            result = true;
         }
+        _sendRegisterResponse(connection, mobileNum, playerName, result, isExist, player);
     }
 
     private void _sendRegisterResponse(Connection connection, String mobileNum, String playerName, boolean result, boolean isExist, Player player) {

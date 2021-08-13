@@ -65,12 +65,7 @@ public class Table_Acter_Row extends AbstractRow {
         scene = CellParser.parseListCell("Scene", map, String.class);
         ap = CellParser.parseTupleListCell("Ap", map, String.class);
         bgm = CellParser.parseListCell("Bgm", map, String.class);
-        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
         vSAp = CellParser.parseTupleListCell("VSAp", map, String.class);//string
-    }
-
-    public Integer getDramaId() {
-        return dramaId;
     }
 
 
@@ -193,6 +188,7 @@ public class Table_Acter_Row extends AbstractRow {
         }
         return rolePic;
     }
+
 
     @Override
     public String toString() {

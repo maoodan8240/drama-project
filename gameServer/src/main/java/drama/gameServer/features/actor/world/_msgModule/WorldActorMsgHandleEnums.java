@@ -16,9 +16,6 @@ import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 
 public enum WorldActorMsgHandleEnums {
 
-    //    _In_LoginAction(new In_LoginAction()),//
-//    _In_PlayerHeartBeatingAction(new In_PlayerHeartBeatingAction()),//
-//    _In_PlayerOfflineRequestAction(new In_PlayerOfflineRequestAction()),//
     _In_LoginMsg(new HandleLoginMsgAction()),//
     _In_PlayerNetWorkMsgAction(new HandlePlayerNetWorMsgkAction()),//
     _In_ConfigNetWorkMsgAction(new HandleConfigNetWorkMsgAction()),//

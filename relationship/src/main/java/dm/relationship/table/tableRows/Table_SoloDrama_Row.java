@@ -45,9 +45,6 @@ public class Table_SoloDrama_Row extends AbstractRow {
         dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
     }
 
-    public Integer getDramaId() {
-        return dramaId;
-    }
 
     public String getLine() {
         return line;

@@ -108,34 +108,37 @@ public class RoomActor extends DmActor {
                 _tellAllRoomPlayer(new In_PlayerOnUnlockClueRoomMsg(unlockClueIds, roomCtrl.getDramaId()), ActorRef.noSender());
                 break;
             case SELECTREAD:
-                boolean flag1 = false;
-                boolean flag2 = false;
-                for (Table_SelectRead_Row value : RootTc.get(Table_SelectRead_Row.class).values()) {
-                    if (value.getDramaId() == roomCtrl.getDramaId()) {
-                        for (TupleCell<String> tupleCell : value.getDraftCondition()) {
-                            if (tupleCell.get(TupleCell.FIRST).equals("Draft")) {
-                                Integer num = Integer.valueOf(tupleCell.get(TupleCell.SECOND));
-                                boolean draftResult = roomCtrl.isRightDraft(num);
-                                flag1 = value.getC1bool() == draftResult;
-                            }
-                        }
-
-                        for (TupleCell<String> tupleCell : value.getVoteCondition()) {
-                            if (tupleCell.get(TupleCell.FIRST).equals("Vote")) {
-                                Integer num = Integer.valueOf(tupleCell.get(TupleCell.SECOND));
-                                boolean voteResult = roomCtrl.isRightVote(num);
-                                flag2 = value.getC2bool() == voteResult;
-                            }
-                        }
-                        if (flag1 && flag2) {
-                            LOGGER.debug("value.getResult={},id={}", value.getResult(), value.getId());
-                            _tellAllRoomPlayer(new In_PlayerSelectReadRoomMsg(value.getResult()), ActorRef.noSender());
-                            break;
-                        }
-                    }
-
-                }
+                onSelectRead();
                 break;
+        }
+    }
+
+    private void onSelectRead() {
+        List<Boolean> result = new ArrayList<>();
+        for (Table_SelectRead_Row value : RootTc.get(Table_SelectRead_Row.class).values()) {
+            if (value.getDramaId() == roomCtrl.getDramaId()) {
+                for (TupleCell<String> tupleCell : value.getDraftCondition()) {
+                    if (tupleCell.get(TupleCell.FIRST).equals("Draft")) {
+                        Integer num = Integer.valueOf(tupleCell.get(TupleCell.SECOND));
+                        boolean draftResult = roomCtrl.isRightDraft(num);
+                        result.add(value.getC1bool() == draftResult);
+                    }
+                }
+
+                for (TupleCell<String> tupleCell : value.getVoteCondition()) {
+                    if (tupleCell.get(TupleCell.FIRST).equals("Vote")) {
+                        Integer num = Integer.valueOf(tupleCell.get(TupleCell.SECOND));
+                        boolean voteResult = roomCtrl.isRightVote(num);
+                        result.add(value.getC2bool() == voteResult);
+                    }
+                }
+                if (!result.contains(false)) {
+                    LOGGER.debug("value.getResult={},idx={}", value.getResult(), value.getIdx());
+                    _tellAllRoomPlayer(new In_PlayerSelectReadRoomMsg(value.getResult()), ActorRef.noSender());
+                    break;
+                }
+            }
+            result.clear();
         }
     }
 
@@ -172,6 +175,8 @@ public class RoomActor extends DmActor {
             LOGGER.debug("玩家不在房间中, 并且玩家已经掉线了,忽略房间中的处理: playerId={}, roomId={}", playerId, roomId);
         }
         if (_isMaster(playerId)) {
+            //TODO 考虑和playerActor销毁时一起销毁
+            
             LOGGER.debug("房间主人掉线,通知一下房间里其他人退出房间: playerId={}, roomId={}", playerId, roomId);
             _tellAllRoomPlayer(new In_PlayerQuitRoomMsg(roomId, masterId), ActorRef.noSender());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId), sender());
@@ -544,11 +549,11 @@ public class RoomActor extends DmActor {
         int id = MagicNumbers.DEFAULT_ZERO;
         for (Table_Search_Row row : srchRowList) {
             //房间线索和玩家的线索都没有这条线索才可以搜取
-            if (!roomCtrl.containsClueId(row.getId()) && !roomPlayerCtrl.containsClueId(row.getId())) {
-                roomPlayerCtrl.addClueId(row.getId());
+            if (!roomCtrl.containsClueId(row.getIdx()) && !roomPlayerCtrl.containsClueId(row.getIdx())) {
+                roomPlayerCtrl.addClueId(row.getIdx());
                 roomCtrl.addClueId(row.getTypeid());
                 //一次只能搜一条线索,搜到就break;
-                id = row.getId();
+                id = row.getIdx();
                 roomPlayerCtrl.reduceSrchTimes();
                 break;
             }

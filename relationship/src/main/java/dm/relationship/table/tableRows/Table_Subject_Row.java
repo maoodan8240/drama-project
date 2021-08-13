@@ -23,6 +23,10 @@ public class Table_Subject_Row extends AbstractRow {
      */
     private Integer dramaId;
     /***
+     * int 剧本ID
+     */
+    private Integer idx;
+    /***
      * string 答案衔接后续题目，0为答题结束
      */
     private TupleListCell<String> answer;
@@ -49,6 +53,7 @@ public class Table_Subject_Row extends AbstractRow {
         this.question = CellParser.parseSimpleCell("Question", map, String.class);
         this.sex = (Integer) CellParser.parseSimpleCell("Sex", map, Integer.class);
         dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
+        idx = CellParser.parseSimpleCell("Idx", map, Integer.class);
     }
 
     public Integer getDramaId() {
@@ -71,7 +76,7 @@ public class Table_Subject_Row extends AbstractRow {
         return this.question;
     }
 
-
+    
     public static List<Table_Subject_Row> getTableSubjectRowByDramaId(int dramaId) {
         List<Table_Subject_Row> rowList = new ArrayList<>();
         List<Table_Subject_Row> values = RootTc.get(Table_Subject_Row.class).values();

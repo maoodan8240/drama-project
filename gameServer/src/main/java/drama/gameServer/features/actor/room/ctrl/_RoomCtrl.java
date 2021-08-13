@@ -21,6 +21,7 @@ import drama.gameServer.features.actor.room.enums.RoomStateEnum;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +83,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             throw new BusinessLogicMismatchConditionException("剧本ID不存在 dramaId:" + dramaId);
         }
         Table_SceneList_Row tabRow = RootTc.get(Table_SceneList_Row.class).get(dramaId);
-        target = new Room(roomId, dramaId, player.getPlayerId(), simpleRoomId, player.getBase().getName(), tabRow);
+        String playerName = !StringUtils.isEmpty(player.getBase().getName()) ? player.getBase().getName() : "";
+        target = new Room(roomId, dramaId, player.getPlayerId(), simpleRoomId, playerName, tabRow);
         setNextStateAndTimes();
         setTarget(target);
         RoomPlayer roomPlayer = new RoomPlayer(player, roomId);
@@ -293,7 +295,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     private void addCanVoteSearchTypeIds() {
-        List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId(), target.getCanVoteSearchTypeId());
+        List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId());
         for (Integer searchTypeId : searchTypeIds) {
             if (!target.getCanVoteSearchTypeId().contains(searchTypeId)) {
                 target.getCanVoteSearchTypeId().add(searchTypeId);
@@ -351,9 +353,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     @Override
     public boolean isTimeCanReady() {
-//        return System.currentTimeMillis() >= getTarget().getNextSTime();
-        //TODO 打开判断
-        return true;
+        return System.currentTimeMillis() >= getTarget().getNextSTime();
+//        TODO 打开判断
+//        return true;
     }
 
     @Override
@@ -380,7 +382,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         boolean flag = true;
         List<Table_Search_Row> rows = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, getRoomStateTimes(), getDramaId());
         for (Table_Search_Row row : rows) {
-            if (containsClueId(row.getId())) {
+            if (containsClueId(row.getIdx())) {
                 continue;
             } else {
                 flag = false;

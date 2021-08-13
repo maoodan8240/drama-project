@@ -7,6 +7,7 @@ import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.utils.ProtoUtils;
+import drama.gameServer.features.actor.playerIO.msg.In_PlayerUpdateResponse;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 import org.slf4j.Logger;
@@ -25,7 +26,23 @@ public class HandlePlayerNetWorMsgkAction implements Action {
     }
 
     private void onRecvNetWorkMsg(PlayerNetWorkMsg playerNetWorkMsg, Connection connection, Message message, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
-        sendNetWorkMsgToPlayer(connection, playerNetWorkMsg, worldCtrl, worldActorContext, sender);
+        if (playerNetWorkMsg instanceof In_PlayerUpdateResponse) {
+            onPlayerUpdateResponse((In_PlayerUpdateResponse) playerNetWorkMsg, worldCtrl);
+        } else {
+            sendNetWorkMsgToPlayer(connection, playerNetWorkMsg, worldCtrl, worldActorContext, sender);
+        }
+    }
+
+    private void onPlayerUpdateResponse(In_PlayerUpdateResponse msg, WorldCtrl worldCtrl) {
+        if (worldCtrl.getConnection(msg.getPlayer().getPlayerId()) == null) {
+            LOGGER.debug("onPlayerUpdateResponse getConnection World中没有找到对应的PlayerId={}", msg.getPlayer().getPlayerId());
+            return;
+        }
+        if (worldCtrl.getTarget().getPlayerIdToPlayerName().containsKey(msg.getPlayer().getPlayerId())) {
+            worldCtrl.getTarget().getPlayerIdToPlayerName().put(msg.getPlayer().getPlayerId(), msg.getPlayer().getBase().getName());
+        } else {
+            LOGGER.debug("onPlayerUpdateResponse setPlayerName World中没有找到对应的PlayerId={}", msg.getPlayer().getPlayerId());
+        }
     }
 
     private void sendNetWorkMsgToPlayer(Connection connection, PlayerNetWorkMsg playerNetWorkMsg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef sender) {

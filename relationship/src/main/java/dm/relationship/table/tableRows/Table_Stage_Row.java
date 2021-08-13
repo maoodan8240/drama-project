@@ -20,14 +20,13 @@ public class Table_Stage_Row extends AbstractRow {
      */
     private Integer stgNum;
     /**
+     * int 配音时长
+     */
+    private Integer duration;
+    /**
      * string 角色名(1顾行简 2了失 3靳来生 4路停云 5太后 6 青青 99旁白)
      */
     private String roleId;
-    /***
-     * int 配音时长
-     */
-    private int duration;
-    private Integer dramaId;
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -35,13 +34,9 @@ public class Table_Stage_Row extends AbstractRow {
         line = CellParser.parseSimpleCell("Line", map, String.class); //string
         dub = CellParser.parseSimpleCell("Dub", map, String.class); //string
         stgNum = CellParser.parseSimpleCell("StgNum", map, Integer.class); //int
+        duration = CellParser.parseSimpleCell("Duration", map, Integer.class); //int
         roleId = CellParser.parseSimpleCell("RoleId", map, String.class); //string
-        duration = CellParser.parseSimpleCell("Duration", map, Integer.class);//int
-        dramaId = CellParser.parseSimpleCell("DramaId", map, Integer.class);
-    }
 
-    public Integer getDramaId() {
-        return dramaId;
     }
 
     public String getLine() {
@@ -56,11 +51,12 @@ public class Table_Stage_Row extends AbstractRow {
         return stgNum;
     }
 
+    public Integer getDuration() {
+        return duration;
+    }
+
     public String getRoleId() {
         return roleId;
     }
 
-    public int getDuration() {
-        return duration;
-    }
 }

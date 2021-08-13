@@ -29,7 +29,6 @@ public class HandleConnectionStatusAction implements Action {
     }
 
     private void onConnectionStatusRequest(In_ConnectionStatusRequest request, WorldCtrl worldCtrl) {
-        Object msg = null;
         if (request.getType() == In_ConnectionStatusRequest.Type.HeartBeating) {
             onPlayerHeartBeating(request.getConnection(), worldCtrl);
         } else if (request.getType() == In_ConnectionStatusRequest.Type.Offline) {
@@ -53,7 +52,7 @@ public class HandleConnectionStatusAction implements Action {
         connection.send(new MessageSendHolder(br.build(), "", new ArrayList<>()));
         String playerId = worldCtrl.getPlayerId(connection);
         worldCtrl.setHeartBeating(playerId);
-        LOGGER.info("玩家PlayerId={} 接受到客户端发送的心跳包......", playerId);
+        LOGGER.info("玩家playerName={}, PlayerId={} 接受到客户端发送的心跳包......", worldCtrl.getPlayerNameById(playerId), playerId);
     }
 
     private void onPlayerOffline(Connection connection, WorldCtrl worldCtrl) {
@@ -67,7 +66,7 @@ public class HandleConnectionStatusAction implements Action {
         }
         worldCtrl.setOffline(playerId);
         worldCtrl.getPlayerActorRef(playerId).tell(new In_PlayerOfflineRequest(connection), ActorRef.noSender());
-        LOGGER.info("玩家PlayerId={} 短暂离线了,进入缓存状态...", playerId);
+        LOGGER.info("玩家playerName={},PlayerId={} 短暂离线了,进入缓存状态...", worldCtrl.getPlayerNameById(playerId), playerId);
     }
 
     private void onPlayerDisconnected(Connection connection, WorldCtrl worldCtrl) {
@@ -82,6 +81,6 @@ public class HandleConnectionStatusAction implements Action {
         worldCtrl.setOffline(playerId);
 
         worldCtrl.getPlayerActorRef(playerId).tell(new In_PlayerDisconnectedRequest(connection), ActorRef.noSender());
-        LOGGER.info("玩家PlayerId={} 短暂离线了,进入缓存状态...", playerId);
+        LOGGER.info("玩家playerName={}, PlayerId={} 短暂离线了,进入缓存状态...", worldCtrl.getPlayerNameById(playerId), playerId);
     }
 }

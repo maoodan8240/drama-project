@@ -71,8 +71,8 @@ public class In_LoginResponseAction implements Action {
         String actorName = ActorSystemPath.DM_GameServer_PlayerIO + player.getPlayerId();
         ActorRef actorRef = worldActorContext.actorOf(Props.create(PlayerIOActor.class, player.getPlayerId(), playerIOCtrl), actorName);
         worldActorContext.watch(actorRef);
-        //绑定关系 //TODO 处理电话号码
-        worldCtrl.addPlayerIdAndActor(player.getPlayerId(), player.getMobileNum() != null ? player.getMobileNum() : "", actorRef);
+        //绑定关系
+        worldCtrl.addPlayerIdAndActor(player.getPlayerId(), player.getBase().getName() != null ? player.getBase().getName() : "", actorRef);
         //保存连接
         worldCtrl.login(player.getPlayerId(), connection);
     }
