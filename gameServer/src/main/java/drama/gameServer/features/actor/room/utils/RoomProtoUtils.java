@@ -72,10 +72,12 @@ public class RoomProtoUtils {
     }
 
 
-    public static RoomProtos.Sm_Room_Vote createSmRoomVote(String name, String rolePic, List<String> votePic) {
+    public static RoomProtos.Sm_Room_Vote createSmRoomVote(String name, String rolePic, boolean isMurder, boolean isTruth, List<String> votePic) {
         RoomProtos.Sm_Room_Vote.Builder b = RoomProtos.Sm_Room_Vote.newBuilder();
         b.setRoleName(name);
         b.setRolePic(rolePic);
+        b.setIsTruth(isTruth);
+        b.setIsMurder(isMurder);
         b.addAllVotePic(votePic);
         return b.build();
     }
@@ -96,8 +98,10 @@ public class RoomProtoUtils {
             Table_Murder_Row murderRow = Table_Murder_Row.getMurderRowByRoleId(roleId, dramaId);
             String roleName = murderRow.getRoleName();
             String rolePic = murderRow.getRolePic();
+            boolean isMurder = murderRow.isMurder();
+            boolean isTruth = murderRow.isTruth();
             List<String> votePic = Table_Murder_Row.getRolePicByRoleIds(voteRoleIds, dramaId);
-            voteList.add(createSmRoomVote(roleName, rolePic, votePic));
+            voteList.add(createSmRoomVote(roleName, rolePic, isMurder, isTruth, votePic));
         }
         return voteList;
     }
