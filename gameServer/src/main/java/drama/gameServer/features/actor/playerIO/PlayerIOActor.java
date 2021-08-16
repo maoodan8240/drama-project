@@ -436,11 +436,13 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerChooseRoleRoomMsg(In_PlayerChooseRoleRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action;
+        RoomProtos.Sm_Room.Action action = null;
         if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.SELECT_VALUE) {
             action = RoomProtos.Sm_Room.Action.RESP_SELECT;
-        } else {
+        } else if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.ANSWER_VALUE) {
             action = RoomProtos.Sm_Room.Action.RESP_ANSWER;
+        } else if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.NO_SELECT_VALUE) {
+            action = RoomProtos.Sm_Room.Action.RESP_NO_SELECT;
         }
         RoomPlayer roomPlayer = msg.getRoomPlayer();
         playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer, msg.getDramaId());

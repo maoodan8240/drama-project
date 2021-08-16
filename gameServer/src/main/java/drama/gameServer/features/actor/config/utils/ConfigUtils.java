@@ -24,22 +24,6 @@ public class ConfigUtils {
         }
     }
 
-//    public static TableDataRow getTableDataRow(String tableName, String columnName, String value) {
-//        TableDataRow result = null;
-//        TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);
-//        for (int rowIdx = 0; rowIdx < tableDataTxt.getRows().size(); ++rowIdx) {
-//            TableDataRow row = (TableDataRow) tableDataTxt.getRows().get(rowIdx);
-//            for (int columnIdx = 0; columnIdx < row.getCells().size(); ++columnIdx) {
-//                String tableColumnName = tableDataTxt.getHeaderDatas().get(columnIdx).getName();
-//                String tableValue = row.getCells().get(columnIdx).getCell();
-//                if (columnName.equals(tableColumnName) && value.equals(tableValue)) {
-//                    result = row;
-//                }
-//            }
-//        }
-//        return result;
-//    }
-
     public static List<TableDataRow> getTableDataRow(String tableName, int dramaId) {
         List<TableDataRow> result = new ArrayList<>();
         TableData tableDataTxt = RootTc.getPlanningTableDataByName(tableName);

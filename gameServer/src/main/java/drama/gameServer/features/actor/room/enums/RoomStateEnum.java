@@ -17,7 +17,8 @@ public enum RoomStateEnum {
     VOTESEARCH("VOTESEARCH", EnumsProtos.RoomStateEnum.VOTESEARCH), //  投票搜证
     UNLOCK("UNLOCK", EnumsProtos.RoomStateEnum.UNLOCK),             //  解锁事件
     DRAFT("DRAFT", EnumsProtos.RoomStateEnum.DRAFT),                //  轮抽
-    SELECTREAD("SELECTREAD", EnumsProtos.RoomStateEnum.SELECTREAD),  //  动态剧本
+    SELECTREAD("SELECTREAD", EnumsProtos.RoomStateEnum.SELECTREAD), //  动态剧本
+    NOSELECT("NOSELECT", EnumsProtos.RoomStateEnum.NOSELECT),               //  强制选角
 
     NULL("", null);
 

@@ -53,6 +53,16 @@ public class Table_Acter_Row extends AbstractRow {
     private TupleListCell<String> vSAp;
     private Integer dramaId;
 
+    public static int getNoSelectActer(int dramaId) {
+        int roleId = 0;
+        for (Table_Acter_Row row : RootTc.get(Table_Acter_Row.class).values()) {
+            if (row.getDramaId() == dramaId) {
+                roleId = row.getRoleId();
+            }
+        }
+        return roleId;
+    }
+
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {

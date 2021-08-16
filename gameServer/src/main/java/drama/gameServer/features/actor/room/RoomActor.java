@@ -176,7 +176,7 @@ public class RoomActor extends DmActor {
         }
         if (_isMaster(playerId)) {
             //TODO 考虑和playerActor销毁时一起销毁
-            
+
             LOGGER.debug("房间主人掉线,通知一下房间里其他人退出房间: playerId={}, roomId={}", playerId, roomId);
             _tellAllRoomPlayer(new In_PlayerQuitRoomMsg(roomId, masterId), ActorRef.noSender());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId), sender());
@@ -254,6 +254,9 @@ public class RoomActor extends DmActor {
                     case Action.CAN_SELECT_DRAFT_VALUE:
                         onCanSelectDraft();
                         break;
+                    case Cm_Room.Action.NO_SELECT_VALUE:
+                        onNoSelect(cm_room.getAction());
+                        break;
                     default:
                         break;
                 }
@@ -263,6 +266,7 @@ public class RoomActor extends DmActor {
             }
         }
     }
+
 
     private void onCanSelectDraft() {
         _checkRoomContainsPlayer(player);
@@ -486,6 +490,24 @@ public class RoomActor extends DmActor {
         _tellAllRoomPlayer(new In_PlayerChooseRoleRoomMsg(roomPlayerCtrl.getTarget(), action, roomCtrl.getDramaId()), ActorRef.noSender());
     }
 
+    private void onNoSelect(Action action) {
+        _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.NOSELECT) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        if (roomPlayerCtrl.hasRole()) {
+            String msg = String.format("玩家已经选过角色了 playerId=%s,  roleId=%s", player.getPlayerId(), roomPlayerCtrl.getRoleId());
+            LOGGER.debug(msg);
+            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
+        }
+        int roleId = Table_Acter_Row.getNoSelectActer(roomCtrl.getDramaId());
+        roomPlayerCtrl.setRoleId(roleId);
+        roomCtrl.chooseRole(roomPlayerCtrl.getTarget());
+        _tellAllRoomPlayer(new In_PlayerChooseRoleRoomMsg(roomPlayerCtrl.getTarget(), action, roomCtrl.getDramaId()), ActorRef.noSender());
+    }
+
     private void onAnswer(Cm_Room cm_room, Action action) {
         _checkRoomContainsPlayer(player);
         if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER) {
@@ -548,10 +570,10 @@ public class RoomActor extends DmActor {
         List<Table_Search_Row> srchRowList = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, roomCtrl.getRoomStateTimes(), roomCtrl.getDramaId());
         int id = MagicNumbers.DEFAULT_ZERO;
         for (Table_Search_Row row : srchRowList) {
-            //房间线索和玩家的线索都没有这条线索才可以搜取
+            //房间内线索和玩家的线索都没有这条线索才可以搜取
             if (!roomCtrl.containsClueId(row.getIdx()) && !roomPlayerCtrl.containsClueId(row.getIdx())) {
                 roomPlayerCtrl.addClueId(row.getIdx());
-                roomCtrl.addClueId(row.getTypeid());
+                roomCtrl.addClueId(row.getIdx());
                 //一次只能搜一条线索,搜到就break;
                 id = row.getIdx();
                 roomPlayerCtrl.reduceSrchTimes();
@@ -588,7 +610,6 @@ public class RoomActor extends DmActor {
 
     private void onJoinRoomMsg(Cm_Room cm_room) {
         Room room = roomCtrl.getTarget();
-
         if (roomCtrl.checkRoomIsFull()) {
             LOGGER.debug("房间已满,playerId={},roomId={}", player.getPlayerId(), roomId);
             throw new BusinessLogicMismatchConditionException("房间已满 roomId=" + roomId + ",playerId=" + player.getPlayerId(), EnumsProtos.ErrorCodeEnum.ROOM_FULL);
