@@ -134,4 +134,6 @@ public interface WorldCtrl extends Controler<World> {
      * @param self
      */
     void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self);
+
+    boolean containsRoom(String roomId);
 }

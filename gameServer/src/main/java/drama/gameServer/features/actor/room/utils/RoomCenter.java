@@ -5,7 +5,7 @@ import drama.gameServer.features.actor.room.pojo.Room;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RoomContainer {
+public class RoomCenter {
     /**
      * roomIdToRoom
      */
@@ -21,8 +21,8 @@ public class RoomContainer {
     }
 
     public static void remove(String roomId, String playerId) {
-        RoomContainer.getRoomIdToRoom().remove(roomId);
-        RoomContainer.getPlayerIdToRoomId().remove(playerId);
+        RoomCenter.getRoomIdToRoom().remove(roomId);
+        RoomCenter.getPlayerIdToRoomId().remove(playerId);
     }
 
     public static Room getRoom(String roomId) {

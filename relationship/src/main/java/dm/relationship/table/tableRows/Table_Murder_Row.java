@@ -148,4 +148,21 @@ public class Table_Murder_Row extends AbstractRow {
         String msg = String.format("getMurderRoleId failed, roleId=%s", 0);
         throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, 0, msg);
     }
+
+    @Override
+    public String toString() {
+        return "Table_Murder_Row{" +
+                ", id=" + id +
+                ", idx=" + idx +
+                ", dramaId=" + dramaId +
+                ", roleName='" + roleName + '\'' +
+                ", murder=" + murder +
+                ", rolePic='" + rolePic + '\'' +
+                ", voteNum=" + voteNum +
+                ", roleId=" + roleId +
+                ", truth=" + truth +
+                ", roleBigPic='" + roleBigPic + '\'' +
+                ", dramaId=" + dramaId +
+                '}';
+    }
 }

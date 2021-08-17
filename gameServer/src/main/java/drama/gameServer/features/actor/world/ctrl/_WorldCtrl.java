@@ -215,4 +215,9 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
         worldCtrl.setCanNotUse(playerId);
         worldCtrl.getPlayerActorRef(playerId).tell(Kill.getInstance(), self);
     }
+
+    @Override
+    public boolean containsRoom(String roomId) {
+        return target.getRoomIdToRoomActorRef().containsKey(roomId);
+    }
 }

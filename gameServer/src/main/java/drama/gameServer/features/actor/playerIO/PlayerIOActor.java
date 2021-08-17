@@ -33,6 +33,7 @@ import drama.gameServer.features.actor.room.msg.In_PlayerOnOpenDubRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerOnReadyRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerOnSwitchStateRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerOnUnlockClueRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerReconnectRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSearchRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSelectReadRoomMsg;
@@ -97,13 +98,6 @@ public class PlayerIOActor extends DmActor {
         }
     }
 
-
-    private void onPlayerReconnect(In_PlayerReconnectMsg msg) {
-        PlayerLoginProtos.Cm_Login cm_login = (PlayerLoginProtos.Cm_Login) msg.getMessage();
-        if (playerIOCtrl.getTarget().getPlayerId().equals(cm_login.getRpid())) {
-            playerIOCtrl.getTarget().setConnection(msg.getConnection());
-        }
-    }
 
     private void onNetWorkMsg(PlayerNetWorkMsg msg) {
         Message message = msg.getMessage();
@@ -300,6 +294,13 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPrepareToKillPlayerActorRequest(In_PrepareToKillPlayerActorRequestMsg msg) {
+        if (playerIOCtrl.isInRoom()) {
+            String roomId = playerIOCtrl.getRoomId();
+            playerIOCtrl.quitRoom();
+            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
+            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
+        }
+
         playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
         getSender().tell(new In_PrepareToKillPlayerActorResponseMsg(playerId), ActorRef.noSender());
     }
@@ -315,9 +316,16 @@ public class PlayerIOActor extends DmActor {
         playerIOCtrl.send(response.build());
     }
 
+
     private void onPlayerReconnectMsg(In_PlayerReconnectMsg msg) {
         playerIOCtrl.getTarget().setConnection(msg.getConnection());
         playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_GUEST_LOGIN);
+        if (playerIOCtrl.isInRoom()) {
+            String roomId = playerIOCtrl.getRoomId();
+            playerIOCtrl.quitRoom();
+            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
+            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerReconnectRoomMsg(msg.getConnection(), playerId), ActorRef.noSender());
+        }
     }
 
     private void onPlayerIsVotedRoomMsg(In_PlayerIsVotedRoomMsg msg) {
@@ -474,10 +482,10 @@ public class PlayerIOActor extends DmActor {
         //TODO 考虑断线重连,现在不一定要处理退出房间的逻辑
         if (playerIOCtrl.isInRoom()) {
             //玩家在房间中,但不一定是房主,转发到房间中处理相关逻辑
-            String roomId = playerIOCtrl.getRoomId();
-            playerIOCtrl.quitRoom();
-            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
-            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
+//            String roomId = playerIOCtrl.getRoomId();
+//            playerIOCtrl.quitRoom();
+//            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
+//            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
         }
         playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
         //所处房间的逻辑已经在In_PlayerDisconnectedAction worldCtrl执行了
