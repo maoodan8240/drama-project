@@ -1,15 +1,15 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
 import java.util.List;
 
-public class In_PlayerOnUnlockClueRoomMsg implements InnerMsg {
+public class In_PlayerOnUnlockClueRoomMsg extends _PlayerInnerMsg {
     private List<Integer> unlockClueIds;
     private int dramaId;
 
-    public In_PlayerOnUnlockClueRoomMsg(List<Integer> unlockClueIds, int dramaId) {
+    public In_PlayerOnUnlockClueRoomMsg(String playerId, List<Integer> unlockClueIds, int dramaId) {
+        super(playerId);
         this.dramaId = dramaId;
         this.unlockClueIds = unlockClueIds;
     }
@@ -22,18 +22,5 @@ public class In_PlayerOnUnlockClueRoomMsg implements InnerMsg {
         return dramaId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
+    
 }

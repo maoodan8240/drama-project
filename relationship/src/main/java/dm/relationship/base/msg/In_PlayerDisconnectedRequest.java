@@ -1,15 +1,16 @@
 package dm.relationship.base.msg;
 
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 import ws.common.network.server.interfaces.Connection;
-import ws.common.utils.message.implement.AbstractInnerMsg;
 
 
-public class In_PlayerDisconnectedRequest extends AbstractInnerMsg {
+public class In_PlayerDisconnectedRequest extends _PlayerInnerMsg {
     private static final long serialVersionUID = 1L;
 
     private Connection connection;
 
-    public In_PlayerDisconnectedRequest(Connection connection) {
+    public In_PlayerDisconnectedRequest(Connection connection, String playerId) {
+        super(playerId);
         this.connection = connection;
     }
 

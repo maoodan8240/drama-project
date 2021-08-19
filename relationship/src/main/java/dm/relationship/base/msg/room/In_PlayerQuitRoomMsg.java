@@ -1,15 +1,13 @@
 package dm.relationship.base.msg.room;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
-import java.util.List;
-
-public class In_PlayerQuitRoomMsg implements InnerMsg {
+public class In_PlayerQuitRoomMsg extends _PlayerInnerMsg {
     private String roomId;
     private String masterId;
 
-    public In_PlayerQuitRoomMsg(String roomId, String masterId) {
+    public In_PlayerQuitRoomMsg(String roomId, String masterId, String playerId) {
+        super(playerId);
         this.roomId = roomId;
         this.masterId = masterId;
     }
@@ -23,18 +21,4 @@ public class In_PlayerQuitRoomMsg implements InnerMsg {
         return roomId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }

@@ -12,8 +12,8 @@ import drama.protos.CommonProtos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HandleConfigNetWorkMsgAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HandleConfigNetWorkMsgAction.class);
+public class HandleConfigMsgAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandleConfigMsgAction.class);
 
 
     @Override

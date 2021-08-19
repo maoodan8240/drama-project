@@ -1,19 +1,19 @@
 package drama.gameServer.features.actor.room.msg;
 
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
 
 import java.util.List;
 import java.util.Map;
 
-public class In_PlayerVoteSearchResultRoomMsg implements InnerMsg {
+public class In_PlayerVoteSearchResultRoomMsg extends _PlayerInnerMsg {
     private Map<Integer, List<Integer>> voteTypeIdToPlayerRoleId;
     private int clueId;
     private int dramaId;
     private RoomPlayer roomPlayer;
 
-    public In_PlayerVoteSearchResultRoomMsg(Map<Integer, List<Integer>> voteTypeIdToPlayerRoleId, int clueId, RoomPlayer roomPlayer, int dramaId) {
+    public In_PlayerVoteSearchResultRoomMsg(String playerId, Map<Integer, List<Integer>> voteTypeIdToPlayerRoleId, int clueId, RoomPlayer roomPlayer, int dramaId) {
+        super(playerId);
         this.voteTypeIdToPlayerRoleId = voteTypeIdToPlayerRoleId;
         this.clueId = clueId;
         this.dramaId = dramaId;
@@ -36,18 +36,5 @@ public class In_PlayerVoteSearchResultRoomMsg implements InnerMsg {
         return clueId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
 
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }

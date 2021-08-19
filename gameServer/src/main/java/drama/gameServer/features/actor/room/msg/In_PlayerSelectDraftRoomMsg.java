@@ -1,26 +1,11 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
-import java.util.List;
-
-public class In_PlayerSelectDraftRoomMsg implements InnerMsg {
-    public In_PlayerSelectDraftRoomMsg(int draftId) {
+public class In_PlayerSelectDraftRoomMsg extends _PlayerInnerMsg {
+    public In_PlayerSelectDraftRoomMsg(String playerId, int draftId) {
+        super(playerId);
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
+  
 }

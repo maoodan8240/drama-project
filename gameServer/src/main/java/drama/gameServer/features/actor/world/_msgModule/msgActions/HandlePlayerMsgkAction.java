@@ -4,6 +4,7 @@ import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import com.google.protobuf.Message;
 import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.utils.ProtoUtils;
@@ -14,16 +15,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.interfaces.Connection;
 
-public class HandlePlayerNetWorMsgkAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HandlePlayerNetWorMsgkAction.class);
+public class HandlePlayerMsgkAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandlePlayerMsgkAction.class);
 
     @Override
     public void onRecv(Object msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (msg instanceof PlayerNetWorkMsg) {
             PlayerNetWorkMsg playerNetWorkMsg = (PlayerNetWorkMsg) msg;
             onRecvNetWorkMsg(playerNetWorkMsg, playerNetWorkMsg.getConnection(), playerNetWorkMsg.getMessage(), worldCtrl, worldActorContext, self, sender);
+        } else if (msg instanceof PlayerInnerMsg) {
+            onRecvPlayerInnerMsg((PlayerInnerMsg) msg, worldCtrl, worldActorContext, self, sender);
         }
     }
+
+    private void onRecvPlayerInnerMsg(PlayerInnerMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+        String playerId = msg.getPlayerId();
+        if (!worldCtrl.containsPlayerActorRef(playerId)) {
+            LOGGER.debug("玩家不在线 待做离线处理playerId={}", playerId);
+        }
+        ActorRef playerActorRef = worldCtrl.getPlayerActorRef(playerId);
+        playerActorRef.tell(msg, self);
+    }
+
 
     private void onRecvNetWorkMsg(PlayerNetWorkMsg playerNetWorkMsg, Connection connection, Message message, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (playerNetWorkMsg instanceof In_PlayerUpdateResponse) {

@@ -1,6 +1,7 @@
 package drama.gameServer.features.actor.playerIO;
 
 import akka.actor.ActorRef;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import dm.relationship.appServers.loginServer.player.msg.In_LoginMsg;
 import dm.relationship.base.MagicNumbers;
@@ -8,18 +9,18 @@ import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
 import dm.relationship.base.msg.In_PlayerReconnectMsg;
+import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.base.msg.room.In_PlayerDisconnectedQuitRoomMsg;
 import dm.relationship.base.msg.room.In_PlayerQuitRoomMsg;
 import dm.relationship.table.tableRows.Table_Draft_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
-import dm.relationship.topLevelPojos.player.Player;
-import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
 import drama.gameServer.features.actor.playerIO.msg.In_PlayerUpdateResponse;
 import drama.gameServer.features.actor.playerIO.utils.PlayerIConUploadUtils;
+import drama.gameServer.features.actor.playerIO.utils.PlayerProtoUtils;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectRoomMsg;
@@ -62,7 +63,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jolokia.util.Base64Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ws.common.utils.message.interfaces.InnerMsg;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -93,8 +93,8 @@ public class PlayerIOActor extends DmActor {
             onLogin((NewLoginResponseMsg) msg);
         } else if (msg instanceof PlayerNetWorkMsg) {
             onNetWorkMsg((PlayerNetWorkMsg) msg);
-        } else if (msg instanceof InnerMsg) {
-            onInnerMsg((InnerMsg) msg);
+        } else if (msg instanceof PlayerInnerMsg) {
+            onPlayerInnerMsg((PlayerInnerMsg) msg);
         }
     }
 
@@ -107,60 +107,65 @@ public class PlayerIOActor extends DmActor {
                 case PlayerProtos.Cm_Player.Action.UPDATE_VALUE:
                     onUpdate(cmPlayer);
                     break;
+                case PlayerProtos.Cm_Player.Action.SYNC_VALUE:
+                    onSync();
+                    break;
                 default:
                     break;
             }
         }
     }
 
+    private void onSync() {
+        PlayerProtos.Sm_Player.Action action = PlayerProtos.Sm_Player.Action.RESP_SYNC;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Player, action);
+        PlayerProtos.Sm_Player bPlayer = PlayerProtoUtils.createSm_Player(playerIOCtrl.getTarget(), action);
+        response.setResult(true);
+        response.setSmPlayer(bPlayer);
+        playerIOCtrl.send(response.build());
+    }
+
     private void onUpdate(PlayerProtos.Cm_Player cmPlayer) {
-        Player target = playerIOCtrl.getTarget();
-        PlayerBase base = target.getBase();
+        String iconUrl = transferIcon(cmPlayer.getIcon());
         String name = cmPlayer.getName();
         EnumsProtos.SexEnum sex = cmPlayer.getSex();
-        base.setName(name);
-        base.setSex(sex);
+        String birthday = !StringUtils.isEmpty(cmPlayer.getBirthday()) ? cmPlayer.getBirthday() : "";
+        String place = !StringUtils.isEmpty(cmPlayer.getPlace()) ? cmPlayer.getPlace() : "";
+        playerIOCtrl.updatePlayer(iconUrl, birthday, place, name, sex);
+        PlayerProtos.Sm_Player.Action action = PlayerProtos.Sm_Player.Action.RESP_UPDATE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Player, action);
+        PlayerProtos.Sm_Player bPlayer = PlayerProtoUtils.createSm_Player(playerIOCtrl.getTarget(), action);
+        response.setResult(true);
+        response.setSmPlayer(bPlayer);
+        playerIOCtrl.send(response.build());
+        playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerUpdateResponse(playerIOCtrl.getTarget()), ActorRef.noSender());
+    }
 
+    private String transferIcon(ByteString icon) {
         byte[] bytes = new byte[0];
         try {
-            bytes = Base64Util.decode(cmPlayer.getIcon().toString("UTF-8"));
+            bytes = Base64Util.decode(icon.toString("UTF-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         String iconUrl = "";
         if (bytes.length != 0) {
-            iconUrl = PlayerIConUploadUtils.uploadPlayerIcon(target.getPlayerId(), bytes);
+            iconUrl = PlayerIConUploadUtils.uploadPlayerIcon(playerId, bytes);
         }
-        String birthday = !StringUtils.isEmpty(cmPlayer.getBirthday()) ? cmPlayer.getBirthday() : "";
-        String place = !StringUtils.isEmpty(cmPlayer.getPlace()) ? cmPlayer.getPlace() : "";
-        base.setIcon(iconUrl);
-        base.setBirthday(birthday);
-        base.setPlace(place);
-        PlayerProtos.Sm_Player.Action action = PlayerProtos.Sm_Player.Action.RESP_UPDATE;
-        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Player, action);
-        response.setResult(true);
-        PlayerProtos.Sm_Player.Builder b = PlayerProtos.Sm_Player.newBuilder();
-        b.setAction(action);
-        b.setName(name);
-        b.setSex(sex);
-        b.setIcon(iconUrl);
-        b.setBirthday(birthday);
-        b.setPlace(place);
-        response.setSmPlayer(b.build());
-        playerIOCtrl.send(response.build());
-        playerIOCtrl.getPlayerDao().insertIfExistThenReplace(target);
-        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerUpdateResponse(target), ActorRef.noSender());
+        return iconUrl;
     }
 
-    private void onInnerMsg(InnerMsg msg) {
+
+    private void onPlayerInnerMsg(PlayerInnerMsg msg) {
         if (msg instanceof In_PlayerQuitRoomMsg) {
             onPlayerQuitMsg((In_PlayerQuitRoomMsg) msg);
         } else if (msg instanceof In_PlayerJoinRoomMsg) {
             onPlayerJoinRoomMsg((In_PlayerJoinRoomMsg) msg);
-        } else if (msg instanceof In_PlayerDisconnectedRequest) {
-            onPlayerDisconnected();
         } else if (msg instanceof In_PlayerCreateRoomMsg) {
             onPlayerCreateRoomMsg((In_PlayerCreateRoomMsg) msg);
+        } else if (msg instanceof In_PlayerDisconnectedRequest) {
+            onPlayerDisconnected();
         } else if (msg instanceof In_PlayerChooseRoleRoomMsg) {
             onPlayerChooseRoleRoomMsg((In_PlayerChooseRoleRoomMsg) msg);
         } else if (msg instanceof In_PlayerOnReadyRoomMsg) {
@@ -297,8 +302,7 @@ public class PlayerIOActor extends DmActor {
         if (playerIOCtrl.isInRoom()) {
             String roomId = playerIOCtrl.getRoomId();
             playerIOCtrl.quitRoom();
-            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
-            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
         }
 
         playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
@@ -323,8 +327,7 @@ public class PlayerIOActor extends DmActor {
         if (playerIOCtrl.isInRoom()) {
             String roomId = playerIOCtrl.getRoomId();
             playerIOCtrl.quitRoom();
-            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
-            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerReconnectRoomMsg(msg.getConnection(), playerId), ActorRef.noSender());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerReconnectRoomMsg(roomId, msg.getConnection(), playerId), ActorRef.noSender());
         }
     }
 
@@ -550,8 +553,7 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void checkRoomPlayerAllReady(String roomId) {
-        String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
-        DmActorSystem.get().actorSelection(roomActorName).tell(new In_CheckPlayerAllReadyRoomMsg(), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_CheckPlayerAllReadyRoomMsg(roomId), ActorRef.noSender());
     }
 
 

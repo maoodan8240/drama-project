@@ -1,13 +1,10 @@
 package drama.gameServer.features.actor.room.msg;
 
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.RoomProtos;
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
 
-import java.util.List;
-
-public class In_PlayerOnOpenDubRoomMsg implements InnerMsg {
+public class In_PlayerOnOpenDubRoomMsg extends _PlayerInnerMsg {
     private RoomPlayer roomPlayer;
 
     private RoomProtos.Sm_Room.Action action;
@@ -15,7 +12,8 @@ public class In_PlayerOnOpenDubRoomMsg implements InnerMsg {
     private int playerNum;
     private int dramaId;
 
-    public In_PlayerOnOpenDubRoomMsg(RoomPlayer roomPlayer, RoomProtos.Sm_Room.Action action, int soloNum, int playerNum, int dramaId) {
+    public In_PlayerOnOpenDubRoomMsg(String playerId, RoomPlayer roomPlayer, RoomProtos.Sm_Room.Action action, int soloNum, int playerNum, int dramaId) {
+        super(playerId);
         this.roomPlayer = roomPlayer;
         this.action = action;
         this.soloNum = soloNum;
@@ -43,18 +41,5 @@ public class In_PlayerOnOpenDubRoomMsg implements InnerMsg {
         return soloNum;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
 
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }
