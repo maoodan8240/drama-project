@@ -5,6 +5,7 @@ import akka.actor.Kill;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.interfaces.RoomInnerMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
 import dm.relationship.base.msg.room.In_PlayerDisconnectedQuitRoomMsg;
 import dm.relationship.base.msg.room.In_PlayerKillRoomMsg;
@@ -61,7 +62,6 @@ import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.network.server.interfaces.Connection;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
-import ws.common.utils.message.interfaces.InnerMsg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,12 +89,12 @@ public class RoomActor extends DmActor {
     public void onRecv(Object msg) throws Exception {
         if (msg instanceof RoomNetWorkMsg) {
             onCmRoomMsg((RoomNetWorkMsg) msg);
-        } else if (msg instanceof InnerMsg) {
-            onInnerMsg((InnerMsg) msg);
+        } else if (msg instanceof RoomInnerMsg) {
+            onInnerMsg((RoomInnerMsg) msg);
         }
     }
 
-    private void onInnerMsg(InnerMsg msg) {
+    private void onInnerMsg(RoomInnerMsg msg) {
         if (msg instanceof In_PlayerDisconnectedQuitRoomMsg) {
             onPlayerDisconnectedQuitRoom((In_PlayerDisconnectedQuitRoomMsg) msg);
         } else if (msg instanceof In_CheckPlayerAllReadyRoomMsg) {
