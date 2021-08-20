@@ -1,15 +1,13 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
-import java.util.List;
-
-public class In_PlayerIsVotedRoomMsg implements InnerMsg {
+public class In_PlayerIsVotedRoomMsg extends _PlayerInnerMsg {
     private int murderRoleId;
     private boolean isVoted;
 
-    public In_PlayerIsVotedRoomMsg(int murderRoleId, boolean isVoted) {
+    public In_PlayerIsVotedRoomMsg(String playerId, int murderRoleId, boolean isVoted) {
+        super(playerId);
         this.murderRoleId = murderRoleId;
         this.isVoted = isVoted;
     }
@@ -22,18 +20,4 @@ public class In_PlayerIsVotedRoomMsg implements InnerMsg {
         return isVoted;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }

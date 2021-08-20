@@ -47,7 +47,7 @@ public class HandleLoginMsgAction implements Action {
                 } else {
                     //PlayerActor存在而且可用,但连接是新的,断线重连,plaeyrActor在说明库里有玩家信息无需处理读库,发往world处理
                     LOGGER.debug("PlayerActor存在而且可用,但连接是新的,断线重连,playerActor已经存在,代表库里有玩家信息无需处理读库,发往world处理， playerId={}", rpid);
-                    worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerReconnectMsg(connection, msg.getMessage()), self);
+                    worldActorContext.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerReconnectMsg(rpid, connection, msg.getMessage()), self);
                 }
             } else {
                 if (!worldCtrl.canUse(rpid)) {

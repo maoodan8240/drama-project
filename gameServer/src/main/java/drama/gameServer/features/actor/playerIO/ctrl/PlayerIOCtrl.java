@@ -1,13 +1,14 @@
 package drama.gameServer.features.actor.playerIO.ctrl;
 
+import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
+import drama.protos.EnumsProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.RoomProtos;
 import ws.common.utils.mc.controler.Controler;
-import ws.common.utils.message.interfaces.InnerMsg;
 
 
 public interface PlayerIOCtrl extends Controler<Player> {
@@ -21,7 +22,7 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     void sendLoginResponse(Player player, PlayerLoginProtos.Sm_Login.Action action);
 
-    void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, InnerMsg msg);
+    void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg);
 
     void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId);
 
@@ -29,5 +30,8 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum);
 
+    void updatePlayer(String iconUrl, String birthday, String place, String name, EnumsProtos.SexEnum sex);
+
     PlayerDao getPlayerDao();
+
 }

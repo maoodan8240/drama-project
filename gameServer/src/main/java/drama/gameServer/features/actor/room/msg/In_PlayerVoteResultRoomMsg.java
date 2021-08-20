@@ -1,16 +1,16 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
 import java.util.List;
 import java.util.Map;
 
-public class In_PlayerVoteResultRoomMsg implements InnerMsg {
+public class In_PlayerVoteResultRoomMsg extends _PlayerInnerMsg {
     private Map<Integer, List<Integer>> roleIdToPlayerRoleId;
     private int dramaId;
 
-    public In_PlayerVoteResultRoomMsg(Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId, int dramaId) {
+    public In_PlayerVoteResultRoomMsg(String playerId, Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId, int dramaId) {
+        super(playerId);
         this.roleIdToPlayerRoleId = voteRoleIdToPlayerRoleId;
         this.dramaId = dramaId;
     }
@@ -23,18 +23,5 @@ public class In_PlayerVoteResultRoomMsg implements InnerMsg {
         return dramaId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
+   
 }

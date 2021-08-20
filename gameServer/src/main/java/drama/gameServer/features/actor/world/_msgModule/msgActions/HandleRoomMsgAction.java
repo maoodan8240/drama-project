@@ -4,6 +4,7 @@ import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.interfaces.RoomInnerMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.topLevelPojos.player.Player;
@@ -30,17 +31,28 @@ import ws.common.utils.di.GlobalInjector;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class HandleRoomNetWorkMsgAction implements Action {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HandleRoomNetWorkMsgAction.class);
+public class HandleRoomMsgAction implements Action {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HandleRoomMsgAction.class);
 
     @Override
     public void onRecv(Object msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (msg instanceof RoomNetWorkMsg) {
-            onCreateRoomMsg((RoomNetWorkMsg) msg, worldCtrl, worldActorContext, self, sender);
+            onNetWorkRoomMsg((RoomNetWorkMsg) msg, worldCtrl, worldActorContext, self, sender);
+        } else if (msg instanceof RoomInnerMsg) {
+            onRoomInnerMsg((RoomInnerMsg) msg, worldCtrl, worldActorContext, self, sender);
         }
     }
 
-    private void onCreateRoomMsg(RoomNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+    private void onRoomInnerMsg(RoomInnerMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+        String roomId = msg.getRoomId();
+        if (!worldCtrl.containsRoom(roomId)) {
+            LOGGER.debug("房间不存在了,待处理 roomId={}", roomId);
+        }
+        ActorRef roomActorRef = worldCtrl.getRoomActorRef(roomId);
+        roomActorRef.tell(msg, sender);
+    }
+
+    private void onNetWorkRoomMsg(RoomNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
             if (!worldCtrl.contains(msg.getConnection())) {
                 ProtoUtils.needReLogin(msg.getConnection());

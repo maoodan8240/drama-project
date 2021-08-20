@@ -13,6 +13,7 @@ import drama.gameServer.system.table.RootTcListener;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
 import ws.common.mongoDB.config.MongoConfig;
 import ws.common.mongoDB.interfaces.MongoDBClient;
 import ws.common.network.server.config.implement._ConnConfig;
@@ -132,5 +133,13 @@ public class Launcher {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static void cacheServerOuterNetIp() {
+        String outerNetIp = AppConfig.getIp();
+        int port = AppConfig.getInt(AppConfig.Key.DM_HttpGatewayServer_tcp_server_port);
+        JedisClient jedisClient = GlobalInjector.getInstance(JedisClient.class);
+        Jedis jedis = jedisClient.getJedis();
+//        jedis.hset(Red)
     }
 }

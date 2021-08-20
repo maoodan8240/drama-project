@@ -80,7 +80,7 @@ public class HandleConnectionStatusAction implements Action {
         }
         worldCtrl.setOffline(playerId);
 
-        worldCtrl.getPlayerActorRef(playerId).tell(new In_PlayerDisconnectedRequest(connection), ActorRef.noSender());
+        worldCtrl.getPlayerActorRef(playerId).tell(new In_PlayerDisconnectedRequest(connection, playerId), ActorRef.noSender());
         LOGGER.info("玩家playerName={}, PlayerId={} 短暂离线了,进入缓存状态...", worldCtrl.getPlayerNameById(playerId), playerId);
     }
 }

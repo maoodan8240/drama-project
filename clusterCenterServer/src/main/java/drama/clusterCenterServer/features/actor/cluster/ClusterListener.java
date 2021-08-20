@@ -16,7 +16,6 @@ import akka.cluster.ClusterEvent.ReachableMember;
 import akka.cluster.ClusterEvent.RoleLeaderChanged;
 import akka.cluster.ClusterEvent.UnreachableMember;
 import akka.cluster.metrics.ClusterMetricsChanged;
-import akka.cluster.metrics.ClusterMetricsExtension;
 import dm.relationship.utils.ClusterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory;
 public class ClusterListener extends UntypedActor {
     private static final Logger logger = LoggerFactory.getLogger(ClusterListener.class);
     private Cluster cluster = Cluster.get(getContext().system());
-    private ClusterMetricsExtension metrics = ClusterMetricsExtension.get(getContext().system());
+//    private ClusterMetricsExtension metrics = ClusterMetricsExtension.get(getContext().system());
 
     private static ActorContext actorContext;
     private static Address address;
@@ -38,13 +37,13 @@ public class ClusterListener extends UntypedActor {
     @Override
     public void preStart() throws Exception {
         cluster.subscribe(getSelf(), ClusterDomainEvent.class);
-        metrics.subscribe(getSelf());
+//        metrics.subscribe(getSelf());
     }
 
     @Override
     public void postStop() throws Exception {
         cluster.unsubscribe(getSelf());
-        metrics.unsubscribe(getSelf());
+//        metrics.unsubscribe(getSelf());
     }
 
     @Override

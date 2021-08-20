@@ -1,15 +1,15 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
 import java.util.List;
 
-public class In_PlayerCanSelectDraftRoomMsg implements InnerMsg {
+public class In_PlayerCanSelectDraftRoomMsg extends _PlayerInnerMsg {
     private List<Integer> draftIds;
     private int dramaId;
 
-    public In_PlayerCanSelectDraftRoomMsg(List<Integer> draftIds, int dramaId) {
+    public In_PlayerCanSelectDraftRoomMsg(String playerId, List<Integer> draftIds, int dramaId) {
+        super(playerId);
         this.draftIds = draftIds;
         this.dramaId = dramaId;
     }
@@ -22,18 +22,5 @@ public class In_PlayerCanSelectDraftRoomMsg implements InnerMsg {
         return draftIds;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
+   
 }

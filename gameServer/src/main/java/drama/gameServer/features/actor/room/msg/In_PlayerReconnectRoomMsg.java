@@ -1,17 +1,14 @@
 package drama.gameServer.features.actor.room.msg;
 
+import dm.relationship.base.msg.implement._RoomInnerMsg;
 import ws.common.network.server.interfaces.Connection;
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
 
-import java.util.List;
-
-public class In_PlayerReconnectRoomMsg implements InnerMsg {
-
+public class In_PlayerReconnectRoomMsg extends _RoomInnerMsg {
     private Connection connection;
     private String playerId;
 
-    public In_PlayerReconnectRoomMsg(Connection connection, String playerId) {
+    public In_PlayerReconnectRoomMsg(String roomId, Connection connection, String playerId) {
+        super(roomId);
         this.connection = connection;
         this.playerId = playerId;
     }
@@ -24,18 +21,4 @@ public class In_PlayerReconnectRoomMsg implements InnerMsg {
         return playerId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }

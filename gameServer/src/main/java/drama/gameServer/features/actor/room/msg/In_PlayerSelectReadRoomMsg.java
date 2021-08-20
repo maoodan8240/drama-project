@@ -1,14 +1,12 @@
 package drama.gameServer.features.actor.room.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
-import java.util.List;
-
-public class In_PlayerSelectReadRoomMsg implements InnerMsg {
+public class In_PlayerSelectReadRoomMsg extends _PlayerInnerMsg {
     private String result;
 
-    public In_PlayerSelectReadRoomMsg(String result) {
+    public In_PlayerSelectReadRoomMsg(String playerId, String result) {
+        super(playerId);
         this.result = result;
     }
 
@@ -16,18 +14,5 @@ public class In_PlayerSelectReadRoomMsg implements InnerMsg {
         return result;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
-
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
+   
 }

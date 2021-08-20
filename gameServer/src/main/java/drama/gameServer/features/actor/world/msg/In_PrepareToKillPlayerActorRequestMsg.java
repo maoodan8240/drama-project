@@ -1,33 +1,17 @@
 package drama.gameServer.features.actor.world.msg;
 
-import ws.common.utils.message.interfaces.InnerMsg;
-import ws.common.utils.message.interfaces.ResultCode;
+import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
-import java.util.List;
-
-public class In_PrepareToKillPlayerActorRequestMsg implements InnerMsg {
+public class In_PrepareToKillPlayerActorRequestMsg extends _PlayerInnerMsg {
     private String playerId;
 
     public In_PrepareToKillPlayerActorRequestMsg(String playerId) {
-        this.playerId = playerId;
+        super(playerId);
     }
 
     public String getPlayerId() {
         return playerId;
     }
 
-    @Override
-    public ResultCode getResultCode() {
-        return null;
-    }
 
-    @Override
-    public void addReceiver(String s) {
-
-    }
-
-    @Override
-    public List<String> getReceivers() {
-        return null;
-    }
 }
