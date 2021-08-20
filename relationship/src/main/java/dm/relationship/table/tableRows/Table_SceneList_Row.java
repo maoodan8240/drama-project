@@ -118,10 +118,6 @@ public class Table_SceneList_Row extends AbstractRow {
         return name;
     }
 
-    public static boolean containsDramaId(int dramaId) {
-        return RootTc.get(Table_SceneList_Row.class).get(dramaId) != null;
-    }
-
     public int getSrchNum() {
         int maxSrchNum = 0;
         for (TupleCell<String> tupleCell : getRunDown()) {

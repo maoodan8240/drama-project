@@ -4,4 +4,8 @@ int	string	int 	float	int	string	int	string	string	string	float	string
 101	山河永寂	6	4.5	2	shyj	2	古代现实	shyjbg	大周永徽二十—年,与大周交好的邻国南诏突然起兵侵犯周南部边境,一路势如破竹,连下十余城.执政的太后娘娘派镇守漠北多年的前天下兵马大将军,镇北侯路沉骁率领路家军南下御敌.路家军一路连胜,却在漓江之战中计遇伏,路沉骁当场战死,部众也 所剩无几,仅剩他的孙儿路之遥与一众亲兵逃回江北,随后漓江北岸的行唐关竟突然叛变,自此行唐关内再无半分音讯传来.	8.6	ANSWER:1,READ:1,STAGE:1,TALK:1,SEARCH:1,TALK:2,READ:2,SEARCH:2,TALK:3,READ:3,SEARCH:3,TALK:4,VOTE:1,READ:4,READ:5,SOLO:1,ENDING:1
 102	第22条校规	7	4	2	22xg	5	现代校园	22xgbg	现在是深夜凌晨2:00。往日人声鼎沸的学校里此刻充满寂静，阴冷的月光照在一个个无人的教室中，给黑夜平添了一分诡异感。教学楼一共有6层，此时5楼某个教室中，一个人影悄悄的打开了教室的门，然后小心翼翼的观察着周围的走廊，良久，这个人影似乎松了口气，轻轻的走出去并关上教室的门似是在极力避免发出声音，突然，“他”浑身一抖，似乎感应到了什么一样，立刻朝着走廊的一边狂奔，看到楼梯后“他”飞速向下跑，正想一口气冲下一楼时“他”突然在楼梯口停了下来，接着头也不回的转身朝二楼跑去，似乎楼梯下面有什么非常恐怖的东西在等着“他”一样，终于“他”累了跑不动了，“他”在走廊尽头找到了一间教室便赶忙冲了进去想要躲一躲，但是打开门的瞬间，“他”的脸色瞬间变得惨白，眼晴直勾勾的看着眼前难以置信的一幕，随后，死寂的校园中传出了一声凄厉的惨叫。	8.7	SELECT:1,READ:1,READ:2,TALK:1,READ:3,TALK:2,VOTESEARCH:1,READ:4,TALK:3,VOTESEARCH:2,READ:5,READ:6,TALK:4,VOTESEARCH:3,READ:7,UNLOCK:1,TALK:5,DRAFT:1,TALK:6,VOTE:1,UNLOCK:2,READ:8,TALK:7,VOTE:2,SELECTREAD:1,ENDING:1
 99001	血字的留言	1	1	1	xzdly	1	现代现实	xzdlybg	犯罪现场调查系列之血字的留言	8.9	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
-990002	无死角的房间	1	1	1	wsjdfj	1	现代现实	wsjdfjbg	犯罪现场调查系列之无死角的房间	8.7	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
+99002	无死角的房间	1	1	1	wsjdfj	1	现代现实	wsjdfjbg	犯罪现场调查系列之无死角的房间	8.7	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
+99003	瞬间消失的行凶者	1	1	1	sjxsdxxz	1	现代现实	sjxsdxxzbg	犯罪现场调查系列之瞬间消失的行凶者	8.6	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
+99004	三重门	1	1	1	scm	1	现代现实	scmbg	犯罪现场调查系列之三重门	8.5	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
+99005	最后的烛光晚餐	1	1	1	zhdzgwc	1	现代现实	zhdzgwcbg	犯罪现场调查系列之最后的烛光晚餐	8.4	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1
+99006	爱洛斯的分尸诅咒	1	1	1	fxzz	1	现代现实	fxzzbg	犯罪现场调查系列之爱洛斯的分尸诅咒	8.3	NOSELECT:1,READ:1,SEARCH:1,TALK:1,VOTE:1,ENDING:1

@@ -79,9 +79,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     public void createRoom(String roomId, Player player, int dramaId) {
         int simpleRoomId = SIMPLE_ID_DAO.nextSimpleId(SimpleIdTypeEnum.ROOM);
 //        int simpleRoomId = 10001;
-        if (!Table_SceneList_Row.containsDramaId(dramaId)) {
-            throw new BusinessLogicMismatchConditionException("剧本ID不存在 dramaId:" + dramaId);
-        }
         Table_SceneList_Row tabRow = RootTc.get(Table_SceneList_Row.class).get(dramaId);
         String playerName = !StringUtils.isEmpty(player.getBase().getName()) ? player.getBase().getName() : "";
         target = new Room(roomId, dramaId, player.getPlayerId(), simpleRoomId, playerName, tabRow);

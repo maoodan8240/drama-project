@@ -3,11 +3,13 @@ package drama.gameServer.features.actor.world.ctrl;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import dm.relationship.daos.player.PlayerDao;
+import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.world.pojo.World;
 import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.mc.controler.Controler;
 
 import java.util.List;
+import java.util.Map;
 
 public interface WorldCtrl extends Controler<World> {
 
@@ -136,4 +138,14 @@ public interface WorldCtrl extends Controler<World> {
     void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self);
 
     boolean containsRoom(String roomId);
+
+    boolean containsPlayerRoom(String playerId);
+
+    String getRoomId(String playerId);
+
+    void addRoom(Room room, String playerId);
+
+    Map<String, Room> getRoomIdToRoom();
+
+    void removeRoom(String roomId, String playerId);
 }

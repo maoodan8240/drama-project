@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.Kill;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.daos.player.PlayerDao;
+import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.world.pojo.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     private static final Logger LOGGER = LoggerFactory.getLogger(_WorldCtrl.class);
@@ -218,6 +220,31 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
 
     @Override
     public boolean containsRoom(String roomId) {
-        return target.getRoomIdToRoomActorRef().containsKey(roomId);
+        return target.getRoomIdToRoomActorRef().containsKey(roomId) && target.getRoomCenter().containsRoomId(roomId);
+    }
+
+    @Override
+    public boolean containsPlayerRoom(String playerId) {
+        return target.getRoomCenter().getPlayerIdToRoomId().containsKey(playerId);
+    }
+
+    @Override
+    public String getRoomId(String playerId) {
+        return target.getRoomCenter().getRoomIdByPlayerId(playerId);
+    }
+
+    @Override
+    public void addRoom(Room room, String playerId) {
+        target.getRoomCenter().add(room, playerId);
+    }
+
+    @Override
+    public Map<String, Room> getRoomIdToRoom() {
+        return target.getRoomCenter().getRoomIdToRoom();
+    }
+
+    @Override
+    public void removeRoom(String roomId, String playerId) {
+        target.getRoomCenter().remove(roomId, playerId);
     }
 }

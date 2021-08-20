@@ -1,12 +1,14 @@
 package drama.gameServer.features.actor.world.pojo;
 
 import akka.actor.ActorRef;
+import drama.gameServer.features.actor.room.pojo.RoomCenter;
 import ws.common.network.server.interfaces.Connection;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class World {
+    private static final RoomCenter roomCenter = new RoomCenter();
     private Map<String, String> playerIdToPlayerName = new ConcurrentHashMap<>();//玩家Id<->PlayerName
 
     //
@@ -64,4 +66,7 @@ public class World {
         return roomIdToRoomActorRef;
     }
 
+    public RoomCenter getRoomCenter() {
+        return roomCenter;
+    }
 }

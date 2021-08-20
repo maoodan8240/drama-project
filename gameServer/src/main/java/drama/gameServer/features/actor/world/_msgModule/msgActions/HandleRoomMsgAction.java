@@ -65,7 +65,6 @@ public class HandleRoomMsgAction implements Action {
                 b = RoomProtoUtils.setAction(b, cm_room);
                 try {
                     if (cm_room.getAction().getNumber() == RoomProtos.Cm_Room.Action.CREAT_VALUE) {
-
                         onCreateRoom(msg, playerId, worldCtrl, worldActorContext, self, sender);
                     } else if (cm_room.getAction().getNumber() == Cm_Room.Action.SYNC_VALUE) {
                         onSyncRoomList(msg);
@@ -122,7 +121,7 @@ public class HandleRoomMsgAction implements Action {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             String roomId = cm_room.getRoomId();
-            if (!RoomCenter.containsRoomId(roomId)) {
+            if (!worldCtrl.containsRoom(roomId)) {
                 LOGGER.debug("RoomContainer没有找到房间 roomId={}", roomId);
                 throw new BusinessLogicMismatchConditionException("没有找到房间 roomId=" + roomId, EnumsProtos.ErrorCodeEnum.ROOM_NOT_EXISTS);
             }
@@ -139,10 +138,8 @@ public class HandleRoomMsgAction implements Action {
 
     private void onCreateRoom(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext
             worldActorContext, ActorRef self, ActorRef sender) {
-        //TODO 校验参数
-        Cm_Room cm_room = (Cm_Room) msg.getMessage();
         //检查player是否在线,用Dao取出player
-        if (RoomCenter.containsPlayerId(playerId)) {
+        if (worldCtrl.containsPlayerRoom(playerId)) {
             String roomId = RoomCenter.getRoomIdByPlayerId(playerId);
             LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->roomId={}", playerId, roomId);
             throw new BusinessLogicMismatchConditionException("玩家名下已经有房间,无法再创建,playerId:" + playerId + ",roomId:" + roomId, EnumsProtos.ErrorCodeEnum.CREATE_ROOM_HAS_ONE);
