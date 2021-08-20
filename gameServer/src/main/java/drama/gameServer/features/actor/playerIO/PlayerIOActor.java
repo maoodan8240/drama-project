@@ -304,7 +304,6 @@ public class PlayerIOActor extends DmActor {
             playerIOCtrl.quitRoom();
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
         }
-
         playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
         getSender().tell(new In_PrepareToKillPlayerActorResponseMsg(playerId), ActorRef.noSender());
     }

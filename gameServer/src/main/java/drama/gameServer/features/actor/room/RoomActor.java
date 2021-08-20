@@ -1,7 +1,6 @@
 package drama.gameServer.features.actor.room;
 
 import akka.actor.ActorRef;
-import akka.actor.Kill;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
@@ -199,19 +198,30 @@ public class RoomActor extends DmActor {
     private void onPlayerDisconnectedQuitRoom(In_PlayerDisconnectedQuitRoomMsg msg) {
         String playerId = msg.getPlayerId();
         if (roomCtrl.containsPlayer(playerId)) {
-            roomCtrl.removePlayer(playerId);
-        } else {
-            LOGGER.debug("玩家不在房间中, 并且玩家已经掉线了,忽略房间中的处理: playerId={}, roomId={}", playerId, roomId);
-        }
-        if (_isMaster(playerId)) {
-            //TODO 考虑和playerActor销毁时一起销毁
-            LOGGER.debug("房间主人掉线,通知一下房间里其他人退出房间: playerId={}, roomId={}", playerId, roomId);
-            for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
-                In_PlayerQuitRoomMsg in_playerQuitRoomMsg = new In_PlayerQuitRoomMsg(entries.getKey(), roomId, masterId);
-                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerQuitRoomMsg, ActorRef.noSender());
+            RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(playerId);
+            if (roomPlayerCtrl.hasRole()) {
+                int roleId = roomPlayerCtrl.getRoleId();
+                roomPlayerCtrl.setRoleId(0);
+                roomCtrl.removeRole(roleId);
             }
-            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId, playerId), sender());
-            self().tell(Kill.getInstance(), ActorRef.noSender());
+            roomCtrl.removePlayer(playerId);
+            if (_isMaster(playerId)) {
+                // 玩家是房间主人要把所有房间内玩家请出去,通知所有玩家
+                LOGGER.debug("房间主人退出了房间,所有玩家清出房间");
+                for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
+                    In_PlayerQuitRoomMsg in_playerQuitRoomMsg = new In_PlayerQuitRoomMsg(entries.getKey(), roomId, masterId);
+                    DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerQuitRoomMsg, ActorRef.noSender());
+                }
+                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId, playerId), sender());
+            } else {
+                // 非房间主人,直接退出就行
+                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerQuitRoomMsg(playerId, roomId, masterId), ActorRef.noSender());
+            }
+            if (roomCtrl.getRoomPlayerNum() == MagicNumbers.DEFAULT_ZERO) {
+                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId, playerId), sender());
+            }
+        } else {
+            LOGGER.debug("玩家不在房间中,退出房间异常 忽略: playerId={}, roomId={}", playerId, roomId);
         }
     }
 
