@@ -8,12 +8,13 @@ public class In_PlayerSearchRoomMsg extends _PlayerInnerMsg {
     private int dramaId;
     private RoomPlayer roomPlayer;
 
-    public In_PlayerSearchRoomMsg(int id, RoomPlayer roomPlayer, int dramaId, String playerId) {
+    public In_PlayerSearchRoomMsg(String playerId, int id, RoomPlayer roomPlayer, int dramaId) {
         super(playerId);
         this.id = id;
         this.roomPlayer = roomPlayer;
         this.dramaId = dramaId;
     }
+
 
     public int getDramaId() {
         return dramaId;
@@ -27,5 +28,5 @@ public class In_PlayerSearchRoomMsg extends _PlayerInnerMsg {
         return id;
     }
 
-  
+
 }

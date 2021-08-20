@@ -307,8 +307,7 @@ public class RoomActor extends DmActor {
             return;
         }
         List<Integer> draftIds = roomCtrl.canSelectDraftIds();
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerCanSelectDraftRoomMsg(player.getPlayerId(), draftIds, roomCtrl.getDramaId()), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerCanSelectDraftRoomMsg(player.getPlayerId(), draftIds, roomCtrl.getDramaId()), ActorRef.noSender());
     }
 
     private void onSelectDraft(int draftId) {
@@ -328,8 +327,7 @@ public class RoomActor extends DmActor {
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_DRAFT);
         }
         roomCtrl.selectDraft(roomPlayerCtrl, draftId);
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSelectDraftRoomMsg(player.getPlayerId(), draftId), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerSelectDraftRoomMsg(player.getPlayerId(), draftId), ActorRef.noSender());
     }
 
     private void onVoteSearch(String typeName) {
@@ -345,8 +343,7 @@ public class RoomActor extends DmActor {
             return;
         }
         roomCtrl.voteSearch(roomPlayerCtrl, typeName);
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerVoteSearchRoomMsg(player.getPlayerId(), typeName), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerVoteSearchRoomMsg(player.getPlayerId(), typeName), ActorRef.noSender());
         onCheckPlayerAllVoteSearchRoomMsg();
     }
 
@@ -357,8 +354,7 @@ public class RoomActor extends DmActor {
             return;
         }
         List<Integer> clueIds = roomCtrl.canVoteSearchTypeIds();
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerOnCanVoteSearchRoomMsg(player.getPlayerId(), clueIds, roomCtrl.getDramaId(), roomCtrl.getRoomPlayer(player.getPlayerId())), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerOnCanVoteSearchRoomMsg(player.getPlayerId(), clueIds, roomCtrl.getDramaId(), roomCtrl.getRoomPlayer(player.getPlayerId())), ActorRef.noSender());
     }
 
 
@@ -366,8 +362,7 @@ public class RoomActor extends DmActor {
         _checkRoomContainsPlayer(player);
         int murderRoleId = Table_Murder_Row.getMurderRoleId(roomCtrl.getDramaId());
         boolean isVoted = roomCtrl.isVotedMurder(murderRoleId);
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerIsVotedRoomMsg(player.getPlayerId(), murderRoleId, isVoted), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerIsVotedRoomMsg(player.getPlayerId(), murderRoleId, isVoted), ActorRef.noSender());
     }
 
     private void onVoteResult() {
@@ -378,8 +373,7 @@ public class RoomActor extends DmActor {
                 DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerVoteResultRoomMsg, ActorRef.noSender());
             }
         } else {
-            String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-            DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerVoteResultRoomMsg(player.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(), roomCtrl.getDramaId()), ActorRef.noSender());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerVoteResultRoomMsg(player.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(), roomCtrl.getDramaId()), ActorRef.noSender());
         }
     }
 
@@ -399,8 +393,7 @@ public class RoomActor extends DmActor {
             soloDramaId = soloRow.getSoloDramaId(optionsList.get(MagicNumbers.DEFAULT_ZERO));
         }
         roomPlayerCtrl.addSoloAnswer(soloNum, soloDramaId);
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSoloResultRoomMsg(player.getPlayerId(), soloDramaId), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerSoloResultRoomMsg(player.getPlayerId(), soloDramaId), ActorRef.noSender());
     }
 
     private void onVote(int roleId) {
@@ -411,8 +404,7 @@ public class RoomActor extends DmActor {
         }
         roomCtrl.addVote(player.getPlayerId(), roleId);
         int remainNum = roomCtrl.RemainNum();
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerVoteRoomMsg(player.getPlayerId(), remainNum), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerVoteRoomMsg(player.getPlayerId(), remainNum), ActorRef.noSender());
         if (remainNum == 0) {
             for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
                 In_PlayerVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerVoteResultRoomMsg(entries.getKey(), roomCtrl.getVoteRoleIdToPlayerRoleId(), roomCtrl.getDramaId());
@@ -509,8 +501,7 @@ public class RoomActor extends DmActor {
             return;
         }
         List<Integer> canSelectRoleIds = roomCtrl.canSelectRoleIds(roomCtrl.getDramaId());
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerCanSelectRoomMsg(player.getPlayerId(), canSelectRoleIds, roomCtrl.getDramaId()), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerCanSelectRoomMsg(player.getPlayerId(), canSelectRoleIds, roomCtrl.getDramaId()), ActorRef.noSender());
     }
 
     private void onSelect(int roleId, Action action) {
@@ -638,8 +629,7 @@ public class RoomActor extends DmActor {
             //如果没进上面的判断代表关于这个typeId的线索都搜索完了
         }
         //发往playerActor回消息
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerSearchRoomMsg(id, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId(), player.getPlayerId()), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerSearchRoomMsg(player.getPlayerId(), id, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId()), ActorRef.noSender());
         checkPlayerFinishSearchShowHideClueMsg();
     }
 
@@ -660,8 +650,7 @@ public class RoomActor extends DmActor {
                 typeIds.add(row.getTypeId());
             }
         }
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerOnCanSearchRoomMsg(typeIds, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId(), player.getPlayerId()), ActorRef.noSender());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerOnCanSearchRoomMsg(player.getPlayerId(), typeIds, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId()), ActorRef.noSender());
     }
 
     private void onJoinRoomMsg(Cm_Room cm_room) {
@@ -685,8 +674,7 @@ public class RoomActor extends DmActor {
             RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
             roomPlayerCtrl.setTarget(roomPlayer);
             roomCtrl.addPlayer(roomPlayer, roomPlayerCtrl);
-            String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-            DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerJoinRoomMsg(room, player.getPlayerId()), ActorRef.noSender());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerJoinRoomMsg(player.getPlayerId(), room), ActorRef.noSender());
         }
     }
 
@@ -714,8 +702,7 @@ public class RoomActor extends DmActor {
                 for (String s : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
                     LOGGER.debug("onQuitRoomMsg 房间内玩家 playerId={}", s);
                 }
-                String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", player.getPlayerId());
-                DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerQuitRoomMsg(roomId, masterId, player.getPlayerId()), ActorRef.noSender());
+                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerQuitRoomMsg(player.getPlayerId(), roomId, masterId), ActorRef.noSender());
             }
         } else {
             LOGGER.debug("玩家不在房间中,退出房间异常 忽略: playerId={}, roomId={}", player.getPlayerId(), roomId);
@@ -731,8 +718,7 @@ public class RoomActor extends DmActor {
         br.setResult(true);
         RoomProtos.Sm_Room b = createSmRoomByActionWithoutRoomPlayer(roomCtrl.getTarget(), RoomProtos.Sm_Room.Action.RESP_CREATE);
         br.setSmRoom(b);
-        String actorName = ActorSystemPath.DM_GameServer_Selection_PlayerIO.replaceAll("\\*", masterId);
-        DmActorSystem.get().actorSelection(actorName).tell(new In_PlayerCreateRoomMsg(roomCtrl.getTarget(), player.getPlayerId()), ActorRef.noSender());//TODO 通
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerCreateRoomMsg(player.getPlayerId(), roomCtrl.getTarget()), ActorRef.noSender());
         LOGGER.debug("房间创建成功 roomId={},dramaId={},MasterId={}", roomId, cm_room.getDramaId(), masterId);
     }
 

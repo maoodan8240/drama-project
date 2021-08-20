@@ -64,39 +64,14 @@ public class HandleRoomMsgAction implements Action {
                 RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
                 b = RoomProtoUtils.setAction(b, cm_room);
                 try {
-                    switch (cm_room.getAction().getNumber()) {
-                        case RoomProtos.Cm_Room.Action.CREAT_VALUE:
-                            onCreateRoom(msg, playerId, worldCtrl, worldActorContext, self, sender);
-                            break;
-                        case Cm_Room.Action.SYNC_VALUE:
-                            onSyncRoom(msg);
-                            break;
-                        case Cm_Room.Action.JION_VALUE:
-                        case Cm_Room.Action.QUIT_VALUE:
-                        case Cm_Room.Action.ANSWER_VALUE:
-                        case Cm_Room.Action.READY_VALUE:
-                        case Cm_Room.Action.SEARCH_VALUE:
-                        case Cm_Room.Action.SYNC_ROOM_CLUE_VALUE:
-                        case Cm_Room.Action.SYNC_PLAYER_CLUE_VALUE:
-                        case Cm_Room.Action.SYNC_CAN_SEARCH_VALUE:
-                        case Cm_Room.Action.IS_DUB_VALUE:
-                        case Cm_Room.Action.VOTE_VALUE:
-                        case Cm_Room.Action.SOLO_ANSWER_VALUE:
-                        case Cm_Room.Action.SOLO_DUB_VALUE:
-                        case Cm_Room.Action.VOTE_RESULT_VALUE:
-                        case Cm_Room.Action.SELECT_VALUE:
-                        case Cm_Room.Action.CAN_SELECT_VALUE:
-                        case Cm_Room.Action.CAN_VOTE_SEARCH_VALUE:
-                        case Cm_Room.Action.VOTE_SEARCH_VALUE:
-                        case Cm_Room.Action.SELECT_DRAFT_VALUE:
-                        case Cm_Room.Action.CAN_SELECT_DRAFT_VALUE:
-                        case Cm_Room.Action.IS_VOTED_VALUE:
-                        case Cm_Room.Action.NO_SELECT_VALUE:
-                            //以上Action都是需要传一个roomId的请求
-                            onEasyMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
-                            break;
-                        default:
-                            break;
+                    if (cm_room.getAction().getNumber() == RoomProtos.Cm_Room.Action.CREAT_VALUE) {
+
+                        onCreateRoom(msg, playerId, worldCtrl, worldActorContext, self, sender);
+                    } else if (cm_room.getAction().getNumber() == Cm_Room.Action.SYNC_VALUE) {
+                        onSyncRoomList(msg);
+                    } else {
+                        //以上Action都是需要传一个roomId的请求
+                        onOtherRoomMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
                     }
                 } catch (BusinessLogicMismatchConditionException e) {
                     Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, b.getAction(), e.getErrorCodeEnum());
@@ -109,7 +84,8 @@ public class HandleRoomMsgAction implements Action {
     }
 
 
-    private void onAnswerOrReady(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+    private void onAnswerOrReady(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext
+            worldActorContext, ActorRef self, ActorRef sender) {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             String roomId = cm_room.getRoomId();
@@ -127,7 +103,7 @@ public class HandleRoomMsgAction implements Action {
         }
     }
 
-    private void onSyncRoom(RoomNetWorkMsg msg) {
+    private void onSyncRoomList(RoomNetWorkMsg msg) {
         MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_SYNC);
         br.setResult(true);
         RoomProtos.Sm_Room.Builder broom = RoomProtos.Sm_Room.newBuilder();
@@ -141,7 +117,8 @@ public class HandleRoomMsgAction implements Action {
         msg.getConnection().send(new MessageSendHolder(br.build(), br.getSmMsgAction(), new ArrayList<>()));
     }
 
-    private void onEasyMsg(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+    private void onOtherRoomMsg(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext
+            worldActorContext, ActorRef self, ActorRef sender) {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             String roomId = cm_room.getRoomId();
@@ -160,7 +137,8 @@ public class HandleRoomMsgAction implements Action {
     }
 
 
-    private void onCreateRoom(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+    private void onCreateRoom(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext
+            worldActorContext, ActorRef self, ActorRef sender) {
         //TODO 校验参数
         Cm_Room cm_room = (Cm_Room) msg.getMessage();
         //检查player是否在线,用Dao取出player

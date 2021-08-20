@@ -6,7 +6,7 @@ public class In_PlayerQuitRoomMsg extends _PlayerInnerMsg {
     private String roomId;
     private String masterId;
 
-    public In_PlayerQuitRoomMsg(String roomId, String masterId, String playerId) {
+    public In_PlayerQuitRoomMsg(String playerId, String roomId, String masterId) {
         super(playerId);
         this.roomId = roomId;
         this.masterId = masterId;

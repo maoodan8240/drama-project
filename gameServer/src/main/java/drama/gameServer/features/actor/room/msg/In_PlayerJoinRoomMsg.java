@@ -6,7 +6,7 @@ import drama.gameServer.features.actor.room.pojo.Room;
 public class In_PlayerJoinRoomMsg extends _PlayerInnerMsg {
     private final Room room;
 
-    public In_PlayerJoinRoomMsg(Room room, String playerId) {
+    public In_PlayerJoinRoomMsg(String playerId, Room room) {
         super(playerId);
         this.room = room;
     }
@@ -15,5 +15,5 @@ public class In_PlayerJoinRoomMsg extends _PlayerInnerMsg {
         return room;
     }
 
-   
+
 }

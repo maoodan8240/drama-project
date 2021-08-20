@@ -10,7 +10,7 @@ public class In_PlayerOnCanSearchRoomMsg extends _PlayerInnerMsg {
     private RoomPlayer roomPlayer;
     private int dramaId;
 
-    public In_PlayerOnCanSearchRoomMsg(List<Integer> typeIds, RoomPlayer roomPlayer, int dramaId, String playerId) {
+    public In_PlayerOnCanSearchRoomMsg(String playerId, List<Integer> typeIds, RoomPlayer roomPlayer, int dramaId) {
         super(playerId);
         this.typeIds = typeIds;
         this.roomPlayer = roomPlayer;
@@ -29,5 +29,5 @@ public class In_PlayerOnCanSearchRoomMsg extends _PlayerInnerMsg {
         return typeIds;
     }
 
-   
+
 }

@@ -6,7 +6,7 @@ import drama.gameServer.features.actor.room.pojo.Room;
 public class In_PlayerCreateRoomMsg extends _PlayerInnerMsg {
     private final Room room;
 
-    public In_PlayerCreateRoomMsg(Room room, String playerId) {
+    public In_PlayerCreateRoomMsg(String playerId, Room room) {
         super(playerId);
         this.room = room;
     }

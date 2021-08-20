@@ -490,6 +490,7 @@ public class PlayerIOActor extends DmActor {
 //            String roomActorName = ActorSystemPath.DM_GameServer_Selection_Room + roomId;
 //            DmActorSystem.get().actorSelection(roomActorName).tell(new In_PlayerDisconnectedQuitRoomMsg(roomId, playerId), ActorRef.noSender());
         }
+        //离线处理保存玩家信息
         playerIOCtrl.getPlayerDao().insertIfExistThenReplace(playerIOCtrl.getTarget());
         //所处房间的逻辑已经在In_PlayerDisconnectedAction worldCtrl执行了
     }
