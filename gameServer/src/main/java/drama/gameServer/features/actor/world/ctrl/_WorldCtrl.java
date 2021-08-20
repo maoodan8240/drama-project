@@ -6,6 +6,7 @@ import akka.actor.Kill;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.daos.player.PlayerDao;
 import drama.gameServer.features.actor.room.pojo.Room;
+import drama.gameServer.features.actor.room.pojo.RoomCenter;
 import drama.gameServer.features.actor.world.pojo.World;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,5 +247,10 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     @Override
     public void removeRoom(String roomId, String playerId) {
         target.getRoomCenter().remove(roomId, playerId);
+    }
+
+    @Override
+    public RoomCenter getRoomCenter() {
+        return target.getRoomCenter();
     }
 }

@@ -7,13 +7,19 @@ import java.util.List;
 
 public class In_PlayerKillRoomMsg implements InnerMsg {
     private String roomId;
+    private String playerId;
 
-    public In_PlayerKillRoomMsg(String roomId) {
+    public In_PlayerKillRoomMsg(String roomId, String playerId) {
         this.roomId = roomId;
+        this.playerId = playerId;
     }
 
     public String getRoomId() {
         return roomId;
+    }
+
+    public String getPlayerId() {
+        return playerId;
     }
 
     @Override

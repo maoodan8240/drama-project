@@ -22,6 +22,7 @@ public class In_PlayerKillRoomMsgAction implements Action {
         String roomId = msg.getRoomId();
         if (roomId != null && worldCtrl.roomActorCanUse(roomId)) {
             worldCtrl.removeRoomActorRef(roomId);
+            worldCtrl.removeRoom(roomId, msg.getPlayerId());
             LOGGER.debug("房间Acotr关系销毁成功:roomId={}", msg.getRoomId());
         } else {
             LOGGER.debug("房间Acotr关系销毁失败,没有找到对应的Actor: roomId={}", msg.getRoomId());

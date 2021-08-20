@@ -12,7 +12,6 @@ import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.RoomActor;
 import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.pojo.Room;
-import drama.gameServer.features.actor.room.utils.RoomCenter;
 import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
 import drama.gameServer.features.actor.world._msgModule.Action;
 import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
@@ -67,7 +66,7 @@ public class HandleRoomMsgAction implements Action {
                     if (cm_room.getAction().getNumber() == RoomProtos.Cm_Room.Action.CREAT_VALUE) {
                         onCreateRoom(msg, playerId, worldCtrl, worldActorContext, self, sender);
                     } else if (cm_room.getAction().getNumber() == Cm_Room.Action.SYNC_VALUE) {
-                        onSyncRoomList(msg);
+                        onSyncRoomList(msg, worldCtrl);
                     } else {
                         //以上Action都是需要传一个roomId的请求
                         onOtherRoomMsg(msg, playerId, worldCtrl, worldActorContext, self, sender);
@@ -88,7 +87,7 @@ public class HandleRoomMsgAction implements Action {
         if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             String roomId = cm_room.getRoomId();
-            if (!RoomCenter.containsRoomId(roomId)) {
+            if ((!worldCtrl.containsRoom(roomId))) {
                 LOGGER.debug("RoomContainer没有找到房间 roomId={}", roomId);
                 throw new BusinessLogicMismatchConditionException("没有找到房间 roomId=" + roomId, EnumsProtos.ErrorCodeEnum.ROOM_NOT_EXISTS);
             }
@@ -102,11 +101,11 @@ public class HandleRoomMsgAction implements Action {
         }
     }
 
-    private void onSyncRoomList(RoomNetWorkMsg msg) {
+    private void onSyncRoomList(RoomNetWorkMsg msg, WorldCtrl worldCtrl) {
         MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_SYNC);
         br.setResult(true);
         RoomProtos.Sm_Room.Builder broom = RoomProtos.Sm_Room.newBuilder();
-        for (Map.Entry<String, Room> entries : RoomCenter.getRoomIdToRoom().entrySet()) {
+        for (Map.Entry<String, Room> entries : worldCtrl.getRoomCenter().getRoomIdToRoom().entrySet()) {
             Room room = (Room) entries.getValue();
             RoomProtos.Sm_Room_Info sm_room_info = RoomProtoUtils.createSmRoomInfoWithoutRoomPlayer(room);
             broom.addRoomInfos(sm_room_info);
@@ -138,9 +137,10 @@ public class HandleRoomMsgAction implements Action {
 
     private void onCreateRoom(RoomNetWorkMsg msg, String playerId, WorldCtrl worldCtrl, ActorContext
             worldActorContext, ActorRef self, ActorRef sender) {
+        Cm_Room cm_room = (Cm_Room) msg.getMessage();
         //检查player是否在线,用Dao取出player
         if (worldCtrl.containsPlayerRoom(playerId)) {
-            String roomId = RoomCenter.getRoomIdByPlayerId(playerId);
+            String roomId = worldCtrl.getRoomId(playerId);
             LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->roomId={}", playerId, roomId);
             throw new BusinessLogicMismatchConditionException("玩家名下已经有房间,无法再创建,playerId:" + playerId + ",roomId:" + roomId, EnumsProtos.ErrorCodeEnum.CREATE_ROOM_HAS_ONE);
         }
@@ -148,6 +148,8 @@ public class HandleRoomMsgAction implements Action {
         msg.setPlayer(player);
         String roomId = ObjectId.get().toString();
         RoomCtrl roomCtrl = GlobalInjector.getInstance(RoomCtrl.class);
+        roomCtrl.createRoom(roomId, player, cm_room.getDramaId());
+        worldCtrl.addRoom(roomCtrl.getTarget(), playerId);
         String roomActorName = ActorSystemPath.DM_GameServer_Room + roomId;
         ActorRef actorRef = worldActorContext.actorOf(Props.create(RoomActor.class, roomCtrl, roomId, player.getPlayerId()), roomActorName);
         worldActorContext.watch(actorRef);

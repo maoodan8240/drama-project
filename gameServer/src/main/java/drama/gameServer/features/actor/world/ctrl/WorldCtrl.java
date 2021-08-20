@@ -4,6 +4,7 @@ import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import dm.relationship.daos.player.PlayerDao;
 import drama.gameServer.features.actor.room.pojo.Room;
+import drama.gameServer.features.actor.room.pojo.RoomCenter;
 import drama.gameServer.features.actor.world.pojo.World;
 import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.mc.controler.Controler;
@@ -148,4 +149,6 @@ public interface WorldCtrl extends Controler<World> {
     Map<String, Room> getRoomIdToRoom();
 
     void removeRoom(String roomId, String playerId);
+
+    RoomCenter getRoomCenter();
 }
