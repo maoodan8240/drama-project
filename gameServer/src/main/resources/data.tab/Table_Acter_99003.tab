@@ -1,0 +1,4 @@
+ID	角色ID	角色名	角色性别	选取角色后的立绘	角色头像	角色对应剧本动画	剧本背景音乐	搜证次数	投票搜证次数
+Id	RoleId	Name	Sex	Pic	Profile	Scene	Bgm	Ap	VSAp
+int	int	string	int 	string	string	string	string	string	string
+1	1	警探	1	jtlh	jttx	sjxsdxxz		1:7
