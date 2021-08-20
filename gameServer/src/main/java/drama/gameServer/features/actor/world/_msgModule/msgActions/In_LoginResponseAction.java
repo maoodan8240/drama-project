@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.Props;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.In_PlayerReconnectMsg;
+import dm.relationship.base.msg.In_PlayerReconnectResponseMsg;
 import dm.relationship.daos.player.PlayerDao;
 import dm.relationship.topLevelPojos.player.Player;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
@@ -33,12 +34,11 @@ public class In_LoginResponseAction implements Action {
     }
 
     private void onReconnecet(In_PlayerReconnectMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
-        String playerId = worldCtrl.getPlayerId(msg.getConnection());
-        LOGGER.debug("=======断线重连中====== playerId={}", playerId);
+        LOGGER.debug("=======断线重连中====== playerId={}", msg.getPlayerId());
         Cm_Login cm_login = (Cm_Login) msg.getMessage();
         worldCtrl.beforeReconn(cm_login.getRpid());
         worldCtrl.login(cm_login.getRpid(), msg.getConnection());
-        worldCtrl.getPlayerActorRef(cm_login.getRpid()).tell(msg, self);
+        worldCtrl.getPlayerActorRef(cm_login.getRpid()).tell(new In_PlayerReconnectResponseMsg(msg.getPlayerId(), msg.getConnection(), msg.getMessage()), self);
     }
 
     private void onGuestLoginMsg(NewLoginResponseMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {

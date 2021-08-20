@@ -8,7 +8,7 @@ import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.In_PlayerDisconnectedRequest;
-import dm.relationship.base.msg.In_PlayerReconnectMsg;
+import dm.relationship.base.msg.In_PlayerReconnectResponseMsg;
 import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.base.msg.interfaces.PlayerNetWorkMsg;
 import dm.relationship.base.msg.room.In_PlayerDisconnectedQuitRoomMsg;
@@ -188,8 +188,8 @@ public class PlayerIOActor extends DmActor {
             onPlayerSoloResultRoomMsg((In_PlayerSoloResultRoomMsg) msg);
         } else if (msg instanceof In_PlayerIsVotedRoomMsg) {
             onPlayerIsVotedRoomMsg((In_PlayerIsVotedRoomMsg) msg);
-        } else if (msg instanceof In_PlayerReconnectMsg) {
-            onPlayerReconnectMsg((In_PlayerReconnectMsg) msg);
+        } else if (msg instanceof In_PlayerReconnectResponseMsg) {
+            onPlayerReconnectResponseMsg((In_PlayerReconnectResponseMsg) msg);
         } else if (msg instanceof In_PlayerCanSelectRoomMsg) {
             onPlayerCanSelectRoomMsg((In_PlayerCanSelectRoomMsg) msg);
         } else if (msg instanceof In_PrepareToKillPlayerActorRequestMsg) {
@@ -320,7 +320,7 @@ public class PlayerIOActor extends DmActor {
     }
 
 
-    private void onPlayerReconnectMsg(In_PlayerReconnectMsg msg) {
+    private void onPlayerReconnectResponseMsg(In_PlayerReconnectResponseMsg msg) {
         playerIOCtrl.getTarget().setConnection(msg.getConnection());
         playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_GUEST_LOGIN);
         if (playerIOCtrl.isInRoom()) {

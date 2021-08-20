@@ -1,6 +1,6 @@
 ID	第几次投凶	角色ID	角色名称	角色图片	角色大图	真凶	是否显示真凶
 Id	VoteNum	RoleId	RoleName	RolePic	RoleBigPic	Murder	Truth
 int	int	int	string	string	string	bool	bool
-1	1	1	罗尔夫	flstx	flslh	0	0
-2	1	2	乔伊	srtx	srlh	1	1
+1	1	1	罗尔夫	lrftx	lrflh	0	0
+2	1	2	乔伊	qytx	qylh	1	1
 3	1	3	韦伯斯特	wbsttx	wbstlh	0	0
