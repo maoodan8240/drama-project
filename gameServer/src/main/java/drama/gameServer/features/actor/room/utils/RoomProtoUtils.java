@@ -8,6 +8,7 @@ import dm.relationship.table.tableRows.Table_Murder_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
+import drama.gameServer.features.actor.room.enums.RoomStateEnum;
 import drama.gameServer.features.actor.room.msg.In_PlayerIsVotedRoomMsg;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
@@ -69,6 +70,7 @@ public class RoomProtoUtils {
         broom.setDiff(row.getDiff());
         broom.setTime(row.getTime());
         broom.setMasterName(room.getMasterName());
+        broom.setIsInitState(RoomStateEnum.isFirstState(room.getRoomState(), room.getDramaId()));
     }
 
 

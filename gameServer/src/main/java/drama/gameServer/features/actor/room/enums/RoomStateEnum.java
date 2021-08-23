@@ -1,7 +1,12 @@
 package drama.gameServer.features.actor.room.enums;
 
+import dm.relationship.base.MagicNumbers;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
+import dm.relationship.table.tableRows.Table_SceneList_Row;
 import drama.protos.EnumsProtos;
+import ws.common.table.table.interfaces.cell.TupleCell;
+
+import java.util.List;
 
 public enum RoomStateEnum {
     ANSWER("ANSWER", EnumsProtos.RoomStateEnum.ANSWER),             //  选角答题
@@ -46,6 +51,14 @@ public enum RoomStateEnum {
         }
         String msg = String.format("RoomStateEnum解析失败! name=%s", name);
         throw new BusinessLogicMismatchConditionException(msg);
+    }
+
+    public static boolean isFirstState(EnumsProtos.RoomStateEnum roomStateEnum, int dramaId) {
+        Table_SceneList_Row row = Table_SceneList_Row.getRowByDramaId(dramaId);
+        List<TupleCell<String>> runDown = row.getRunDown();
+        String tabRundown = runDown.get(Integer.valueOf(MagicNumbers.DEFAULT_ZERO)).get(TupleCell.FIRST);
+        EnumsProtos.RoomStateEnum roomStateByName = RoomStateEnum.getRoomStateByName(tabRundown);
+        return roomStateByName == roomStateEnum;
     }
 
 }

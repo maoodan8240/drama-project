@@ -324,6 +324,7 @@ public class PlayerIOActor extends DmActor {
         playerIOCtrl.getTarget().setConnection(msg.getConnection());
         playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_GUEST_LOGIN);
         if (playerIOCtrl.isInRoom()) {
+            LOGGER.debug("玩家仍在房间中,发往房间进行断线重连房间信息全量同步 roomId={}", playerIOCtrl.getRoomId());
             String roomId = playerIOCtrl.getRoomId();
             playerIOCtrl.quitRoom();
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerReconnectRoomMsg(roomId, msg.getConnection(), playerId), ActorRef.noSender());

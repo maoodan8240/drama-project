@@ -136,7 +136,7 @@ public interface WorldCtrl extends Controler<World> {
      * @param worldCtrl
      * @param self
      */
-    
+
     void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self);
 
     boolean containsRoom(String roomId);
@@ -151,5 +151,11 @@ public interface WorldCtrl extends Controler<World> {
 
     void removeRoom(String roomId, String playerId);
 
+    void removeRoom(String roomId);
+
     RoomCenter getRoomCenter();
+
+    String getRoomIdBySimpleId(int simpleId);
+
+    boolean containsRoom(int SimpleId);
 }

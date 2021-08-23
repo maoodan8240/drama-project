@@ -217,6 +217,8 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     public void beginLogout(String playerId, WorldCtrl worldCtrl, ActorRef self) {
         worldCtrl.setCanNotUse(playerId);
         worldCtrl.getPlayerActorRef(playerId).tell(Kill.getInstance(), self);
+        String roomId = worldCtrl.getTarget().getRoomCenter().getRoomIdByPlayerId(playerId);
+        worldCtrl.getRoomActorRef(roomId).tell(Kill.getInstance(), ActorRef.noSender());
     }
 
     @Override
@@ -250,7 +252,23 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     }
 
     @Override
+    public void removeRoom(String roomId) {
+        target.getRoomCenter().remove(roomId);
+    }
+
+
+    @Override
     public RoomCenter getRoomCenter() {
         return target.getRoomCenter();
+    }
+
+    @Override
+    public String getRoomIdBySimpleId(int simpleId) {
+        return target.getRoomCenter().getSimpleIdToRoomId().get(Integer.valueOf(simpleId));
+    }
+
+    @Override
+    public boolean containsRoom(int simpleId) {
+        return target.getRoomCenter().getSimpleIdToRoomId().containsKey(simpleId);
     }
 }

@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.room.pojo;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +14,12 @@ public class RoomCenter {
      * playerIdToRoomId
      */
     private final Map<String, String> playerIdToRoomId = new ConcurrentHashMap<>();
+
+    private final Map<Integer, String> SimpleIdToRoomId = new ConcurrentHashMap<>();
+
+    public Map<Integer, String> getSimpleIdToRoomId() {
+        return SimpleIdToRoomId;
+    }
 
     public Map<String, Room> getRoomIdToRoom() {
         return roomIdToRoom;
@@ -49,10 +56,36 @@ public class RoomCenter {
     public void add(Room room, String playerId) {
         putRoomIdToRoom(room);
         putPlayerIdToRoomId(playerId, room.getRoomId());
+        getSimpleIdToRoomId().put(room.getSimpleRoomId(), room.getRoomId());
     }
 
     public void remove(String roomId, String playerId) {
         this.roomIdToRoom.remove(roomId);
         this.playerIdToRoomId.remove(playerId);
+        Iterator<Map.Entry<Integer, String>> iterator = this.getSimpleIdToRoomId().entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, String> next = iterator.next();
+            if (next.getValue().equals(roomId)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    public void remove(String roomId) {
+        this.roomIdToRoom.remove(roomId);
+        Iterator<Map.Entry<String, String>> it = this.playerIdToRoomId.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> next = it.next();
+            if (next.getValue().equals(roomId)) {
+                it.remove();
+            }
+        }
+        Iterator<Map.Entry<Integer, String>> iterator = this.getSimpleIdToRoomId().entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, String> next = iterator.next();
+            if (next.getValue().equals(roomId)) {
+                iterator.remove();
+            }
+        }
     }
 }
