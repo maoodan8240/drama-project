@@ -34,4 +34,10 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     PlayerDao getPlayerDao();
 
+    void setLsoutTime();
+
+    void setLsnTime();
+
+    void save();
+
 }
