@@ -46,6 +46,14 @@ public class RoomProtoUtils {
         return broom.build();
     }
 
+    public static List<RoomProtos.Sm_Room_Player> createSmRoomPlayerList(Room room) {
+        List<RoomProtos.Sm_Room_Player> arr = new ArrayList<>();
+        for (Map.Entry<String, RoomPlayer> entry : room.getIdToRoomPlayer().entrySet()) {
+            RoomProtos.Sm_Room_Player smRoomPlayer = createSmRoomPlayer(entry.getValue(), room.getDramaId());
+            arr.add(smRoomPlayer);
+        }
+        return arr;
+    }
 
     public static RoomProtos.Sm_Room_Info createSmRoomInfoWithoutRoomPlayer(Room room) {
         RoomProtos.Sm_Room_Info.Builder broom = RoomProtos.Sm_Room_Info.newBuilder();
@@ -74,13 +82,16 @@ public class RoomProtoUtils {
     }
 
 
-    public static RoomProtos.Sm_Room_Vote createSmRoomVote(String name, String rolePic, boolean isMurder, boolean isTruth, List<String> votePic) {
+    public static RoomProtos.Sm_Room_Vote createSmRoomVote(int murderRoleId, String name, String rolePic, String roleBigPic, boolean isMurder, boolean isTruth, List<String> votePic, List<Integer> voteRoleIds) {
         RoomProtos.Sm_Room_Vote.Builder b = RoomProtos.Sm_Room_Vote.newBuilder();
+        b.setRoleId(murderRoleId);
         b.setRoleName(name);
         b.setRolePic(rolePic);
+        b.setRoleBigPic(roleBigPic);
         b.setIsTruth(isTruth);
         b.setIsMurder(isMurder);
         b.addAllVotePic(votePic);
+        b.addAllVoteRoleId(voteRoleIds);
         return b.build();
     }
 
@@ -98,12 +109,14 @@ public class RoomProtoUtils {
             int roleId = entry.getKey();
             List<Integer> voteRoleIds = entry.getValue();
             Table_Murder_Row murderRow = Table_Murder_Row.getMurderRowByRoleId(roleId, dramaId);
+            int murderRoleId = murderRow.getRoleId();
             String roleName = murderRow.getRoleName();
             String rolePic = murderRow.getRolePic();
+            String roleBigPic = murderRow.getRoleBigPic();
             boolean isMurder = murderRow.isMurder();
             boolean isTruth = murderRow.isTruth();
             List<String> votePic = Table_Murder_Row.getRolePicByRoleIds(voteRoleIds, dramaId);
-            voteList.add(createSmRoomVote(roleName, rolePic, isMurder, isTruth, votePic));
+            voteList.add(createSmRoomVote(murderRoleId, roleName, rolePic, roleBigPic, isMurder, isTruth, votePic, voteRoleIds));
         }
         return voteList;
     }
@@ -144,6 +157,8 @@ public class RoomProtoUtils {
             bRoomPlayer.setPic(row.getPic());
             bRoomPlayer.setProfile(row.getProfile());
         }
+        bRoomPlayer.setVoteMurder(roomPlayer.isVoteMurder());
+        bRoomPlayer.setSelectDraft(roomPlayer.isSelectDraft());
         return bRoomPlayer.build();
     }
 
@@ -158,6 +173,8 @@ public class RoomProtoUtils {
         bRoomPlayer.setVoteSrchTimes(roomPlayer.getVoteSrchTimes());
         bRoomPlayer.setPlayerName(roomPlayer.getPlayerName());
         bRoomPlayer.setPlayerIcon(roomPlayer.getPlayerIcon());
+        bRoomPlayer.setVoteMurder(roomPlayer.isVoteMurder());
+        bRoomPlayer.setSelectDraft(roomPlayer.isSelectDraft());
         return bRoomPlayer.build();
     }
 

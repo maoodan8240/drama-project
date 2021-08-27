@@ -15,6 +15,10 @@ public class RoomPlayer {
     private int roleId;
     private String playerIcon;
     /**
+     * 是否已经投凶
+     */
+    private boolean voteMurder;
+    /**
      * 是否已经举手准备
      */
     private boolean isReady = false;
@@ -46,6 +50,15 @@ public class RoomPlayer {
         this.roomId = roomId;
         this.playerName = !StringUtils.isEmpty(player.getBase().getName()) ? player.getBase().getName() : "";
         this.playerIcon = !StringUtils.isEmpty(player.getBase().getIcon()) ? player.getBase().getIcon() : "";
+    }
+
+
+    public boolean isVoteMurder() {
+        return voteMurder;
+    }
+
+    public void setVoteMurder(boolean voteMurder) {
+        this.voteMurder = voteMurder;
     }
 
     public String getPlayerName() {

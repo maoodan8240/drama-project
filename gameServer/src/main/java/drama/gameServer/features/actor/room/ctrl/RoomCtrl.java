@@ -220,7 +220,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @return
      */
-    Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId();
+    Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId(int voteNum);
 
     /**
      * 获取投票搜证结果
@@ -241,7 +241,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @return boolean
      */
-    boolean isVotedMurder(int roleId);
+    boolean isVotedMurder(int voteNum, int roleId);
 
     /**
      * 房间在线玩家人数
@@ -339,4 +339,34 @@ public interface RoomCtrl extends Controler<Room> {
      */
     boolean isRightVote(int voteNum);
 
+    /**
+     * 房间剧本是否开始
+     *
+     * @return
+     */
+    boolean isBegin();
+
+    /**
+     * 取第一个玩家,房间易主用
+     *
+     * @return
+     */
+    String getOnePlayer();
+
+    /**
+     * 记录soloIdx
+     */
+    void setSoloIdx(int soloIdx);
+
+    /**
+     * 获取soloIdx
+     *
+     * @return int
+     */
+    int getSoloIdx();
+
+    /**
+     * @return
+     */
+    boolean checkPlayerFinishChoosDub();
 }

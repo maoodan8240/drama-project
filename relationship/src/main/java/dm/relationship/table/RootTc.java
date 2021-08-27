@@ -3,6 +3,7 @@ package dm.relationship.table;
 import dm.relationship.base.IdMaptoCount;
 import dm.relationship.base.MagicWords;
 import dm.relationship.enums.item.IdItemTypeEnum;
+import dm.relationship.exception.TableDateNotFoundException;
 import dm.relationship.utils.RelationshipCommonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -185,6 +186,10 @@ public class RootTc {
     }
 
     public static TableData getPlanningTableDataByName(String tableName) {
-        return planningTableData.getTableNameToTableData().get(tableName);
+        if (planningTableData.getTableNameToTableData().containsKey(tableName)) {
+            return planningTableData.getTableNameToTableData().get(tableName);
+        }
+        String msg = String.format("Can not find this table in RootTc,tableName=%s", tableName);
+        throw new TableDateNotFoundException(msg);
     }
 }

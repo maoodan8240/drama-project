@@ -81,4 +81,18 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
      * 扣一次投票搜证次数
      */
     void reduceVoteSrchTimes();
+
+    /**
+     * 设置投凶状态
+     *
+     * @param voteMurder
+     */
+    void setVoteMurder(boolean voteMurder);
+
+    /**
+     * 是否投凶
+     *
+     * @return
+     */
+    boolean isVoteMurder();
 }
