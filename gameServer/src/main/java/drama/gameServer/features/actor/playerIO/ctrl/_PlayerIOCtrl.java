@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.playerIO.ctrl;
 
+import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.daos.DaoContainer;
@@ -32,8 +33,32 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
         PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Common);
     }
 
+    private long oldestLoginTime;
+
+
     public PlayerDao getPlayerDao() {
         return PLAYER_DAO;
+    }
+
+    @Override
+    public void setLsoutTime() {
+        target.getOther().setLsoutTime(System.currentTimeMillis());
+    }
+
+    @Override
+    public void setLsnTime() {
+        if (oldestLoginTime <= 0) {
+            oldestLoginTime = System.currentTimeMillis();
+        }
+        target.getOther().setLsinTime(oldestLoginTime);//只要玩家没有从内存中移除，登录时间保持不变
+        target.getOther().setLsoutTime(MagicNumbers.DEFAULT_NEGATIVE_ONE); // 离线时间设置成-1,表示在线
+        getPlayerDao().insertIfExistThenReplace(target);
+
+    }
+
+    @Override
+    public void save() {
+        getPlayerDao().insertIfExistThenReplace(target);
     }
 
     @Override
@@ -104,7 +129,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
 
     @Override
     public boolean isInRoom() {
-        return !StringUtils.isEmpty(target.getRoomId());
+        return StringUtils.isNotEmpty(target.getRoomId());
     }
 
     @Override
