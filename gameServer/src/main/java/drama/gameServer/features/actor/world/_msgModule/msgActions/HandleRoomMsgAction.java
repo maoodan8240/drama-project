@@ -46,15 +46,19 @@ public class HandleRoomMsgAction implements Action {
     private void onRoomInnerMsg(RoomInnerMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
         String roomId;
         if (msg instanceof In_GmKillRoomMsg) {
-            int simpleRoomId = ((In_GmKillRoomMsg) msg).simpleRoomId;
+            int simpleRoomId = ((In_GmKillRoomMsg) msg).getSimpleRoomId();
             if (!worldCtrl.containsRoom(simpleRoomId)) {
                 String message = String.format("房间不存在了,待处理 roomSimpleId={}", simpleRoomId);
                 throw new BusinessLogicMismatchConditionException(message);
             }
             roomId = worldCtrl.getRoomIdBySimpleId(simpleRoomId);
+            if (!worldCtrl.roomActorCanUse(roomId)) {
+                String message = String.format("房间不存在了,待处理 roomId=%s", roomId);
+                throw new BusinessLogicMismatchConditionException(message);
+            }
         } else {
             roomId = msg.getRoomId();
-            if (!worldCtrl.containsRoom(roomId)) {
+            if (!worldCtrl.roomActorCanUse(roomId)) {
                 String message = String.format("房间不存在了,待处理 roomId=%s", roomId);
                 throw new BusinessLogicMismatchConditionException(message);
             }
