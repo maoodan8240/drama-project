@@ -94,6 +94,10 @@ public class Room {
      * 可以被选择的轮抽
      */
     private Map<Integer, Map<Integer, Integer>> draftNumToSelectDraftIdToRoleId = new ConcurrentHashMap<>();
+    /**
+     * 答题的soloIdx solo答题阶段
+     */
+    private int soloIdx;
 
 
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
@@ -108,6 +112,13 @@ public class Room {
         this.masterName = masterName;
     }
 
+    public int getSoloIdx() {
+        return soloIdx;
+    }
+
+    public void setSoloIdx(int soloIdx) {
+        this.soloIdx = soloIdx;
+    }
 
     public Map<Integer, Map<Integer, List<Integer>>> getVoteNumToVoteRoleIdToRoleId() {
         return voteNumToVoteRoleIdToRoleId;
