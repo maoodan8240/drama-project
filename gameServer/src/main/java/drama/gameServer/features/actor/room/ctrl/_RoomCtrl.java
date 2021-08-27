@@ -282,11 +282,14 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(getDramaId(), getRoomStateTimes(), getRoomState().toString());
                 addClueIds(unlockClueIds);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
+                roomPlayerCtrl.setVoteMurder(false);
                 target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
                 List<Integer> allRoleId = Table_Murder_Row.getAllRoleId(getDramaId());
                 for (Integer roleId : allRoleId) {
                     target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
                 }
+            } else if (roomState == EnumsProtos.RoomStateEnum.SOLO) {
+                setSoloIdx(MagicNumbers.DEFAULT_ZERO);
             }
         }
     }
@@ -324,6 +327,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Map<Integer, List<Integer>> voteRoleIdToRoleId = target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
         if (!voteRoleIdToRoleId.get(roleId).contains(roomPlayerCtrl.getRoleId())) {
             voteRoleIdToRoleId.get(roleId).add(roomPlayerCtrl.getRoleId());
+            roomPlayerCtrl.setVoteMurder(true);
         }
     }
 
@@ -334,13 +338,13 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         for (Map.Entry<Integer, List<Integer>> entry : voteRoleIdToRoleId.entrySet()) {
             num += entry.getValue().size();
         }
-        //TODO
+        //TODO 配置 replace getRoomPlayerNum()
         return getRoomPlayerNum() - num;
     }
 
     @Override
-    public Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId() {
-        return target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
+    public Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId(int voteNum) {
+        return target.getVoteNumToVoteRoleIdToRoleId().get(voteNum);
     }
 
     @Override
@@ -351,14 +355,12 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public boolean isTimeCanReady() {
         return System.currentTimeMillis() >= getTarget().getNextSTime();
-//        TODO 打开判断
-//        return true;
     }
 
     @Override
-    public boolean isVotedMurder(int roleId) {
+    public boolean isVotedMurder(int voteNum, int roleId) {
         //TODO 需要通过配置控制投凶的幕数
-        int size = target.getVoteNumToVoteRoleIdToRoleId().get(1).get(roleId).size();
+        int size = target.getVoteNumToVoteRoleIdToRoleId().get(voteNum).get(roleId).size();
         boolean flag = true;
         Map<Integer, List<Integer>> voteRoleIdToRoleId = target.getVoteNumToVoteRoleIdToRoleId().get(1);
         for (Map.Entry<Integer, List<Integer>> entry : voteRoleIdToRoleId.entrySet()) {
@@ -509,4 +511,40 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return true;
     }
 
+    @Override
+    public boolean isBegin() {
+        Table_SceneList_Row row = Table_SceneList_Row.getRowByDramaId(getDramaId());
+        //TODO 配置一个开始环节
+        return false;
+    }
+
+    @Override
+    public String getOnePlayer() {
+        String playerId = null;
+        Iterator<Map.Entry<String, RoomPlayer>> iterator = getTarget().getIdToRoomPlayer().entrySet().iterator();
+        if (iterator.hasNext()) {
+            playerId = iterator.next().getKey();
+        }
+        return playerId;
+    }
+
+    @Override
+    public void setSoloIdx(int soloIdx) {
+        target.setSoloIdx(soloIdx);
+    }
+
+    @Override
+    public int getSoloIdx() {
+        return target.getSoloIdx();
+    }
+
+    @Override
+    public boolean checkPlayerFinishChoosDub() {
+        for (Map.Entry<String, RoomPlayer> entry : getTarget().getIdToRoomPlayer().entrySet()) {
+            if (entry.getValue().getIsDub() == MagicNumbers.DEFAULT_NEGATIVE_ONE) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
