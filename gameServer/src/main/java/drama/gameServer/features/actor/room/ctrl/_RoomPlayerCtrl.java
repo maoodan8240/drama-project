@@ -113,4 +113,13 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
         return target.getVoteSrchTimes();
     }
 
+    @Override
+    public void setVoteMurder(boolean voteMurder) {
+        target.setVoteMurder(voteMurder);
+    }
+
+    @Override
+    public boolean isVoteMurder() {
+        return target.isVoteMurder();
+    }
 }
