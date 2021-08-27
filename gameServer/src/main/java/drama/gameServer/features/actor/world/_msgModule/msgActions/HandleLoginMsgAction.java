@@ -53,7 +53,6 @@ public class HandleLoginMsgAction implements Action {
                 if (!worldCtrl.canUse(rpid)) {
                     //连接在,但playerActor不存在,基本不可能发生,先不处理
                     LOGGER.debug("连接在,但playerActor不存在,基本不可能发生,先不处理 playerId={}", rpid);
-
                 } else {
                     //重复登录
                     LOGGER.debug("重复登录,基本不可能发生,不处理 playerId={}", rpid);
