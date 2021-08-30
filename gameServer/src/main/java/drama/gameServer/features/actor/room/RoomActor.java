@@ -65,7 +65,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.network.server.interfaces.Connection;
-import ws.common.network.utils.EnumUtils;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 
@@ -266,10 +265,10 @@ public class RoomActor extends DmActor {
             RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
             b = setAction(b, cm_room);
             player = msg.getPlayer();
-            RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
-            if (roomPlayerCtrl.hasRole()) {
-                LOGGER.debug("房间收到消息: roleName={},action={}", Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), EnumUtils.protoActionToString(cm_room.getAction()));
-            }
+//            RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+//            if (roomPlayerCtrl.hasRole()) {
+//                LOGGER.debug("房间收到消息: roleName={},action={}", Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), EnumUtils.protoActionToString(cm_room.getAction()));
+//            }
             try {
                 switch (cm_room.getAction().getNumber()) {
                     case Action.CREAT_VALUE:
