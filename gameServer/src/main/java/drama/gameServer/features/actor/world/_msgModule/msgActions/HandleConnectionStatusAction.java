@@ -52,7 +52,7 @@ public class HandleConnectionStatusAction implements Action {
         connection.send(new MessageSendHolder(br.build(), "", new ArrayList<>()));
         String playerId = worldCtrl.getPlayerId(connection);
         worldCtrl.setHeartBeating(playerId);
-        LOGGER.info("玩家playerName={}, PlayerId={} 接受到客户端发送的心跳包......", worldCtrl.getPlayerNameById(playerId), playerId);
+//        LOGGER.info("玩家playerName={}, PlayerId={} 接受到客户端发送的心跳包......", worldCtrl.getPlayerNameById(playerId), playerId);
     }
 
     private void onPlayerOffline(Connection connection, WorldCtrl worldCtrl) {

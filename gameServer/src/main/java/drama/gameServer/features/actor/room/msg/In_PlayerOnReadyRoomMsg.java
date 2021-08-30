@@ -7,11 +7,13 @@ public class In_PlayerOnReadyRoomMsg extends _PlayerInnerMsg {
 
     private RoomPlayer roomPlayer;
     private int dramaId;
+    private int canReadyTime;
 
-    public In_PlayerOnReadyRoomMsg(String playerId, RoomPlayer roomPlayer, int dramaId) {
+    public In_PlayerOnReadyRoomMsg(String playerId, RoomPlayer roomPlayer, int dramaId, int canReadyTime) {
         super(playerId);
         this.roomPlayer = roomPlayer;
         this.dramaId = dramaId;
+        this.canReadyTime = canReadyTime;
     }
 
     public int getDramaId() {
@@ -21,5 +23,9 @@ public class In_PlayerOnReadyRoomMsg extends _PlayerInnerMsg {
 
     public RoomPlayer getRoomPlayer() {
         return roomPlayer;
+    }
+
+    public int getCanReadyTime() {
+        return canReadyTime;
     }
 }

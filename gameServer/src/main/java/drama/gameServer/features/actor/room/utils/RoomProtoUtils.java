@@ -79,6 +79,7 @@ public class RoomProtoUtils {
         broom.setTime(row.getTime());
         broom.setMasterName(room.getMasterName());
         broom.setIsInitState(RoomStateEnum.isFirstState(room.getRoomState(), room.getDramaId()));
+        broom.setCreateTime(room.getBeginTime());
     }
 
 
@@ -156,6 +157,7 @@ public class RoomProtoUtils {
             Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roomPlayer.getRoleId(), dramaId);
             bRoomPlayer.setPic(row.getPic());
             bRoomPlayer.setProfile(row.getProfile());
+            bRoomPlayer.setRoleName(row.getName());
         }
         bRoomPlayer.setVoteMurder(roomPlayer.isVoteMurder());
         bRoomPlayer.setSelectDraft(roomPlayer.isSelectDraft());

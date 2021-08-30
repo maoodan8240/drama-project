@@ -260,9 +260,17 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         target.setStateTimes(stateTimes);
         //设置下一个阶段解锁时间
         target.setNextSTime(System.currentTimeMillis() + nextSTime * DateUtils.MILLIS_PER_SECOND);
-        //切换到下一个状态所有玩家把手放下取消准备状态
+        //如果不是第一阶段了,说明剧本已经开始,设置剧本开始时间
+        if (!RoomStateEnum.isFirstState(getRoomState(), getDramaId())) {
+            getTarget().setBeginTime(System.currentTimeMillis());
+        }
+        //如果是End阶段,设置剧本结束时间
+        if (RoomStateEnum.isEndState(getRoomState())) {
+            getTarget().setEndTime(System.currentTimeMillis());
+        }
         for (Map.Entry<String, RoomPlayerCtrl> entry : target.getIdToRoomPlayerCtrl().entrySet()) {
             RoomPlayerCtrl roomPlayerCtrl = entry.getValue();
+            //切换到下一个状态所有玩家把手放下取消准备状态
             roomPlayerCtrl.setReady(false);
             roomPlayerCtrl.setDub(-1);
             if (roomState == EnumsProtos.RoomStateEnum.SEARCH) {
@@ -355,6 +363,15 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public boolean isTimeCanReady() {
         return System.currentTimeMillis() >= getTarget().getNextSTime();
+    }
+
+    @Override
+    public int getCanReadyTime() {
+        int time = 0;
+        if (System.currentTimeMillis() > getTarget().getNextSTime()) {
+            time = (int) ((System.currentTimeMillis() - getTarget().getNextSTime()) / DateUtils.MILLIS_PER_SECOND);
+        }
+        return time;
     }
 
     @Override

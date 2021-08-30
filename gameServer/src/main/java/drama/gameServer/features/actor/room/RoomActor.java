@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.network.server.interfaces.Connection;
+import ws.common.network.utils.EnumUtils;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 
@@ -182,8 +183,7 @@ public class RoomActor extends DmActor {
     }
 
     private void onCheckPlayerAllChooseDubMsg() {
-
-        if (!roomCtrl.checkPlayerFinishChoosDub()) {
+        if (roomCtrl.checkPlayerFinishChoosDub()) {
             for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
                 In_PlayerAllFinishChooseDubRoomMsg in_playerAllFinishChooseDubRoomMsg = new In_PlayerAllFinishChooseDubRoomMsg(entries.getKey(), roomCtrl.getTarget());
                 DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerAllFinishChooseDubRoomMsg, ActorRef.noSender());
@@ -209,16 +209,28 @@ public class RoomActor extends DmActor {
     }
 
     private void onCheckPlayerAllReadyMsg(In_CheckPlayerAllReadyRoomMsg msg) {
-        if (roomCtrl.checkAllPlayerReady() && roomCtrl.hasNextStateAndTimes() && roomCtrl.isTimeCanReady() && roomCtrl.checkPlayerFinishSearch()) {
-            //所有人都已经举手准备好了,并且配置里还有下一个环节
-            roomCtrl.setNextStateAndTimes();
-            //TODO 通知玩家房间状态已经更新成播放剧本状态
-            for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
-                In_PlayerOnSwitchStateRoomMsg in_playerOnSwitchStateRoomMsg = new In_PlayerOnSwitchStateRoomMsg(entries.getKey(), roomCtrl.getTarget());
-                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnSwitchStateRoomMsg, ActorRef.noSender());
-            }
-            onCheckAfterSwitchStateRoomMsg();
+        if (!roomCtrl.checkAllPlayerReady()) {
+            //没有全部举手
+            return;
+        } else if (!roomCtrl.hasNextStateAndTimes()) {
+            //没有下一个环节了
+            return;
+        } else if (!roomCtrl.isTimeCanReady()) {
+            // 没有达到限制的准备时间,还不能举手
+            return;
+        } else if (!roomCtrl.checkPlayerFinishSearch()) {
+            // 有玩家没有搜完证
+            return;
         }
+        //所有人都已经举手准备好了,并且配置里还有下一个环节
+        roomCtrl.setNextStateAndTimes();
+        //TODO 通知玩家房间状态已经更新成播放剧本状态
+        for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
+            In_PlayerOnSwitchStateRoomMsg in_playerOnSwitchStateRoomMsg = new In_PlayerOnSwitchStateRoomMsg(entries.getKey(), roomCtrl.getTarget());
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnSwitchStateRoomMsg, ActorRef.noSender());
+        }
+        onCheckAfterSwitchStateRoomMsg();
+
     }
 
     private void onPlayerDisconnectedRoom(In_PlayerDisconnectedRoomMsg msg) {
@@ -254,6 +266,10 @@ public class RoomActor extends DmActor {
             RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
             b = setAction(b, cm_room);
             player = msg.getPlayer();
+            RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+            if (roomPlayerCtrl.hasRole()) {
+                LOGGER.debug("房间收到消息: roleName={},action={}", Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), EnumUtils.protoActionToString(cm_room.getAction()));
+            }
             try {
                 switch (cm_room.getAction().getNumber()) {
                     case Action.CREAT_VALUE:
@@ -326,7 +342,9 @@ public class RoomActor extends DmActor {
                     case Cm_Room.Action.SYNC_SOLO_IDX_VALUE:
                         onSyncSoloIdx();
                         break;
-
+                    case Action.SYNC_VOTE_SEARCH_RESULT_VALUE:
+                        onSyncVoteSearchResult();
+                        break;
                     default:
                         break;
                 }
@@ -335,6 +353,15 @@ public class RoomActor extends DmActor {
                 msg.getConnection().send(new MessageSendHolder(br.build(), br.getSmMsgAction(), new ArrayList<>()));
             }
         }
+    }
+
+    private void onSyncVoteSearchResult() {
+        _checkRoomContainsPlayer(player);
+        //用于断线重连
+        Map<Integer, List<Integer>> voteTypeIdToRoleId = roomCtrl.getTarget().getVoteTypeIdToRoleId();
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        In_PlayerVoteSearchResultRoomMsg in_playerVoteSearchResultRoomMsg = new In_PlayerVoteSearchResultRoomMsg(player.getPlayerId(), voteTypeIdToRoleId, MagicNumbers.DEFAULT_ZERO, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerVoteSearchResultRoomMsg, ActorRef.noSender());
     }
 
 
@@ -550,10 +577,15 @@ public class RoomActor extends DmActor {
                 return;
             }
             if (roomCtrl.hasChooseRole(roomPlayerCtrl.getRoleId(), player.getPlayerId())) {
-                roomPlayerCtrl.setReady(handsDown);
+                if (roomCtrl.isTimeCanReady()) {
+                    roomPlayerCtrl.setReady(handsDown);
+                } else {
+                    roomPlayerCtrl.setReady(roomCtrl.isTimeCanReady());
+                }
+                int canReadyTime = roomCtrl.getCanReadyTime();
                 //通知房间内所有玩家
                 for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
-                    In_PlayerOnReadyRoomMsg in_playerOnReadyRoomMsg = new In_PlayerOnReadyRoomMsg(entries.getKey(), roomPlayerCtrl.getTarget(), roomCtrl.getDramaId());
+                    In_PlayerOnReadyRoomMsg in_playerOnReadyRoomMsg = new In_PlayerOnReadyRoomMsg(entries.getKey(), roomPlayerCtrl.getTarget(), roomCtrl.getDramaId(), canReadyTime);
                     DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnReadyRoomMsg, ActorRef.noSender());
                 }
             } else {
@@ -753,6 +785,11 @@ public class RoomActor extends DmActor {
 
     private void onQuitRoomMsg() {
         if (roomCtrl.containsPlayer(player.getPlayerId())) {
+//            if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
+//                LOGGER.debug("游戏未到完成阶段,不能退出房间 playerId={}, RequestStateEnum={}", //
+//                        player.getPlayerId(), roomCtrl.getRoomState());//
+//                return;
+//            }
             RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
             if (roomPlayerCtrl.hasRole()) {
                 int roleId = roomPlayerCtrl.getRoleId();

@@ -22,7 +22,9 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     void sendLoginResponse(Player player, PlayerLoginProtos.Sm_Login.Action action);
 
-    void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg);
+    void sendRoomPlayerOnOpenDubProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg);
+
+    void sendRoomPlayerOnReadyProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId, int canReadyTime);
 
     void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId);
 

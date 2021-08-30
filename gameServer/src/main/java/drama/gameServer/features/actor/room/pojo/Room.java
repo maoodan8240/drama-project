@@ -98,6 +98,14 @@ public class Room {
      * 答题的soloIdx solo答题阶段
      */
     private int soloIdx;
+    /**
+     * 创建时间
+     */
+    private long beginTime;
+    /**
+     * 结算时间
+     */
+    private long endTime;
 
 
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
@@ -110,6 +118,22 @@ public class Room {
         this.srchNum = tabRow.getSrchNum();
         this.playerNum = tabRow.getPlaNum();
         this.masterName = masterName;
+    }
+
+    public void setBeginTime(long beginTime) {
+        this.beginTime = beginTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
+
+    public long getBeginTime() {
+        return beginTime;
     }
 
     public int getSoloIdx() {

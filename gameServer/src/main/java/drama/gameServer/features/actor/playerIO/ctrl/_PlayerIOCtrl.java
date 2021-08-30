@@ -102,7 +102,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
 
-    public void sendRoomPlayerProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg) {
+    public void sendRoomPlayerOnOpenDubProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg) {
         In_PlayerOnOpenDubRoomMsg message = (In_PlayerOnOpenDubRoomMsg) msg;
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
         response.setResult(true);
@@ -111,6 +111,19 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
         bRoom.setRoomPlayerNum(message.getPlayerNum());
         RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer, message.getDramaId());
         bRoom.setRoomPlayer(sm_room_player);
+        response.setSmRoom(bRoom.build());
+        send(response.build());
+    }
+
+    @Override
+    public void sendRoomPlayerOnReadyProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int dramaId, int canReadyTime) {
+        MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
+        bRoom.setAction(action);
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer, dramaId);
+        bRoom.setRoomPlayer(sm_room_player);
+        bRoom.setCanReadyTime(canReadyTime);
         response.setSmRoom(bRoom.build());
         send(response.build());
     }

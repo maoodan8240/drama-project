@@ -132,8 +132,8 @@ public class Table_Acter_Row extends AbstractRow {
                 return value;
             }
         }
-        String msg = String.format("getTableActerRowByRoleId failed, roleId=%s", 0);
-        throw new TableRowLogicCheckFailedException(Table_Acter_Row.class, 0, msg);
+        String msg = String.format("getTableActerRowByRoleId failed, roleId=%s,dramaId=%s", roleId, dramaId);
+        throw new TableRowLogicCheckFailedException(Table_Acter_Row.class, roleId, msg);
     }
 
     public static List<Table_Acter_Row> getTableActerRowByDramaId(int dramaId) {
@@ -197,6 +197,16 @@ public class Table_Acter_Row extends AbstractRow {
             rolePic.add(row.getProfile());
         }
         return rolePic;
+    }
+
+    public static String getRoleNameByRoleId(int roleId, int dramaId) {
+        for (Table_Acter_Row value : RootTc.get(Table_Acter_Row.class).values()) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
+                return value.getName();
+            }
+        }
+        String msg = String.format("getRoleNameByRoleId roleId=%s,dramaId=%s", roleId, dramaId);
+        throw new TableRowLogicCheckFailedException(Table_Acter_Row.class, roleId, msg);
     }
 
 

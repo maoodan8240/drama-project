@@ -35,6 +35,7 @@ public enum RoomStateEnum {
         this.state = state;
     }
 
+
     public String getName() {
         return name;
     }
@@ -61,4 +62,7 @@ public enum RoomStateEnum {
         return roomStateByName == roomStateEnum;
     }
 
+    public static boolean isEndState(EnumsProtos.RoomStateEnum roomStateEnum) {
+        return roomStateEnum == ENDING.getState();
+    }
 }

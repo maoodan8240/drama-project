@@ -237,6 +237,13 @@ public interface RoomCtrl extends Controler<Room> {
     boolean isTimeCanReady();
 
     /**
+     * 距离下一阶段的解锁时间
+     *
+     * @return 返回秒
+     */
+    int getCanReadyTime();
+
+    /**
      * 凶手是否被投中
      *
      * @return boolean

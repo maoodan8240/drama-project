@@ -292,7 +292,7 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteSearchResultRoomMsg(In_PlayerVoteSearchResultRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SYNC_VOTE_RESULT;
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SYNC_VOTE_SEARCH_RESULT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getVoteTypeIdToPlayerRoleId();
@@ -302,7 +302,9 @@ public class PlayerIOActor extends DmActor {
         b.setAction(action);
         b.setRoomPlayer(smRoomPlayer);
         b.addAllVoteSearch(smRoomVoteList);
-        b.addRoomClue(RoomProtoUtils.createSmRoomClue(msg.getClueId(), msg.getDramaId()));
+        if (msg.getClueId() != MagicNumbers.DEFAULT_ZERO) {
+            b.addRoomClue(RoomProtoUtils.createSmRoomClue(msg.getClueId(), msg.getDramaId()));
+        }
         response.setSmRoom(b.build());
         playerIOCtrl.send(response.build());
     }
@@ -491,7 +493,7 @@ public class PlayerIOActor extends DmActor {
         RoomProtos.Sm_Room.Action action = msg.getAction();
         RoomPlayer roomPlayer = msg.getRoomPlayer();
         if (action == RoomProtos.Sm_Room.Action.RESP_IS_DUB) {
-            playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer, msg);
+            playerIOCtrl.sendRoomPlayerOnOpenDubProtos(action, roomPlayer, msg);
         } else if (action == RoomProtos.Sm_Room.Action.RESP_SOLO_DUB) {
             playerIOCtrl.sendSoloRoomPlayer(action, roomPlayer, msg.getSoloNum());
         }
@@ -501,7 +503,7 @@ public class PlayerIOActor extends DmActor {
     private void onPlayerOnReadyRoomMsg(In_PlayerOnReadyRoomMsg msg) {
         RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_READY;
         RoomPlayer roomPlayer = msg.getRoomPlayer();
-        playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer, msg.getDramaId());
+        playerIOCtrl.sendRoomPlayerOnReadyProtos(action, roomPlayer, msg.getDramaId(), msg.getCanReadyTime());
         checkRoomPlayerAllReady(msg.getRoomPlayer().getRoomId());
     }
 
