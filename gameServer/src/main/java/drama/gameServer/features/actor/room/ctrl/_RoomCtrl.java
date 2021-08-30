@@ -368,8 +368,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public int getCanReadyTime() {
         int time = 0;
-        if (System.currentTimeMillis() > getTarget().getNextSTime()) {
-            time = (int) ((System.currentTimeMillis() - getTarget().getNextSTime()) / DateUtils.MILLIS_PER_SECOND);
+        if (System.currentTimeMillis() < getTarget().getNextSTime()) {
+            time = (int) (getTarget().getNextSTime() - (System.currentTimeMillis()) / DateUtils.MILLIS_PER_SECOND);
         }
         return time;
     }
