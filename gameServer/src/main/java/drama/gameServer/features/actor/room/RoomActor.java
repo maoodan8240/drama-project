@@ -244,16 +244,25 @@ public class RoomActor extends DmActor {
             roomCtrl.removePlayer(playerId);
             if (_isMaster(playerId)) {
                 // 玩家是房间主人要把所有房间内玩家请出去,通知所有玩家
-                LOGGER.debug("房间主人退出了房间,所有玩家清出房间");
+                LOGGER.debug("房间主人掉线,退出了房间,所有玩家清出房间");
                 for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
+                    RoomPlayerCtrl entryRoomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(entries.getKey());
+                    if (entryRoomPlayerCtrl.hasRole()) {
+                        int entryRoleId = entryRoomPlayerCtrl.getRoleId();
+                        entryRoomPlayerCtrl.setRoleId(0);
+                        roomCtrl.removeRole(entryRoleId);
+                    }
+                    roomCtrl.removePlayer(entries.getKey());
                     In_PlayerQuitRoomMsg in_playerQuitRoomMsg = new In_PlayerQuitRoomMsg(entries.getKey(), roomId, masterId);
                     DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerQuitRoomMsg, ActorRef.noSender());
                 }
-                //房主自己也需要退出房间,并把房间关闭
-                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerQuitRoomMsg(playerId, roomId, masterId), ActorRef.noSender());
                 DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId, playerId), sender());
             }
-            //不是房主的玩家,不用退出,用来执行
+            //房主自己也需要退出房间,并把房间关闭
+            DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerQuitRoomMsg(playerId, roomId, masterId), ActorRef.noSender());
+            if (roomCtrl.getRoomPlayerNum() == MagicNumbers.DEFAULT_ZERO) {
+                DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerKillRoomMsg(roomId, playerId), sender());
+            }
         } else {
             LOGGER.debug("玩家不在房间中,退出房间异常 忽略: playerId={}, roomId={}", playerId, roomId);
         }
