@@ -158,13 +158,13 @@ public class RoomProtoUtils {
             bRoomPlayer.setPic(row.getPic());
             bRoomPlayer.setProfile(row.getProfile());
             bRoomPlayer.setRoleName(row.getName());
+            bRoomPlayer.addAllBgm(row.getBgm());
+            bRoomPlayer.addAllScene(row.getScene());
         }
-        bRoomPlayer.setVoteMurder(roomPlayer.isVoteMurder());
-        bRoomPlayer.setSelectDraft(roomPlayer.isSelectDraft());
         return bRoomPlayer.build();
     }
 
-    public static RoomProtos.Sm_Room_Player createSoloSmRoomPlayer(RoomPlayer roomPlayer, int soloDramaId) {
+    public static RoomProtos.Sm_Room_Player createSoloSmRoomPlayer(RoomPlayer roomPlayer, int soloDramaId, int dramaId) {
         RoomProtos.Sm_Room_Player.Builder bRoomPlayer = RoomProtos.Sm_Room_Player.newBuilder();
         bRoomPlayer.setPlayerId(roomPlayer.getPlayerId());
         bRoomPlayer.setIsReady(roomPlayer.isReady());
@@ -175,8 +175,14 @@ public class RoomProtoUtils {
         bRoomPlayer.setVoteSrchTimes(roomPlayer.getVoteSrchTimes());
         bRoomPlayer.setPlayerName(roomPlayer.getPlayerName());
         bRoomPlayer.setPlayerIcon(roomPlayer.getPlayerIcon());
-        bRoomPlayer.setVoteMurder(roomPlayer.isVoteMurder());
-        bRoomPlayer.setSelectDraft(roomPlayer.isSelectDraft());
+        if (roomPlayer.getRoleId() != MagicNumbers.DEFAULT_ZERO) {
+            Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roomPlayer.getRoleId(), dramaId);
+            bRoomPlayer.setPic(row.getPic());
+            bRoomPlayer.setProfile(row.getProfile());
+            bRoomPlayer.setRoleName(row.getName());
+            bRoomPlayer.addAllBgm(row.getBgm());
+            bRoomPlayer.addAllScene(row.getScene());
+        }
         return bRoomPlayer.build();
     }
 

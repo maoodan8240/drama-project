@@ -132,14 +132,21 @@ public interface RoomCtrl extends Controler<Room> {
      * @param clueId
      * @return
      */
-    boolean containsClueId(int clueId);
+    boolean containsClueId(int srchNum, int clueId);
 
     /**
      * 添加线索
      *
      * @param clueId
      */
-    void addClueId(int clueId);
+    void addClueId(int srchNum, int clueId);
+
+    /**
+     * 获取房间内所有线索Id
+     *
+     * @return
+     */
+    List<Integer> getClueIds(int voteNum);
 
     /**
      * 获取房间内所有线索Id
@@ -154,14 +161,14 @@ public interface RoomCtrl extends Controler<Room> {
      * @param clueIds
      * @return
      */
-    boolean containsClueIds(List<Integer> clueIds);
+    boolean containsClueIds(List<Integer> clueIds, int voteNum);
 
     /**
      * 添加线索clueIds
      *
      * @param clueIds
      */
-    void addClueIds(List<Integer> clueIds);
+    void addClueIds(List<Integer> clueIds, int voteNum);
 
     /***
      * 检查所有玩家是否完成搜索  搜证次数用完
@@ -273,12 +280,21 @@ public interface RoomCtrl extends Controler<Room> {
      */
     List<Integer> canSelectRoleIds(int dramaId);
 
+
     /**
      * 获取可以投票搜证的线索Id
      *
      * @return
      */
     List<Integer> canVoteSearchTypeIds();
+
+    /**
+     * 是否已经投票
+     *
+     * @param roleId
+     * @return
+     */
+    boolean hasVoteSearch(int voteNum, int roleId);
 
     /**
      * 投票搜证
@@ -312,7 +328,7 @@ public interface RoomCtrl extends Controler<Room> {
      *
      * @param draftId
      */
-    boolean canSelectDraft(int draftId);
+    boolean canSelectDraft(int draftId, int draftNum);
 
     /**
      * 选择轮抽
@@ -320,15 +336,22 @@ public interface RoomCtrl extends Controler<Room> {
      * @param roomPlayerCtrl
      * @param draftId
      */
-    void selectDraft(RoomPlayerCtrl roomPlayerCtrl, int draftId);
+    void selectDraft(RoomPlayerCtrl roomPlayerCtrl, int draftId, int draftNum);
 
     /**
      * 可以选择的轮抽Id
      *
      * @return
      */
-    List<Integer> canSelectDraftIds();
+    List<Integer> canSelectDraftIds(int draftNum);
 
+    /**
+     * 获取选择的轮抽Id
+     *
+     * @param draftNum
+     * @return
+     */
+    int getDraftIdByDraftNum(int draftNum, RoomPlayerCtrl roomPlayerCtrl);
 
     /**
      * 轮抽是否正确

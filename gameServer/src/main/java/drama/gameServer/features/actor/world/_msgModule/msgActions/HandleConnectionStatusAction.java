@@ -56,10 +56,6 @@ public class HandleConnectionStatusAction implements Action {
     }
 
     private void onPlayerOffline(Connection connection, WorldCtrl worldCtrl) {
-        if (!worldCtrl.contains(connection)) {
-            ProtoUtils.needReLogin(connection);
-            return;
-        }
         String playerId = worldCtrl.getPlayerId(connection);
         if (playerId == null) {
             return;
@@ -70,10 +66,6 @@ public class HandleConnectionStatusAction implements Action {
     }
 
     private void onPlayerDisconnected(Connection connection, WorldCtrl worldCtrl) {
-        if (!worldCtrl.contains(connection)) {
-            ProtoUtils.needReLogin(connection);
-            return;
-        }
         String playerId = worldCtrl.getPlayerId(connection);
         if (playerId == null) {
             return;

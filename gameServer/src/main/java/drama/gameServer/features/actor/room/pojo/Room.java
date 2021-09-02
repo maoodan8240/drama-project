@@ -61,7 +61,7 @@ public class Room {
     /**
      * 已公开的线索
      */
-    private List<Integer> clueIds = new ArrayList<>();
+    private Map<Integer, List<Integer>> voteNumToClueIds = new ConcurrentHashMap<>();
     /**
      * 本剧本共有几次搜证环节
      */
@@ -197,12 +197,12 @@ public class Room {
         this.srchNum = srchNum;
     }
 
-    public List<Integer> getClueIds() {
-        return clueIds;
+    public Map<Integer, List<Integer>> getVoteNumToClueIds() {
+        return voteNumToClueIds;
     }
 
-    public void setClueIds(List<Integer> clueIds) {
-        this.clueIds = clueIds;
+    public void setVoteNumToClueIds(Map<Integer, List<Integer>> voteNumToClueIds) {
+        this.voteNumToClueIds = voteNumToClueIds;
     }
 
     public int getStateTimes() {
@@ -289,7 +289,7 @@ public class Room {
                 ", stateTimes=" + stateTimes +
                 ", runRown=" + runRown +
                 ", roleIdToPlayerId=" + roleIdToPlayerId +
-                ", clueIds=" + clueIds +
+                ", clueIds=" + voteNumToClueIds +
                 ", srchNum=" + srchNum +
                 ", playerNum=" + playerNum +
                 ", masterName='" + masterName + '\'' +

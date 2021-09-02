@@ -16,6 +16,7 @@ import dm.relationship.table.tableRows.Table_Draft_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
+import drama.gameServer.features.actor.login.utils.LogHandler;
 import drama.gameServer.features.actor.playerIO.ctrl.PlayerIOCtrl;
 import drama.gameServer.features.actor.playerIO.msg.In_PlayerUpdateResponse;
 import drama.gameServer.features.actor.playerIO.utils.PlayerIConUploadUtils;
@@ -26,6 +27,7 @@ import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCanSelectRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerChooseRoleRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerCreateRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerHasSelectDraftRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerIsVotedRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerJoinRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerOnCanSearchRoomMsg;
@@ -220,6 +222,8 @@ public class PlayerIOActor extends DmActor {
             onPlayerSyncSoloIdxRoomMsg((In_PlayerSyncSoloIdxRoomMsg) msg);
         } else if (msg instanceof In_PlayerAllFinishChooseDubRoomMsg) {
             onPlayerAllFinishChooseDubRoomMsg((In_PlayerAllFinishChooseDubRoomMsg) msg);
+        } else if (msg instanceof In_PlayerHasSelectDraftRoomMsg) {
+            onPlayerHasSelectDraftRoomMsg((In_PlayerHasSelectDraftRoomMsg) msg);
         }
     }
 
@@ -275,6 +279,19 @@ public class PlayerIOActor extends DmActor {
         response.setResult(true);
         RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
         b.setAction(action);
+        b.setDraftId(msg.getDraftId());
+        b.setRoleId(msg.getRoleId());
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
+    }
+
+    private void onPlayerHasSelectDraftRoomMsg(In_PlayerHasSelectDraftRoomMsg msg) {
+        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_HAS_SELECT_DRAFT;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setDraftId(msg.getDraftId());
         response.setSmRoom(b.build());
         playerIOCtrl.send(response.build());
     }
@@ -495,7 +512,7 @@ public class PlayerIOActor extends DmActor {
         if (action == RoomProtos.Sm_Room.Action.RESP_IS_DUB) {
             playerIOCtrl.sendRoomPlayerOnOpenDubProtos(action, roomPlayer, msg);
         } else if (action == RoomProtos.Sm_Room.Action.RESP_SOLO_DUB) {
-            playerIOCtrl.sendSoloRoomPlayer(action, roomPlayer, msg.getSoloNum());
+            playerIOCtrl.sendSoloRoomPlayer(action, roomPlayer, msg.getSoloNum(), msg.getDramaId());
         }
     }
 
@@ -554,6 +571,7 @@ public class PlayerIOActor extends DmActor {
         }
         //离线处理保存玩家信息
         playerIOCtrl.setLsoutTime();
+        LogHandler.playerLogoutLog(playerIOCtrl.getTarget(), playerIOCtrl.getLsinTime());
         //所处房间的逻辑已经在In_PlayerDisconnectedAction worldCtrl执行了
     }
 
@@ -607,7 +625,7 @@ public class PlayerIOActor extends DmActor {
         if (!loginMsg.getPlayer().getPlayerId().equals(playerId)) {
             return;
         }
-        playerIOCtrl.setLsnTime();
+        playerIOCtrl.setLsinTime();
         switch (cm_login.getAction().getNumber()) {
             case PlayerLoginProtos.Cm_Login.Action.LOGIN_VALUE:
                 playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_LOGIN);

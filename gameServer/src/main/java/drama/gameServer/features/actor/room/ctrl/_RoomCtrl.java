@@ -183,24 +183,41 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean containsClueId(int clueId) {
-        return target.getClueIds().contains(clueId);
+    public boolean containsClueId(int voteNum, int clueId) {
+        if ((target.getVoteNumToClueIds().get(voteNum) == null)) {
+            return false;
+        }
+        return target.getVoteNumToClueIds().get(voteNum).contains(clueId);
     }
 
     @Override
-    public void addClueId(int clueId) {
-        target.getClueIds().add(clueId);
+    public void addClueId(int srchNum, int clueId) {
+        List<Integer> clueIds = target.getVoteNumToClueIds().get(srchNum);
+        if (clueIds == null) {
+            clueIds = new ArrayList<>();
+        }
+        clueIds.add(srchNum);
     }
+
+    @Override
+    public List<Integer> getClueIds(int voteNum) {
+        return target.getVoteNumToClueIds().get(voteNum);
+    }
+
 
     @Override
     public List<Integer> getClueIds() {
-        return target.getClueIds();
+        List<Integer> arr = new ArrayList<>();
+        for (Integer integer : target.getVoteNumToClueIds().keySet()) {
+            arr.add(integer);
+        }
+        return arr;
     }
 
     @Override
-    public boolean containsClueIds(List<Integer> clueIds) {
+    public boolean containsClueIds(List<Integer> clueIds, int voteNum) {
         for (Integer clueId : clueIds) {
-            if (!containsClueId(clueId)) {
+            if (!containsClueId(clueId, voteNum)) {
                 return false;
             }
         }
@@ -208,10 +225,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void addClueIds(List<Integer> clueIds) {
+    public void addClueIds(List<Integer> clueIds, int voteNum) {
         for (Integer clueId : clueIds) {
-            if (!containsClueId(clueId)) {
-                addClueId(clueId);
+            if (!containsClueId(clueId, voteNum)) {
+                addClueId(clueId, voteNum);
             }
         }
     }
@@ -288,7 +305,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 roomPlayerCtrl.setSelectDraft(false);
             } else if (roomState == EnumsProtos.RoomStateEnum.UNLOCK) {
                 List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(getDramaId(), getRoomStateTimes(), getRoomState().toString());
-                addClueIds(unlockClueIds);
+                addClueIds(unlockClueIds, getRoomStateTimes());
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
                 roomPlayerCtrl.setVoteMurder(false);
                 target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
@@ -398,7 +415,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         boolean flag = true;
         List<Table_Search_Row> rows = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, getRoomStateTimes(), getDramaId());
         for (Table_Search_Row row : rows) {
-            if (containsClueId(row.getIdx())) {
+            if (containsClueId(row.getSrchNum(), row.getIdx())) {
                 continue;
             } else {
                 flag = false;
@@ -430,6 +447,19 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     public List<Integer> canVoteSearchTypeIds() {
         return target.getCanVoteSearchTypeId();
     }
+
+    @Override
+    public boolean hasVoteSearch(int voteNum, int roleId) {
+        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteTypeIdToRoleId().entrySet()) {
+            for (Integer voteRoleId : entry.getValue()) {
+                if (voteRoleId == roleId || target.getVoteNumToClueIds().containsKey(voteNum)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public void voteSearch(RoomPlayerCtrl roomPlayerCtrl, String typeName) {
@@ -475,14 +505,14 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean canSelectDraft(int draftId) {
-        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
+    public boolean canSelectDraft(int draftId, int draftNum) {
+        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(draftNum);
         return selectDraftIdToRoleId.get(draftId) == MagicNumbers.DEFAULT_ZERO;
     }
 
     @Override
-    public void selectDraft(RoomPlayerCtrl roomPlayerCtrl, int draftId) {
-        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
+    public void selectDraft(RoomPlayerCtrl roomPlayerCtrl, int draftId, int draftNum) {
+        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(draftNum);
         if (selectDraftIdToRoleId.get(draftId) == MagicNumbers.DEFAULT_ZERO) {
             selectDraftIdToRoleId.put(draftId, roomPlayerCtrl.getRoleId());
             roomPlayerCtrl.setSelectDraft(true);
@@ -494,11 +524,23 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public List<Integer> canSelectDraftIds() {
+    public List<Integer> canSelectDraftIds(int draftNum) {
         List<Integer> draftIds = new ArrayList<>();
-        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(getRoomStateTimes());
+        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(draftNum);
         draftIds.addAll(selectDraftIdToRoleId.keySet());
         return draftIds;
+    }
+
+    @Override
+    public int getDraftIdByDraftNum(int draftNum, RoomPlayerCtrl roomPlayerCtrl) {
+        int draftId = 0;
+        Map<Integer, Integer> selectDraftIdToRoleId = target.getDraftNumToSelectDraftIdToRoleId().get(draftNum);
+        for (Map.Entry<Integer, Integer> entry : selectDraftIdToRoleId.entrySet()) {
+            if (entry.getValue().equals(roomPlayerCtrl.getRoleId())) {
+                draftId = entry.getKey();
+            }
+        }
+        return draftId;
     }
 
     @Override

@@ -157,7 +157,7 @@ public class HandleRoomMsgAction implements Action {
         //检查player是否在线,用Dao取出player
         if (worldCtrl.containsPlayerRoom(playerId)) {
             String roomId = worldCtrl.getRoomId(playerId);
-            LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->roomId={}", playerId, roomId);
+            LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->roomId={}<->roomSimplePlayerId={}", playerId, roomId, worldCtrl.getRoomIdToRoom().get(roomId).getSimpleRoomId());
             throw new BusinessLogicMismatchConditionException("玩家名下已经有房间,无法再创建,playerId:" + playerId + ",roomId:" + roomId, EnumsProtos.ErrorCodeEnum.CREATE_ROOM_HAS_ONE);
         }
         Player player = getPlayer(playerId, worldCtrl);

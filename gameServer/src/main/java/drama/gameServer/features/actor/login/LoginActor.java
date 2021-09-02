@@ -78,18 +78,17 @@ public class LoginActor extends DmActor {
         if (StringUtils.isEmpty(cm_login.getRpid())) {
             //参数为空 直接注册
             LOGGER.debug("参数为空 执行游客注册");
-            player = new Player();
-            player.setPlayerId(ObjectId.get().toString());
+            player = RegisterUtils.createPlayer();
             guestRegister(player);
-        }
-        //查库
-        player = PLAYER_DAO.findPlayerByPlayerId(cm_login.getRpid());
-        if (player == null) {
-            //库里也没有 注册
-            LOGGER.debug("库里也没查到 执行游客注册");
-            player = new Player();
-            player.setPlayerId(ObjectId.get().toString());
-            guestRegister(player);
+        } else {
+            //查库
+            player = PLAYER_DAO.findPlayerByPlayerId(cm_login.getRpid());
+            if (player == null) {
+                //库里也没有 注册
+                LOGGER.debug("库里也没查到 执行游客注册");
+                player = RegisterUtils.createPlayer();
+                guestRegister(player);
+            }
         }
         LOGGER.debug("PlayerId={},查询到发往world执行登录", player.getPlayerId());
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new NewLoginResponseMsg(message.getConnection(), player, cm_login), ActorRef.noSender());
