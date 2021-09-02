@@ -195,8 +195,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         List<Integer> clueIds = target.getVoteNumToClueIds().get(srchNum);
         if (clueIds == null) {
             clueIds = new ArrayList<>();
+            target.getVoteNumToClueIds().put(srchNum, clueIds);
         }
-        clueIds.add(srchNum);
+        clueIds.add(clueId);
     }
 
     @Override
@@ -208,8 +209,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public List<Integer> getClueIds() {
         List<Integer> arr = new ArrayList<>();
-        for (Integer integer : target.getVoteNumToClueIds().keySet()) {
-            arr.add(integer);
+        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteNumToClueIds().entrySet()) {
+            arr.addAll(entry.getValue());
         }
         return arr;
     }

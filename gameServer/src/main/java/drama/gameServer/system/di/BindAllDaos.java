@@ -2,6 +2,7 @@ package drama.gameServer.system.di;
 
 import com.google.inject.Binder;
 import dm.relationship.daos.AllDaoClassHolder;
+import dm.relationship.logServer.daos.AllLogDaoClassHolder;
 import ws.common.mongoDB.interfaces.BaseDao;
 
 import java.util.Map;
@@ -12,6 +13,9 @@ import java.util.Map;
 public class BindAllDaos {
     public static void bind(Binder binder) {
         for (Map.Entry<Class<? extends BaseDao>, Class<? extends BaseDao>> entry : AllDaoClassHolder.getIntefaceClassToInstanceClass().entrySet()) {
+            forceBind(binder, entry.getKey(), entry.getValue());
+        }
+        for (Map.Entry<Class<? extends BaseDao>, Class<? extends BaseDao>> entry : AllLogDaoClassHolder.getIntefaceClassToInstanceClass().entrySet()) {
             forceBind(binder, entry.getKey(), entry.getValue());
         }
     }
