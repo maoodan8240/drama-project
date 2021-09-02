@@ -59,6 +59,14 @@ public class Launcher {
     }
 
     private static void _redisInit() {
+//        RedisOpration redisOpration = GlobalInjector.getInstance(RedisOpration.class);
+//        List<String> masterNames = new ArrayList<>(Arrays.asList(AppConfig.getRedisMasterNames()));
+//        Set<String> sentinelIpAndPorts = new LinkedHashSet<>(Arrays.asList(AppConfig.getRedisSentinelIpAndPorts()));
+//        int maxTotal = AppConfig.getInt(AppConfig.Key.DM_Common_Config_redis_maxTotal);
+//        int maxIdlel = AppConfig.getInt(AppConfig.Key.DM_Common_Config_redis_maxIdlel);
+//        int maxWaitSeconds = AppConfig.getInt(AppConfig.Key.DM_Common_Config_redis_maxWaitSeconds);
+//        String pswd = AppConfig.getString(AppConfig.Key.DM_Common_Config_redis_pswd);
+//        redisOpration.init(maxTotal, maxIdlel, maxWaitSeconds, pswd, masterNames, sentinelIpAndPorts);
         String redisSentinelIpAndPort = AppConfig.getRedisSentinelIpAndPort();
         String[] ipAndPort = StringUtils.split(redisSentinelIpAndPort, ":");
         int maxTotal = AppConfig.getInt(AppConfig.Key.DM_Common_Config_redis_maxTotal);

@@ -22,5 +22,5 @@ public class In_PlayerCanSelectDraftRoomMsg extends _PlayerInnerMsg {
         return draftIds;
     }
 
-   
+
 }

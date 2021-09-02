@@ -20,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by zww on 8/10/16.
+ * Created by lee on 8/10/16.
  */
 public class _PlayerLoginLogDao extends AbstractBaseDao<PlayerLoginLog> implements PlayerLoginLogDao {
     private static final int REMAINDAY_7 = 7; //七日留存

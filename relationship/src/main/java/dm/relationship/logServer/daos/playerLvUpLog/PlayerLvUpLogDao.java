@@ -6,7 +6,7 @@ import dm.relationship.logServer.pojos.PlayerLvUpLog;
 import java.util.List;
 
 /**
- * Created by zww on 8/10/16.
+ * Created by lee on 8/10/16.
  */
 public interface PlayerLvUpLogDao extends BaseDao<PlayerLvUpLog> {
     /**

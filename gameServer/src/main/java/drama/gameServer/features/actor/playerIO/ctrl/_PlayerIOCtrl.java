@@ -30,7 +30,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
 
     static {
-        PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Common);
+        PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Logs);
     }
 
     private long oldestLoginTime;
@@ -46,7 +46,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
     @Override
-    public void setLsnTime() {
+    public void setLsinTime() {
         if (oldestLoginTime <= 0) {
             oldestLoginTime = System.currentTimeMillis();
         }
@@ -54,6 +54,16 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
         target.getOther().setLsoutTime(MagicNumbers.DEFAULT_NEGATIVE_ONE); // 离线时间设置成-1,表示在线
         getPlayerDao().insertIfExistThenReplace(target);
 
+    }
+
+    @Override
+    public long getLsinTime() {
+        return target.getOther().getLsinTime();
+    }
+
+    @Override
+    public long getLsoutTime() {
+        return target.getOther().getLsoutTime();
     }
 
     @Override
@@ -146,13 +156,13 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
     @Override
-    public void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum) {
+    public void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum, int dramaId) {
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);
         response.setResult(true);
         RoomProtos.Sm_Room.Builder bRoom = RoomProtos.Sm_Room.newBuilder();
         bRoom.setAction(action);
         int soloDramaId = roomPlayer.getSoloAnswer().get(soloNum);
-        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSoloSmRoomPlayer(roomPlayer, soloDramaId);
+        RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSoloSmRoomPlayer(roomPlayer, soloDramaId, dramaId);
         bRoom.setRoomPlayer(sm_room_player);
         response.setSmRoom(bRoom.build());
         send(response.build());

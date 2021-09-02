@@ -30,15 +30,39 @@ public interface PlayerIOCtrl extends Controler<Player> {
 
     boolean isInRoom();
 
-    void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum);
+    void sendSoloRoomPlayer(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, int soloNum, int dramaId);
 
     void updatePlayer(String iconUrl, String birthday, String place, String name, EnumsProtos.SexEnum sex);
 
     PlayerDao getPlayerDao();
 
+    /**
+     * 登出时间
+     *
+     * @return
+     */
     void setLsoutTime();
 
-    void setLsnTime();
+    /**
+     * 登入时间
+     *
+     * @return
+     */
+    void setLsinTime();
+
+    /**
+     * 登入时间
+     *
+     * @return
+     */
+    long getLsinTime();
+
+    /**
+     * 登出时间
+     *
+     * @return
+     */
+    long getLsoutTime();
 
     void save();
 

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by zww on 8/10/16.
+ * Created by lee on 8/10/16.
  */
 public class _PlayerLvUpLogDao extends AbstractBaseDao<PlayerLvUpLog> implements PlayerLvUpLogDao {
     public _PlayerLvUpLogDao() {

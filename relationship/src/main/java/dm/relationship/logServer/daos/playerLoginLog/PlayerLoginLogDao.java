@@ -7,7 +7,7 @@ import dm.relationship.topLevelPojos.data.DayRemain;
 import java.util.List;
 
 /**
- * Created by zww on 8/10/16.
+ * Created by lee on 8/10/16.
  */
 public interface PlayerLoginLogDao extends BaseDao<PlayerLoginLog> {
     /**
