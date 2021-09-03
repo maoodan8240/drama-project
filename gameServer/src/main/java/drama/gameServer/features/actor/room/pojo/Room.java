@@ -5,8 +5,11 @@ import dm.relationship.table.tableRows.Table_SceneList_Row;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.protos.EnumsProtos;
 import ws.common.table.table.interfaces.cell.TupleCell;
+import ws.common.utils.date.WsDateFormatEnum;
+import ws.common.utils.date.WsDateUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +64,7 @@ public class Room {
     /**
      * 已公开的线索
      */
-    private Map<Integer, List<Integer>> voteNumToClueIds = new ConcurrentHashMap<>();
+    private List<Integer> clueIds = new ArrayList<>();
     /**
      * 本剧本共有几次搜证环节
      */
@@ -83,9 +86,9 @@ public class Room {
      */
     private long nextSTime;
     /**
-     * 被投票的线索分类Id对应玩家角色Id
+     * 第几个的被投票的线索分类Id对应玩家角色Id
      */
-    private Map<Integer, List<Integer>> voteTypeIdToRoleId = new ConcurrentHashMap<>();
+    private Map<Integer, Map<Integer, List<Integer>>> voteNumToVoteTypeIdToRoleId = new ConcurrentHashMap<>();
     /**
      * 可以被投票搜索的线索Id
      */
@@ -99,14 +102,17 @@ public class Room {
      */
     private int soloIdx;
     /**
-     * 创建时间
+     * 开始时间
      */
     private long beginTime;
     /**
      * 结算时间
      */
     private long endTime;
-
+    /**
+     * 创建时间
+     */
+    private String createAt;
 
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
@@ -118,6 +124,11 @@ public class Room {
         this.srchNum = tabRow.getSrchNum();
         this.playerNum = tabRow.getPlaNum();
         this.masterName = masterName;
+        this.createAt = WsDateUtils.dateToFormatStr(new Date(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss);
+    }
+
+    public String getCreateAt() {
+        return createAt;
     }
 
     public void setBeginTime(long beginTime) {
@@ -148,8 +159,8 @@ public class Room {
         return voteNumToVoteRoleIdToRoleId;
     }
 
-    public Map<Integer, List<Integer>> getVoteTypeIdToRoleId() {
-        return voteTypeIdToRoleId;
+    public Map<Integer, Map<Integer, List<Integer>>> getVoteNumToVoteTypeIdToRoleId() {
+        return voteNumToVoteTypeIdToRoleId;
     }
 
 
@@ -197,12 +208,12 @@ public class Room {
         this.srchNum = srchNum;
     }
 
-    public Map<Integer, List<Integer>> getVoteNumToClueIds() {
-        return voteNumToClueIds;
+    public List<Integer> getClueIds() {
+        return clueIds;
     }
 
-    public void setVoteNumToClueIds(Map<Integer, List<Integer>> voteNumToClueIds) {
-        this.voteNumToClueIds = voteNumToClueIds;
+    public void setClueIds(List<Integer> clueIds) {
+        this.clueIds = clueIds;
     }
 
     public int getStateTimes() {
@@ -289,13 +300,13 @@ public class Room {
                 ", stateTimes=" + stateTimes +
                 ", runRown=" + runRown +
                 ", roleIdToPlayerId=" + roleIdToPlayerId +
-                ", clueIds=" + voteNumToClueIds +
+                ", clueIds=" + clueIds +
                 ", srchNum=" + srchNum +
                 ", playerNum=" + playerNum +
                 ", masterName='" + masterName + '\'' +
                 ", voteNumToVoteRoleIdToRoleId=" + voteNumToVoteRoleIdToRoleId +
                 ", nextSTime=" + nextSTime +
-                ", voteTypeIdToRoleId=" + voteTypeIdToRoleId +
+                ", voteNumToVoteTypeIdToRoleId=" + voteNumToVoteTypeIdToRoleId +
                 ", canVoteSearchCuleId=" + canVoteSearchTypeId +
                 ", draftNumToSelectDraftIdToRoleId=" + draftNumToSelectDraftIdToRoleId +
                 '}';

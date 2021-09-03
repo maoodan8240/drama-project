@@ -10,6 +10,7 @@ public class _PlayerDao extends AbstractBaseDao<Player> implements PlayerDao {
         super(Player.class);
     }
 
+    @Override
     public Player findPlayerByMobileNum(String mobileNum) {
         Document document = new Document("mobileNum", mobileNum);
         Player player = findOne(document);

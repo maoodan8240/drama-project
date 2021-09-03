@@ -183,42 +183,25 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean containsClueId(int voteNum, int clueId) {
-        if ((target.getVoteNumToClueIds().get(voteNum) == null)) {
-            return false;
-        }
-        return target.getVoteNumToClueIds().get(voteNum).contains(clueId);
+    public boolean containsClueId(int clueId) {
+        return target.getClueIds().contains(clueId);
     }
 
     @Override
-    public void addClueId(int srchNum, int clueId) {
-        List<Integer> clueIds = target.getVoteNumToClueIds().get(srchNum);
-        if (clueIds == null) {
-            clueIds = new ArrayList<>();
-            target.getVoteNumToClueIds().put(srchNum, clueIds);
-        }
-        clueIds.add(clueId);
+    public void addClueId(int clueId) {
+        target.getClueIds().add(clueId);
     }
-
-    @Override
-    public List<Integer> getClueIds(int voteNum) {
-        return target.getVoteNumToClueIds().get(voteNum);
-    }
-
 
     @Override
     public List<Integer> getClueIds() {
-        List<Integer> arr = new ArrayList<>();
-        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteNumToClueIds().entrySet()) {
-            arr.addAll(entry.getValue());
-        }
-        return arr;
+        return target.getClueIds();
     }
 
+
     @Override
-    public boolean containsClueIds(List<Integer> clueIds, int voteNum) {
+    public boolean containsClueIds(List<Integer> clueIds) {
         for (Integer clueId : clueIds) {
-            if (!containsClueId(clueId, voteNum)) {
+            if (!containsClueId(clueId)) {
                 return false;
             }
         }
@@ -226,10 +209,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void addClueIds(List<Integer> clueIds, int voteNum) {
+    public void addClueIds(List<Integer> clueIds) {
         for (Integer clueId : clueIds) {
-            if (!containsClueId(clueId, voteNum)) {
-                addClueId(clueId, voteNum);
+            if (!containsClueId(clueId)) {
+                addClueId(clueId);
             }
         }
     }
@@ -245,9 +228,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean checkPlayerFinishVoteSearch() {
+    public boolean checkPlayerFinishVoteSearch(int voteNum) {
         int count = 0;
-        for (Map.Entry<Integer, List<Integer>> entry : getTarget().getVoteTypeIdToRoleId().entrySet()) {
+        for (Map.Entry<Integer, List<Integer>> entry : getTarget().getVoteNumToVoteTypeIdToRoleId().get(voteNum).entrySet()) {
             count += entry.getValue().size();
         }
 
@@ -306,7 +289,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 roomPlayerCtrl.setSelectDraft(false);
             } else if (roomState == EnumsProtos.RoomStateEnum.UNLOCK) {
                 List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(getDramaId(), getRoomStateTimes(), getRoomState().toString());
-                addClueIds(unlockClueIds, getRoomStateTimes());
+                addClueIds(unlockClueIds);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
                 roomPlayerCtrl.setVoteMurder(false);
                 target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
@@ -374,8 +357,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId() {
-        return target.getVoteTypeIdToRoleId();
+    public Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId(int voteNum) {
+        return target.getVoteNumToVoteTypeIdToRoleId().get(voteNum);
     }
 
     @Override
@@ -416,7 +399,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         boolean flag = true;
         List<Table_Search_Row> rows = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, getRoomStateTimes(), getDramaId());
         for (Table_Search_Row row : rows) {
-            if (containsClueId(row.getSrchNum(), row.getIdx())) {
+            if (containsClueId(row.getIdx())) {
                 continue;
             } else {
                 flag = false;
@@ -450,10 +433,18 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public boolean hasVoteSearch(int voteNum, int roleId) {
-        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteTypeIdToRoleId().entrySet()) {
+    public boolean hasVoteSearch(int roleId) {
+        // 配置中ap总和-玩家的次数=第几次投票
+        int voteNum = getClueIds().size();
+        Map<Integer, List<Integer>> voteTypeIdToRoleId = target.getVoteNumToVoteTypeIdToRoleId().get(voteNum);
+        if (voteTypeIdToRoleId == null) {
+            voteTypeIdToRoleId = new ConcurrentHashMap<>();
+            target.getVoteNumToVoteTypeIdToRoleId().put(voteNum, voteTypeIdToRoleId);
+            return false;
+        }
+        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteNumToVoteTypeIdToRoleId().get(voteNum).entrySet()) {
             for (Integer voteRoleId : entry.getValue()) {
-                if (voteRoleId == roleId || target.getVoteNumToClueIds().containsKey(voteNum)) {
+                if (voteRoleId == roleId) {
                     return true;
                 }
             }
@@ -463,12 +454,17 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
 
     @Override
-    public void voteSearch(RoomPlayerCtrl roomPlayerCtrl, String typeName) {
+    public void voteSearch(RoomPlayerCtrl roomPlayerCtrl, String typeName, int voteNum) {
         int typeId = Table_SearchType_Row.getTypeIdByName(typeName, getDramaId());
-        List<Integer> votes = target.getVoteTypeIdToRoleId().get(typeId);
+        Map<Integer, List<Integer>> voteTypeIdToRoleId = target.getVoteNumToVoteTypeIdToRoleId().get(voteNum);
+        if (voteTypeIdToRoleId == null) {
+            voteTypeIdToRoleId = new ConcurrentHashMap<>();
+            target.getVoteNumToVoteTypeIdToRoleId().put(voteNum, voteTypeIdToRoleId);
+        }
+        List<Integer> votes = voteTypeIdToRoleId.get(typeId);
         if (votes == null) {
             votes = new ArrayList<>();
-            target.getVoteTypeIdToRoleId().put(typeId, votes);
+            voteTypeIdToRoleId.put(typeId, votes);
         }
         if (!votes.contains(roomPlayerCtrl.getRoleId())) {
             votes.add(roomPlayerCtrl.getRoleId());
@@ -479,10 +475,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public int getVoteSearchClueId() {
+    public int getVoteSearchClueId(int voteNum) {
         int maxCount = 0;
         int typeId = 0;
-        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteTypeIdToRoleId().entrySet()) {
+        for (Map.Entry<Integer, List<Integer>> entry : target.getVoteNumToVoteTypeIdToRoleId().get(voteNum).entrySet()) {
             if (entry.getValue().size() > maxCount) {
                 maxCount = entry.getValue().size();
                 typeId = entry.getKey();
@@ -491,13 +487,13 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return Table_Search_Row.getRowIdByIdAndDramaId(typeId, getDramaId());
     }
 
-    @Override
-    public Map<Integer, List<Integer>> clearVoteSearchTypeIdToPlayerRoleId() {
-        Map<Integer, List<Integer>> voteTypeIdToRoleId = new ConcurrentHashMap<>();
-        voteTypeIdToRoleId.putAll(target.getVoteTypeIdToRoleId());
-        target.getVoteTypeIdToRoleId().clear();
-        return voteTypeIdToRoleId;
-    }
+//    @Override
+//    public Map<Integer, List<Integer>> clearVoteSearchTypeIdToPlayerRoleId(int voteNum) {
+//        Map<Integer, List<Integer>> voteTypeIdToRoleId = new ConcurrentHashMap<>();
+//        voteTypeIdToRoleId.putAll(target.getVoteNumToVoteTypeIdToRoleId().get(voteNum));
+//        target.getVoteNumToVoteTypeIdToRoleId().get(voteNum).clear();
+//        return voteTypeIdToRoleId;
+//    }
 
     @Override
     public void removeCanVoteSearchTypeId(int clueId) {

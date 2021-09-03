@@ -12,6 +12,7 @@ import dm.relationship.topLevelPojos.player.PlayerBase;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.login.msg.In_PlayerNewLoginMsg;
 import drama.gameServer.features.actor.login.msg.NewLoginResponseMsg;
+import drama.gameServer.features.actor.login.utils.LogHandler;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.protos.CodesProtos.ProtoCodes.Code;
 import drama.protos.MessageHandlerProtos.Response;
@@ -90,6 +91,7 @@ public class LoginActor extends DmActor {
                 guestRegister(player);
             }
         }
+        LogHandler.playerLoginLog(player);
         LOGGER.debug("PlayerId={},查询到发往world执行登录", player.getPlayerId());
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new NewLoginResponseMsg(message.getConnection(), player, cm_login), ActorRef.noSender());
     }

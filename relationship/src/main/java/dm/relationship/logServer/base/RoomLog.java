@@ -1,7 +1,5 @@
 package dm.relationship.logServer.base;
 
-import org.bson.types.ObjectId;
-
 public class RoomLog extends DmLog {
     private String roomId;
     private int simpleId;
@@ -12,8 +10,8 @@ public class RoomLog extends DmLog {
     private int createAtDate;                 // 年月日      yyyyMMdd
     private int createAtTime;                 // 时分秒毫秒   HHmmss
 
-    public RoomLog() {
-        super(ObjectId.get().toString());
+    public RoomLog(String objectId) {
+        super(objectId);
     }
 
     public String getRoomId() {

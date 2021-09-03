@@ -132,21 +132,15 @@ public interface RoomCtrl extends Controler<Room> {
      * @param clueId
      * @return
      */
-    boolean containsClueId(int srchNum, int clueId);
+    boolean containsClueId(int clueId);
 
     /**
      * 添加线索
      *
      * @param clueId
      */
-    void addClueId(int srchNum, int clueId);
+    void addClueId(int clueId);
 
-    /**
-     * 获取房间内所有线索Id
-     *
-     * @return
-     */
-    List<Integer> getClueIds(int voteNum);
 
     /**
      * 获取房间内所有线索Id
@@ -161,14 +155,14 @@ public interface RoomCtrl extends Controler<Room> {
      * @param clueIds
      * @return
      */
-    boolean containsClueIds(List<Integer> clueIds, int voteNum);
+    boolean containsClueIds(List<Integer> clueIds);
 
     /**
      * 添加线索clueIds
      *
      * @param clueIds
      */
-    void addClueIds(List<Integer> clueIds, int voteNum);
+    void addClueIds(List<Integer> clueIds);
 
     /***
      * 检查所有玩家是否完成搜索  搜证次数用完
@@ -179,9 +173,10 @@ public interface RoomCtrl extends Controler<Room> {
     /**
      * 检查所有玩家是否完成投票搜证
      *
+     * @param voteNum
      * @return
      */
-    boolean checkPlayerFinishVoteSearch();
+    boolean checkPlayerFinishVoteSearch(int voteNum);
 
     /**
      * 玩家在房间内选定角色
@@ -229,12 +224,13 @@ public interface RoomCtrl extends Controler<Room> {
      */
     Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId(int voteNum);
 
-    /**
-     * 获取投票搜证结果
-     *
-     * @return
-     */
-    Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId();
+//    /**
+//     * 获取投票搜证结果
+//     *
+//     * @param voteNum
+//     * @return
+//     */
+//    Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId(int voteNum);
 
     /**
      * 是否可以解锁下一阶段
@@ -294,27 +290,31 @@ public interface RoomCtrl extends Controler<Room> {
      * @param roleId
      * @return
      */
-    boolean hasVoteSearch(int voteNum, int roleId);
+    boolean hasVoteSearch(int roleId);
 
     /**
      * 投票搜证
      *
      * @param roomPlayerCtrl
      * @param typeName
+     * @param voteNum
      */
-    void voteSearch(RoomPlayerCtrl roomPlayerCtrl, String typeName);
+    void voteSearch(RoomPlayerCtrl roomPlayerCtrl, String typeName, int voteNum);
 
     /**
      * 最终投票选中的线索
      *
+     * @param voteNum
      * @return int
      */
-    int getVoteSearchClueId();
+    int getVoteSearchClueId(int voteNum);
 
     /**
      * 清空投票搜证
+     *
+     * @param voteNum
      */
-    Map<Integer, List<Integer>> clearVoteSearchTypeIdToPlayerRoleId();
+    Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId(int voteNum);
 
     /**
      * 删除可以搜索的投票搜证

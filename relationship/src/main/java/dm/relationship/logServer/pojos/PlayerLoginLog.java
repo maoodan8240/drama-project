@@ -8,7 +8,8 @@ import org.bson.types.ObjectId;
  */
 public class PlayerLoginLog extends PlayerLog {
 
-    public PlayerLoginLog(String time) {
+    public PlayerLoginLog() {
+
         super(ObjectId.get().toString());
     }
 

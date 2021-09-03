@@ -637,6 +637,7 @@ public class PlayerIOActor extends DmActor {
                 break;
         }
         LOGGER.debug("Player Login Success playerId={},Action={}", playerId, cm_login.getAction().toString());
+        LogHandler.playerLoginLog(playerIOCtrl.getTarget());
     }
 
     private void checkRoomPlayerAllReady(String roomId) {

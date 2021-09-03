@@ -2,12 +2,16 @@ package drama.gameServer.features.actor.login.utils;
 
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.logServer.base.PlayerLog;
+import dm.relationship.logServer.base.RoomLog;
 import dm.relationship.logServer.daos.LogDaoContainer;
 import dm.relationship.logServer.daos.playerLoginLog.PlayerLoginLogDao;
 import dm.relationship.logServer.daos.playerLogoutLog.PlayerLogoutLogDao;
+import dm.relationship.logServer.daos.roomCreateLog.RoomCreateLogDao;
 import dm.relationship.logServer.pojos.PlayerLoginLog;
 import dm.relationship.logServer.pojos.PlayerLogoutLog;
+import dm.relationship.logServer.pojos.RoomCreateLog;
 import dm.relationship.topLevelPojos.player.Player;
+import drama.gameServer.features.actor.room.pojo.Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.mongoDB.interfaces.MongoDBClient;
@@ -22,15 +26,17 @@ public class LogHandler {
     private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
     private static final PlayerLoginLogDao PLAYER_LOGIN_LOG_DAO = LogDaoContainer.getDao(PlayerLoginLog.class);
     private static final PlayerLogoutLogDao PLAYER_LOGOUT_LOG_DAO = LogDaoContainer.getDao(PlayerLogoutLog.class);
+    private static final RoomCreateLogDao ROOM_CREATE_LOG_DAO = LogDaoContainer.getDao(RoomCreateLog.class);
 
 
     static {
         PLAYER_LOGIN_LOG_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Logs);
         PLAYER_LOGOUT_LOG_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Logs);
+        ROOM_CREATE_LOG_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Logs);
     }
 
     public static void playerLoginLog(Player player) {
-        PlayerLoginLog log = new PlayerLoginLog("");
+        PlayerLoginLog log = new PlayerLoginLog();
         _setPlayerLogInfo(player, log);
         PLAYER_LOGIN_LOG_DAO.insertIfExistThenReplace(log);
     }
@@ -53,5 +59,22 @@ public class LogHandler {
         PlayerLogoutLog log = new PlayerLogoutLog(lsinTime);
         _setPlayerLogInfo(player, log);
         PLAYER_LOGOUT_LOG_DAO.insertIfExistThenReplace(log);
+    }
+
+    public static void roomCreateLog(Room room) {
+        RoomCreateLog roomCreateLog = new RoomCreateLog();
+        _setRoomLogInfo(room, roomCreateLog);
+    }
+
+    public static void _setRoomLogInfo(Room room, RoomLog roomLog) {
+        roomLog.setRoomId(room.getRoomId());
+        roomLog.setPlayerId(room.getMasterId());
+        roomLog.setPlayerName(room.getMasterName());
+        roomLog.setSimpleId(room.getSimpleRoomId());
+        roomLog.setDramaId(room.getDramaId());
+        roomLog.setDramaName(room.getDramaName());
+        Date date1 = WsDateUtils.dateToFormatDate(room.getCreateAt(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss);
+        roomLog.setCreateAtDate(Integer.valueOf(WsDateUtils.dateToFormatStr(date1, WsDateFormatEnum.yyyyMMdd)));
+        roomLog.setCreateAtTime(Integer.valueOf(WsDateUtils.dateToFormatStr(date1, WsDateFormatEnum.HHmmss)));
     }
 }

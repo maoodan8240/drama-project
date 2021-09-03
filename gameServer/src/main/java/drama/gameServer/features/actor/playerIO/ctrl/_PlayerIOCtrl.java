@@ -30,12 +30,13 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
 
     static {
-        PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Logs);
+        PLAYER_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Common);
     }
 
     private long oldestLoginTime;
 
 
+    @Override
     public PlayerDao getPlayerDao() {
         return PLAYER_DAO;
     }
@@ -97,6 +98,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
 
+    @Override
     public void sendLoginResponse(Player player, PlayerLoginProtos.Sm_Login.Action action) {
         MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Login, action);
         PlayerLoginProtos.Sm_Login.Builder b = PlayerLoginProtos.Sm_Login.newBuilder();
@@ -112,6 +114,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
     }
 
 
+    @Override
     public void sendRoomPlayerOnOpenDubProtos(RoomProtos.Sm_Room.Action action, RoomPlayer roomPlayer, PlayerInnerMsg msg) {
         In_PlayerOnOpenDubRoomMsg message = (In_PlayerOnOpenDubRoomMsg) msg;
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, action);

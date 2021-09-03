@@ -137,14 +137,6 @@ public class RoomActor extends DmActor {
 
     private void onCheckAfterSwitchStateRoomMsg() {
         switch (roomCtrl.getRoomState()) {
-            case UNLOCK:
-                String stateName = roomCtrl.getRoomState().toString();
-                List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(roomCtrl.getDramaId(), roomCtrl.getRoomStateTimes(), stateName);
-                for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
-                    In_PlayerOnUnlockClueRoomMsg in_playerOnUnlockClueRoomMsg = new In_PlayerOnUnlockClueRoomMsg(entries.getKey(), unlockClueIds, roomCtrl.getDramaId());
-                    DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnUnlockClueRoomMsg, ActorRef.noSender());
-                }
-                break;
             case SELECTREAD:
                 onSelectRead();
                 break;
@@ -193,13 +185,14 @@ public class RoomActor extends DmActor {
     }
 
     private void onCheckPlayerAllVoteSearchRoomMsg() {
-        if (roomCtrl.checkPlayerFinishVoteSearch()) {
+        int voteNum = roomCtrl.getClueIds().size();
+        if (roomCtrl.checkPlayerFinishVoteSearch(voteNum)) {
             // 通知所有玩家投票结果和最终投票选中的线索
-            int clueId = roomCtrl.getVoteSearchClueId();
-            if (!roomCtrl.containsClueId(roomCtrl.getRoomStateTimes(), clueId)) {
-                roomCtrl.addClueId(roomCtrl.getRoomStateTimes(), clueId);
+            int clueId = roomCtrl.getVoteSearchClueId(voteNum);
+            if (!roomCtrl.containsClueId(clueId)) {
+                roomCtrl.addClueId(clueId);
                 roomCtrl.removeCanVoteSearchTypeId(clueId);
-                Map<Integer, List<Integer>> voteResult = roomCtrl.clearVoteSearchTypeIdToPlayerRoleId();
+                Map<Integer, List<Integer>> voteResult = roomCtrl.getVoteSearchTypeIdToPlayerRoleId(voteNum);
                 RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
                 for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
                     In_PlayerVoteSearchResultRoomMsg in_playerVoteSearchResultRoomMsg = new In_PlayerVoteSearchResultRoomMsg(entries.getKey(), voteResult, clueId, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId());
@@ -362,6 +355,9 @@ public class RoomActor extends DmActor {
                     case Action.HAS_SELECT_DRAFT_VALUE:
                         onHasSelectDraft(cm_room.getDraftNum());
                         break;
+                    case Action.UNLOCK_VALUE:
+                        onUnlock();
+                        break;
                     default:
                         break;
                 }
@@ -370,6 +366,19 @@ public class RoomActor extends DmActor {
                 msg.getConnection().send(new MessageSendHolder(br.build(), br.getSmMsgAction(), new ArrayList<>()));
             }
         }
+    }
+
+    private void onUnlock() {
+        _checkRoomContainsPlayer(player);
+        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.UNLOCK) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", player.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        String stateName = roomCtrl.getRoomState().toString();
+        List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(roomCtrl.getDramaId(), roomCtrl.getRoomStateTimes(), stateName);
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        In_PlayerOnUnlockClueRoomMsg in_playerOnUnlockClueRoomMsg = new In_PlayerOnUnlockClueRoomMsg(roomPlayerCtrl.getPlayerId(), unlockClueIds, roomCtrl.getDramaId());
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnUnlockClueRoomMsg, ActorRef.noSender());
     }
 
 
@@ -429,8 +438,9 @@ public class RoomActor extends DmActor {
     private void onSyncVoteSearchResult() {
         _checkRoomContainsPlayer(player);
         //用于断线重连
-        Map<Integer, List<Integer>> voteTypeIdToRoleId = roomCtrl.getTarget().getVoteTypeIdToRoleId();
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
+        int num = Table_Acter_Row.getAllVoteSrchTimes(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()) - roomPlayerCtrl.getVoteSrchTimes();
+        Map<Integer, List<Integer>> voteTypeIdToRoleId = roomCtrl.getTarget().getVoteNumToVoteTypeIdToRoleId().get(num);
         In_PlayerVoteSearchResultRoomMsg in_playerVoteSearchResultRoomMsg = new In_PlayerVoteSearchResultRoomMsg(player.getPlayerId(), voteTypeIdToRoleId, MagicNumbers.DEFAULT_ZERO, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId());
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerVoteSearchResultRoomMsg, ActorRef.noSender());
     }
@@ -447,12 +457,12 @@ public class RoomActor extends DmActor {
             LOGGER.debug(msg);
             return;
         }
-        if (roomCtrl.hasVoteSearch(roomCtrl.getRoomStateTimes(), roomPlayerCtrl.getRoleId())) {
+        if (roomCtrl.hasVoteSearch(roomPlayerCtrl.getRoleId())) {
             String msg = String.format("玩家已经投过票了,这个请求应该被客户端挡住的! playerId=%s", player.getPlayerId());
-            LOGGER.debug(msg);
-            return;
+            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_VOTE_SEARCH);
         }
-        roomCtrl.voteSearch(roomPlayerCtrl, typeName);
+        int voteNum = roomCtrl.getClueIds().size();
+        roomCtrl.voteSearch(roomPlayerCtrl, typeName, voteNum);
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerVoteSearchRoomMsg(player.getPlayerId(), typeName), ActorRef.noSender());
         onCheckPlayerAllVoteSearchRoomMsg();
     }
@@ -559,8 +569,8 @@ public class RoomActor extends DmActor {
             //所有人都已经用完了搜证次数,并且有隐藏配置,放进房间里,然后同步给玩家
             List<Integer> allHideClueIds = Table_Search_Row.getAllHideClueIds(roomCtrl.getRoomStateTimes(), roomCtrl.getDramaId());
             if (allHideClueIds.size() != MagicNumbers.DEFAULT_ZERO) {
-                if (!roomCtrl.containsClueIds(allHideClueIds, roomCtrl.getRoomStateTimes())) {
-                    roomCtrl.addClueIds(allHideClueIds, roomCtrl.getRoomStateTimes());
+                if (!roomCtrl.containsClueIds(allHideClueIds)) {
+                    roomCtrl.addClueIds(allHideClueIds);
                     for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
                         In_PlayerSyncClueRoomMsg in_playerSyncClueRoomMsg = new In_PlayerSyncClueRoomMsg(entries.getKey(), allHideClueIds, RoomProtos.Sm_Room.Action.RESP_SYNC_ROOM_CLUE, roomCtrl.getDramaId());
                         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerSyncClueRoomMsg, ActorRef.noSender());
@@ -757,9 +767,9 @@ public class RoomActor extends DmActor {
         int id = MagicNumbers.DEFAULT_ZERO;
         for (Table_Search_Row row : srchRowList) {
             //房间内线索和玩家的线索都没有这条线索才可以搜取
-            if (!roomCtrl.containsClueId(row.getSrchNum(), row.getIdx()) && !roomPlayerCtrl.containsClueId(row.getIdx())) {
+            if (!roomCtrl.containsClueId(row.getIdx()) && !roomPlayerCtrl.containsClueId(row.getIdx())) {
                 roomPlayerCtrl.addClueId(row.getIdx());
-                roomCtrl.addClueId(row.getSrchNum(), row.getIdx());
+                roomCtrl.addClueId(row.getIdx());
                 //一次只能搜一条线索,搜到就break;
                 id = row.getIdx();
                 roomPlayerCtrl.reduceSrchTimes();

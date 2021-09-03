@@ -82,6 +82,7 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
         return target.getPlayerIdToPlayerActorRef().containsKey(playerId);
     }
 
+    @Override
     public PlayerDao getPlayerDao() {
         return PLAYER_DAO;
     }
