@@ -147,6 +147,18 @@ public class Table_Acter_Row extends AbstractRow {
         return rowList;
     }
 
+    public static int getAllVoteSrchTimes(int roleId, int dramaId) {
+        int num = 0;
+        for (Table_Acter_Row value : RootTc.get(Table_Acter_Row.class).values()) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
+                for (TupleCell<String> tupleCell : value.getvSAp()) {
+                    num += Integer.valueOf(tupleCell.get(TupleCell.SECOND));
+                }
+            }
+        }
+        return num;
+    }
+
 
     /**
      * 获取对应幕数的搜索次数
