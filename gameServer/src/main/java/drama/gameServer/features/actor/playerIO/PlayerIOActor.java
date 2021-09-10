@@ -359,6 +359,7 @@ public class PlayerIOActor extends DmActor {
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerDisconnectedRoomMsg(roomId, playerId), ActorRef.noSender());
         }
         playerIOCtrl.setLsoutTime();
+        playerIOCtrl.quitRoom();
         getSender().tell(new In_PrepareToKillPlayerActorResponseMsg(playerId), ActorRef.noSender());
     }
 
@@ -601,23 +602,6 @@ public class PlayerIOActor extends DmActor {
         br.setSmRoom(b.build());
         playerIOCtrl.send(br.build());
     }
-
-
-//    private void onLogin(In_LoginMsg loginMsg) {
-//        PlayerLoginProtos.Cm_Login cm_login = (PlayerLoginProtos.Cm_Login) loginMsg.getMessage();
-//        playerIOCtrl.setLsnTime();
-//        switch (cm_login.getAction().getNumber()) {
-//            case PlayerLoginProtos.Cm_Login.Action.LOGIN_VALUE:
-//                playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_LOGIN);
-//                break;
-//            case PlayerLoginProtos.Cm_Login.Action.GUEST_LOGIN_VALUE:
-//                playerIOCtrl.sendLoginResponse(playerIOCtrl.getTarget(), Action.RESP_GUEST_LOGIN);
-//                break;
-//            default:
-//                break;
-//        }
-//        LOGGER.debug("Player Login Success playerId={},Action={}", playerId, cm_login.getAction().toString());
-//    }
 
 
     private void onLogin(NewLoginResponseMsg loginMsg) {

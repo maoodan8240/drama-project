@@ -261,9 +261,11 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         target.setStateTimes(stateTimes);
         //设置下一个阶段解锁时间
         target.setNextSTime(System.currentTimeMillis() + nextSTime * DateUtils.MILLIS_PER_SECOND);
-        //如果不是第一阶段了,说明剧本已经开始,设置剧本开始时间
+        //如果不是第一阶段了,说明剧本已经开始,设置剧本开始时间,只设置一次
         if (!RoomStateEnum.isFirstState(getRoomState(), getDramaId())) {
-            getTarget().setBeginTime(System.currentTimeMillis());
+            if (target.getBeginTime() == 0) {
+                getTarget().setBeginTime(System.currentTimeMillis());
+            }
         }
         //如果是End阶段,设置剧本结束时间
         if (RoomStateEnum.isEndState(getRoomState())) {

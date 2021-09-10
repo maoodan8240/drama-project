@@ -10,6 +10,9 @@ public class RoomLog extends DmLog {
     private int createAtDate;                 // 年月日      yyyyMMdd
     private int createAtTime;                 // 时分秒毫秒   HHmmss
 
+    public RoomLog() {
+    }
+
     public RoomLog(String objectId) {
         super(objectId);
     }

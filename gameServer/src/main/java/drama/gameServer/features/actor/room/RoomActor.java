@@ -20,6 +20,7 @@ import dm.relationship.table.tableRows.Table_SelectRead_Row;
 import dm.relationship.table.tableRows.Table_Solo_Row;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.utils.ProtoUtils;
+import drama.gameServer.features.actor.login.utils.LogHandler;
 import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.gameServer.features.actor.room.msg.In_CheckPlayerAllReadyRoomMsg;
@@ -116,6 +117,13 @@ public class RoomActor extends DmActor {
     private void onGmKillRoomMsg(In_GmKillRoomMsg msg) {
         LOGGER.debug("GM关闭房间,所有玩家清出房间");
         for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
+            RoomPlayerCtrl entryRoomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(entries.getKey());
+            if (entryRoomPlayerCtrl.hasRole()) {
+                int entryRoleId = entryRoomPlayerCtrl.getRoleId();
+                entryRoomPlayerCtrl.setRoleId(0);
+                roomCtrl.removeRole(entryRoleId);
+            }
+            roomCtrl.removePlayer(entries.getKey());
             In_PlayerQuitRoomMsg in_playerQuitRoomMsg = new In_PlayerQuitRoomMsg(entries.getKey(), roomId, masterId);
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerQuitRoomMsg, ActorRef.noSender());
         }
@@ -135,15 +143,10 @@ public class RoomActor extends DmActor {
         connection.send(new MessageSendHolder(response.build(), response.getSmMsgAction(), new ArrayList<>()));
     }
 
-    private void onCheckAfterSwitchStateRoomMsg() {
-        switch (roomCtrl.getRoomState()) {
-            case SELECTREAD:
-                onSelectRead();
-                break;
-        }
-    }
 
     private void onSelectRead() {
+        _checkRoomContainsPlayer(player);
+        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
         List<Boolean> result = new ArrayList<>();
         for (Table_SelectRead_Row value : RootTc.get(Table_SelectRead_Row.class).values()) {
             if (value.getDramaId() == roomCtrl.getDramaId()) {
@@ -164,10 +167,8 @@ public class RoomActor extends DmActor {
                 }
                 if (!result.contains(false)) {
                     LOGGER.debug("value.getResult={},idx={}", value.getResult(), value.getIdx());
-                    for (Map.Entry<String, RoomPlayer> entries : roomCtrl.getTarget().getIdToRoomPlayer().entrySet()) {
-                        In_PlayerSelectReadRoomMsg in_playerSelectReadRoomMsg = new In_PlayerSelectReadRoomMsg(entries.getKey(), value.getResult());
-                        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerSelectReadRoomMsg, ActorRef.noSender());
-                    }
+                    In_PlayerSelectReadRoomMsg in_playerSelectReadRoomMsg = new In_PlayerSelectReadRoomMsg(roomPlayerCtrl.getPlayerId(), value.getResult());
+                    DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerSelectReadRoomMsg, ActorRef.noSender());
                     break;
                 }
             }
@@ -223,8 +224,6 @@ public class RoomActor extends DmActor {
             In_PlayerOnSwitchStateRoomMsg in_playerOnSwitchStateRoomMsg = new In_PlayerOnSwitchStateRoomMsg(entries.getKey(), roomCtrl.getTarget());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(in_playerOnSwitchStateRoomMsg, ActorRef.noSender());
         }
-        onCheckAfterSwitchStateRoomMsg();
-
     }
 
     private void onPlayerDisconnectedRoom(In_PlayerDisconnectedRoomMsg msg) {
@@ -272,9 +271,9 @@ public class RoomActor extends DmActor {
             if (roomCtrl.containsPlayer(player.getPlayerId())) {
                 RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(player.getPlayerId());
                 if (roomPlayerCtrl.hasRole()) {
-                    LOGGER.debug("房间收到消息: roleName={},action={}", Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), EnumUtils.protoActionToString(cm_room.getAction()));
+                    LOGGER.debug("房间收到消息: RoomSimpleId={}, roleName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), player.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
                 } else {
-                    LOGGER.debug("房间收到消息: playerName={},action={}", player.getBase().getName(), EnumUtils.protoActionToString(cm_room.getAction()));
+                    LOGGER.debug("房间收到消息: RoomSimpleId={}, playerName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), player.getBase().getName(), player.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
                 }
             }
             try {
@@ -357,6 +356,9 @@ public class RoomActor extends DmActor {
                         break;
                     case Action.UNLOCK_VALUE:
                         onUnlock();
+                        break;
+                    case Action.SELECTREAD_VALUE:
+                        onSelectRead();
                         break;
                     default:
                         break;
@@ -875,6 +877,7 @@ public class RoomActor extends DmActor {
         br.setSmRoom(b);
         DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(new In_PlayerCreateRoomMsg(player.getPlayerId(), roomCtrl.getTarget()), ActorRef.noSender());
         LOGGER.debug("房间创建成功 roomId={},dramaId={},MasterId={}", roomId, cm_room.getDramaId(), masterId);
+        LogHandler.roomCreateLog(roomCtrl.getTarget());
     }
 
     private void _checkRoomContainsPlayer(Player player) {

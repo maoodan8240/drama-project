@@ -49,6 +49,7 @@ public class HandleConnectionStatusAction implements Action {
         Sm_HeartBeat.Builder b = Sm_HeartBeat.newBuilder();
         b.setAction(Sm_HeartBeat.Action.RESP_SYNC);
         br.setSmHeartBeat(b.build());
+        b.setServerTime(System.currentTimeMillis());
         connection.send(new MessageSendHolder(br.build(), "", new ArrayList<>()));
         String playerId = worldCtrl.getPlayerId(connection);
         worldCtrl.setHeartBeating(playerId);

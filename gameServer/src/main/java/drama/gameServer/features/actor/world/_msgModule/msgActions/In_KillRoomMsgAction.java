@@ -27,8 +27,6 @@ public class In_KillRoomMsgAction implements Action {
         if (roomId != null && worldCtrl.roomActorCanUse(roomId)) {
             ActorRef roomActorRef = worldCtrl.getRoomActorRef(roomId);
             roomActorRef.tell(Kill.getInstance(), ActorRef.noSender());
-            worldCtrl.removeRoomActorRef(roomId);
-            worldCtrl.removeRoom(roomId, msg.getPlayerId());
             LOGGER.debug("GM操作,房间Acotr关系销毁成功:roomId={}", msg.getRoomId());
         } else {
             LOGGER.debug("GM操作,房间Acotr关系销毁失败,没有找到对应的Actor: roomId={}", msg.getRoomId());
@@ -40,8 +38,6 @@ public class In_KillRoomMsgAction implements Action {
         if (roomId != null && worldCtrl.roomActorCanUse(roomId)) {
             ActorRef roomActorRef = worldCtrl.getRoomActorRef(roomId);
             roomActorRef.tell(Kill.getInstance(), ActorRef.noSender());
-            worldCtrl.removeRoomActorRef(roomId);
-            worldCtrl.removeRoom(roomId, msg.getPlayerId());
             LOGGER.debug("房间Acotr关系销毁成功:roomId={}", msg.getRoomId());
         } else {
             LOGGER.debug("房间Acotr关系销毁失败,没有找到对应的Actor: roomId={}", msg.getRoomId());

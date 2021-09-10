@@ -79,7 +79,11 @@ public class RoomProtoUtils {
         broom.setTime(row.getTime());
         broom.setMasterName(room.getMasterName());
         broom.setIsInitState(RoomStateEnum.isFirstState(room.getRoomState(), room.getDramaId()));
-        broom.setCreateTime(room.getBeginTime());
+        if (room.getBeginTime() != MagicNumbers.DEFAULT_ZERO) {
+            broom.setDuration(System.currentTimeMillis() - room.getBeginTime());
+        } else {
+            broom.setDuration(MagicNumbers.DEFAULT_ZERO);
+        }
     }
 
 

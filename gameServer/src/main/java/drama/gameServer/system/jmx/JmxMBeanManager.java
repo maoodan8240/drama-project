@@ -14,6 +14,7 @@ public class JmxMBeanManager {
         try {
             ObjectName appDebuggerMBeanName = new ObjectName("drama.gameServer.features.manager:name=AppDebugger");
             AppDebugger appDebugger = new AppDebugger();
+            SenderBean senderBean = new SenderBean();
             server.registerMBean(appDebugger, appDebuggerMBeanName);
         } catch (Exception e) {
             throw new JmxMBeanManagerInitException("JMX MBean 创建失败！", e);
