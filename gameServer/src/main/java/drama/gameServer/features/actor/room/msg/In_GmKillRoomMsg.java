@@ -1,12 +1,11 @@
 package drama.gameServer.features.actor.room.msg;
 
-import dm.relationship.base.msg.implement._RoomInnerMsg;
+import dm.relationship.base.msg.interfaces.GmRoomMsg;
 
-public class In_GmKillRoomMsg extends _RoomInnerMsg {
+public class In_GmKillRoomMsg implements GmRoomMsg {
     public int simpleRoomId;
 
-    public In_GmKillRoomMsg(String roomId, int simpleRoomId) {
-        super(roomId);
+    public In_GmKillRoomMsg(int simpleRoomId) {
         this.simpleRoomId = simpleRoomId;
     }
 

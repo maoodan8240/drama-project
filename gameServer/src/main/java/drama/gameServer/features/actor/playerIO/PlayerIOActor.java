@@ -92,9 +92,6 @@ public class PlayerIOActor extends DmActor {
 
     @Override
     public void onRecv(Object msg) throws Exception {
-//        if (msg instanceof In_LoginMsg) {
-//            onLogin((In_LoginMsg) msg);
-//        } else
         if (msg instanceof NewLoginResponseMsg) {
             onLogin((NewLoginResponseMsg) msg);
         } else if (msg instanceof PlayerNetWorkMsg) {
@@ -589,16 +586,16 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerQuitMsg(In_PlayerQuitRoomMsg msg) {
-        if (playerIOCtrl.getTarget().getPlayerId() == msg.getMasterId()) {
-            LOGGER.debug("房间主人退出了房间,所有玩家清出房间 masterId={} <-->roomId={}", msg.getMasterId(), msg.getRoomId());
-        } else {
-            LOGGER.debug("玩家退出房间 player={} <-->roomId={}", playerIOCtrl.getTarget().getPlayerId(), msg.getRoomId());
+        if (msg.getQuitPlayerId().equals(playerId)) {
+            LOGGER.debug("玩家退出房间 player={} <-->roomId={}", msg.getQuitPlayerId(), msg.getRoomId());
+            //如果退出的玩家id是自己,清掉自己的roomId
+            playerIOCtrl.quitRoom();
         }
-        playerIOCtrl.quitRoom();
         Response.Builder br = ProtoUtils.create_Response(Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_QUIT);
         br.setResult(true);
         RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
         b.setAction(RoomProtos.Sm_Room.Action.RESP_QUIT);
+        b.setPlayerId(msg.getQuitPlayerId());
         br.setSmRoom(b.build());
         playerIOCtrl.send(br.build());
     }

@@ -100,7 +100,6 @@ public class Table_Search_Row extends AbstractRow {
 
 
     public static Table_Search_Row getTableSearchRowByIdAndDramaId(int idx, int dramaId) {
-        System.out.println("getTableSearchRowByTypeIdAndDramaId：" + idx);
         for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
             if (row.getIdx() == idx && row.getDramaId() == dramaId) {
                 return row;
@@ -111,7 +110,6 @@ public class Table_Search_Row extends AbstractRow {
     }
 
     public static int getRowIdByIdAndDramaId(int typeid, int dramaId) {
-        System.out.println("getTableSearchRowByTypeIdAndDramaId：" + typeid);
         for (Table_Search_Row row : RootTc.get(Table_Search_Row.class).values()) {
             if (row.getTypeid() == typeid && row.getDramaId() == dramaId) {
                 return row.getIdx();

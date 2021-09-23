@@ -4,7 +4,6 @@ import dm.relationship.table.RootTc;
 import drama.gameServer.features.manager.Action;
 import ws.common.table.table.interfaces.Row;
 
-import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import java.util.List;
 
@@ -18,8 +17,6 @@ public class Refresh_Table_Action extends NotificationBroadcasterSupport impleme
         try {
             List<Class<? extends Row>> refresh = RootTc.refresh();
             rs = "true";
-            Notification notification = new Notification("Refresh_Table_Action", "true", 0);
-            sendNotification(notification);
         } catch (Exception e) {
             e.printStackTrace();
             rs = "false";

@@ -311,4 +311,6 @@ public class Room {
                 ", draftNumToSelectDraftIdToRoleId=" + draftNumToSelectDraftIdToRoleId +
                 '}';
     }
+
+
 }

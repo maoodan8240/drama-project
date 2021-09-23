@@ -4,17 +4,17 @@ import dm.relationship.base.msg.implement._PlayerInnerMsg;
 
 public class In_PlayerQuitRoomMsg extends _PlayerInnerMsg {
     private String roomId;
-    private String masterId;
+    private String quitPlayerId;
 
-    public In_PlayerQuitRoomMsg(String playerId, String roomId, String masterId) {
+    public In_PlayerQuitRoomMsg(String playerId, String roomId, String quitPlayerId) {
         super(playerId);
         this.roomId = roomId;
-        this.masterId = masterId;
+        this.quitPlayerId = quitPlayerId;
     }
 
 
-    public String getMasterId() {
-        return masterId;
+    public String getQuitPlayerId() {
+        return quitPlayerId;
     }
 
     public String getRoomId() {

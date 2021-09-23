@@ -88,4 +88,10 @@ public class RoomCenter {
             }
         }
     }
+
+    public Room get(int simpleId) {
+        String roomId = getSimpleIdToRoomId().get(simpleId);
+        return getRoom(roomId);
+    }
+
 }

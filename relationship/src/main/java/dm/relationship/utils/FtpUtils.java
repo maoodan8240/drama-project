@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FtpUtils {
-
     /**
      * Description: 向FTP服务器上传文件
      *
@@ -79,4 +78,6 @@ public class FtpUtils {
         }
         return result;
     }
+
+
 }

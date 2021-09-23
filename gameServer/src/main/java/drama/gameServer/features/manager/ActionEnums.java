@@ -1,5 +1,6 @@
 package drama.gameServer.features.manager;
 
+import drama.gameServer.features.manager._module.bean.All_Room_Player_Action;
 import drama.gameServer.features.manager._module.bean.Kill_Room_Action;
 import drama.gameServer.features.manager._module.bean.Refresh_Table_Action;
 import drama.gameServer.features.manager._module.bean.Sync_Room_Action;
@@ -8,6 +9,7 @@ public enum ActionEnums {
     REFRESH_TABLE_DATE(new Refresh_Table_Action(), "refresh_table_data"),//
     KILL_ROOM(new Kill_Room_Action(), "kill_room"),//
     SYNC_ROOM(new Sync_Room_Action(), "sync_room"),//
+    ALL_ROOM_PLAYER(new All_Room_Player_Action(), "all_room_player"),//
     ;//
     private Action action;
     private String actionName;

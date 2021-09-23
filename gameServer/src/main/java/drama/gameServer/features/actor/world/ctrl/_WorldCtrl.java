@@ -277,4 +277,6 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     public boolean containsRoom(int simpleId) {
         return target.getRoomCenter().getSimpleIdToRoomId().containsKey(simpleId);
     }
+    
+
 }

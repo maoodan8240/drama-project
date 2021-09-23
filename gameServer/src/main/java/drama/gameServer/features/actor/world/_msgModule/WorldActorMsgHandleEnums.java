@@ -7,6 +7,7 @@ import drama.gameServer.features.actor.world._msgModule.msgActions.HandleConnect
 import drama.gameServer.features.actor.world._msgModule.msgActions.HandleLoginMsgAction;
 import drama.gameServer.features.actor.world._msgModule.msgActions.HandlePlayerMsgkAction;
 import drama.gameServer.features.actor.world._msgModule.msgActions.HandleRoomMsgAction;
+import drama.gameServer.features.actor.world._msgModule.msgActions.In_GmSupportAction;
 import drama.gameServer.features.actor.world._msgModule.msgActions.In_KillRoomMsgAction;
 import drama.gameServer.features.actor.world._msgModule.msgActions.In_LoginResponseAction;
 import drama.gameServer.features.actor.world._msgModule.msgActions.In_NoticeToKillOverTimeCachePlayerActorAction;
@@ -25,6 +26,7 @@ public enum WorldActorMsgHandleEnums {
     _In_LoginResponseAction(new In_LoginResponseAction()),//
     _In_NoticeToKillOverTimeCachePlayerActorAction(new In_NoticeToKillOverTimeCachePlayerActorAction()),//
     _In_PrepareToKillPlayerActorResponse(new In_PrepareToKillPlayerActorResponseAction()),//
+    _In_GmSupport(new In_GmSupportAction()),//
 
 
     _TerminatedAction(new TerminatedAction()), //
