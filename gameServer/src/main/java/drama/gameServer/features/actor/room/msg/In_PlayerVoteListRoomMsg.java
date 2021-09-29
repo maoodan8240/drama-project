@@ -10,7 +10,7 @@ public class In_PlayerVoteListRoomMsg extends _PlayerInnerMsg {
     private int dramaId;
 
     public In_PlayerVoteListRoomMsg(String playerId, Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId, int dramaId) {
-        super(playerId);
+        super(playerId, dramaId);
         this.voteRoleIdToPlayerRoleId = voteRoleIdToPlayerRoleId;
         this.dramaId = dramaId;
     }

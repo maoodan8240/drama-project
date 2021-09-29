@@ -5,8 +5,8 @@ import dm.relationship.base.msg.implement._PlayerInnerMsg;
 public class In_PlayerVoteRoomMsg extends _PlayerInnerMsg {
     private int murderRoleId;
 
-    public In_PlayerVoteRoomMsg(String playerId, int murderRoleId) {
-        super(playerId);
+    public In_PlayerVoteRoomMsg(int dramaId, String playerId, int murderRoleId) {
+        super(playerId, dramaId);
         this.murderRoleId = murderRoleId;
     }
 

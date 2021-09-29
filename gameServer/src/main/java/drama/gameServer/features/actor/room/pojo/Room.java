@@ -78,15 +78,19 @@ public class Room {
      */
     private String masterName;
     /**
-     * 被投凶的角色Id对应投凶角色Id
+     * 第几轮被投凶的角色Id对应投凶角色Id
      */
     private Map<Integer, Map<Integer, List<Integer>>> voteNumToVoteRoleIdToRoleId = new ConcurrentHashMap<>();
+    /**
+     * 第几轮子剧本被投凶的角色Id对应投凶角色Id
+     */
+    private Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteRoleIdToRoleId = new ConcurrentHashMap<>();
     /**
      * 下一阶段解锁时间
      */
     private long nextSTime;
     /**
-     * 第几个的被投票的线索分类Id对应玩家角色Id
+     * 第几个的被投票的线索分类Id对应玩家角色Ids
      */
     private Map<Integer, Map<Integer, List<Integer>>> voteNumToVoteTypeIdToRoleId = new ConcurrentHashMap<>();
     /**
@@ -163,6 +167,13 @@ public class Room {
         return voteNumToVoteTypeIdToRoleId;
     }
 
+    public Map<Integer, Map<Integer, List<Integer>>> getSubVoteNumToVoteRoleIdToRoleId() {
+        return subVoteNumToVoteRoleIdToRoleId;
+    }
+
+    public void setSubVoteNumToVoteRoleIdToRoleId(Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteRoleIdToRoleId) {
+        this.subVoteNumToVoteRoleIdToRoleId = subVoteNumToVoteRoleIdToRoleId;
+    }
 
     public List<Integer> getCanVoteSearchTypeId() {
         return canVoteSearchTypeId;

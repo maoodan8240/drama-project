@@ -11,7 +11,7 @@ public class In_PlayerSyncClueRoomMsg extends _PlayerInnerMsg {
     private int dramaId;
 
     public In_PlayerSyncClueRoomMsg(String playerId, List<Integer> clueIds, RoomProtos.Sm_Room.Action action, int dramaId) {
-        super(playerId);
+        super(playerId, dramaId);
         this.clueIds = clueIds;
         this.action = action;
         this.dramaId = dramaId;

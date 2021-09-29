@@ -11,6 +11,7 @@ import ws.common.table.table.interfaces.cell.TupleListCell;
 import ws.common.table.table.utils.CellParser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +52,10 @@ public class Table_Acter_Row extends AbstractRow {
      * string 投票搜证次数
      */
     private TupleListCell<String> vSAp;
-    private Integer dramaId;
+    /**
+     * string 初始道具
+     */
+    private TupleListCell<String> prop;
 
     public static int getNoSelectActer(int dramaId) {
         int roleId = 0;
@@ -76,6 +80,7 @@ public class Table_Acter_Row extends AbstractRow {
         ap = CellParser.parseTupleListCell("Ap", map, String.class);
         bgm = CellParser.parseListCell("Bgm", map, String.class);
         vSAp = CellParser.parseTupleListCell("VSAp", map, String.class);//string
+        prop = CellParser.parseTupleListCell("Prop", map, String.class);//string
     }
 
 
@@ -113,6 +118,10 @@ public class Table_Acter_Row extends AbstractRow {
 
     public List<TupleCell<String>> getvSAp() {
         return vSAp.getAll();
+    }
+
+    public TupleListCell<String> getProp() {
+        return prop;
     }
 
     public static EnumsProtos.SexEnum getSex(int roleIdx, int dramaId) {
@@ -219,6 +228,16 @@ public class Table_Acter_Row extends AbstractRow {
         }
         String msg = String.format("getRoleNameByRoleId roleId=%s,dramaId=%s", roleId, dramaId);
         throw new TableRowLogicCheckFailedException(Table_Acter_Row.class, roleId, msg);
+    }
+
+    public static Map<Integer, Table_Acter_Row> getAllRoleIdToRowByDramaId(int dramaId) {
+        Map<Integer, Table_Acter_Row> map = new HashMap<>();
+        for (Table_Acter_Row row : RootTc.get(Table_Acter_Row.class).values()) {
+            if (row.getDramaId() == dramaId) {
+                map.put(row.getRoleId(), row);
+            }
+        }
+        return map;
     }
 
 

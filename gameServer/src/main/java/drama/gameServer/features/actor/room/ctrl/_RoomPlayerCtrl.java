@@ -44,7 +44,7 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
 
     @Override
     public boolean hasRole() {
-        return getRoleId() != 0;
+        return getRoleId() != MagicNumbers.DEFAULT_ZERO;
     }
 
     @Override
@@ -119,7 +119,32 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
     }
 
     @Override
+    public void setSubVoteMurder(boolean subVoteMurder) {
+        target.setSubVoteMurder(subVoteMurder);
+    }
+
+    @Override
     public boolean isVoteMurder() {
         return target.isVoteMurder();
+    }
+
+    @Override
+    public boolean isSubVoteMurder() {
+        return target.isSubVoteMurder();
+    }
+
+    @Override
+    public boolean hasSelectedSubRole(int subNum) {
+        return target.getSubNumToSubRoleId().get(subNum) != null;
+    }
+
+    @Override
+    public int getSubRoleId(int subNum) {
+        return target.getSubNumToSubRoleId().get(subNum) != null ? target.getSubNumToSubRoleId().get(subNum) : 0;
+    }
+
+    @Override
+    public void setSelectSubRole(int subRoleId, int subNum) {
+        target.getSubNumToSubRoleId().put(subNum, subRoleId);
     }
 }

@@ -1,6 +1,6 @@
 package drama.gameServer.features.actor.room.ctrl;
 
-import dm.relationship.topLevelPojos.player.Player;
+import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
@@ -17,7 +17,7 @@ public interface RoomCtrl extends Controler<Room> {
      * @param player
      * @param dramaId
      */
-    void createRoom(String roomId, Player player, int dramaId);
+    void createRoom(String roomId, SimplePlayer player, int dramaId);
 
     /**
      * 清出玩家
@@ -211,11 +211,18 @@ public interface RoomCtrl extends Controler<Room> {
     void addVote(String playerId, int roleId);
 
     /**
-     * 剩余几人未投票
+     * 剩余几人未投凶
      *
      * @return
      */
-    int RemainNum();
+    int remainVoteNum();
+
+    /**
+     * 剩余几人子角色未投凶
+     *
+     * @return
+     */
+    int remainSubVoteNum();
 
     /**
      * 获取投凶结果
@@ -224,13 +231,12 @@ public interface RoomCtrl extends Controler<Room> {
      */
     Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId(int voteNum);
 
-//    /**
-//     * 获取投票搜证结果
-//     *
-//     * @param voteNum
-//     * @return
-//     */
-//    Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId(int voteNum);
+    /**
+     * 获取子角色投凶结果
+     *
+     * @return
+     */
+    Map<Integer, List<Integer>> getSubVoteRoleIdToPlayerRoleId(int voteNum);
 
     /**
      * 是否可以解锁下一阶段
@@ -399,4 +405,38 @@ public interface RoomCtrl extends Controler<Room> {
      * @return
      */
     boolean checkPlayerFinishChoosDub();
+
+    /**
+     * 子角色列表
+     *
+     * @return
+     */
+    Map<Integer, String> subSelectList(int subNum);
+
+    /**
+     * 选择子角色
+     *
+     * @param subRoleId
+     * @param playerId
+     */
+    void onSubSelect(int subRoleId, int subNum, String playerId);
+
+    /**
+     * 子剧本投凶
+     *
+     * @param subRoleId
+     * @param subNum
+     * @param playerId
+     */
+    void onSubVote(int subRoleId, int subNum, String playerId);
+
+    /**
+     * 子剧本投凶结果
+     *
+     * @param subNum
+     * @param playerId
+     */
+    void onSubVoteResult(int subNum, String playerId);
+
+    void onSubVoteList(int subNum, String playerId);
 }

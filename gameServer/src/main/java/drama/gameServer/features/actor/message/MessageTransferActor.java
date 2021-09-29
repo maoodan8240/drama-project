@@ -41,11 +41,11 @@ public class MessageTransferActor extends DmActor {
             getContext().watch(actorRef);
             actorRefsForReceive.add(actorRef);
         }
-        for (int i = 0; i < forSend; i++) {
-            ActorRef actorRef = getContext().actorOf(Props.create(MessageTransferForSendActor.class), ActorSystemPath.DM_GameServer_MessageTransferForSend + i);
-            getContext().watch(actorRef);
-            actorRefsForSend.add(actorRef);
-        }
+//        for (int i = 0; i < forSend; i++) {
+//            ActorRef actorRef = getContext().actorOf(Props.create(MessageTransferForSendActor.class), ActorSystemPath.DM_GameServer_MessageTransferForSend + i);
+//            getContext().watch(actorRef);
+//            actorRefsForSend.add(actorRef);
+//        }
     }
 
     @Override

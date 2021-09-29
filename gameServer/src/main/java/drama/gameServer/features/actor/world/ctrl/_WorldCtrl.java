@@ -5,11 +5,9 @@ import akka.actor.ActorRef;
 import akka.actor.Kill;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.daos.player.PlayerDao;
-import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomCenter;
 import drama.gameServer.features.actor.world.pojo.World;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.mongoDB.interfaces.MongoDBClient;
@@ -224,9 +222,6 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
 
     @Override
     public boolean containsRoom(String roomId) {
-        if (StringUtils.isEmpty(roomId)) {
-            throw new BusinessLogicMismatchConditionException("worldCtrl containsRoom roomId isEmpty ");
-        }
         boolean flag1 = target.getRoomIdToRoomActorRef().containsKey(roomId);
         boolean flag2 = target.getRoomCenter().containsRoomId(roomId);
         return flag1 && flag2;
@@ -277,6 +272,6 @@ public class _WorldCtrl extends AbstractControler<World> implements WorldCtrl {
     public boolean containsRoom(int simpleId) {
         return target.getRoomCenter().getSimpleIdToRoomId().containsKey(simpleId);
     }
-    
+
 
 }

@@ -5,8 +5,8 @@ import dm.relationship.base.msg.implement._PlayerInnerMsg;
 public class In_PlayerVoteSearchRoomMsg extends _PlayerInnerMsg {
     private String typeName;
 
-    public In_PlayerVoteSearchRoomMsg(String playerId, String typeName) {
-        super(playerId);
+    public In_PlayerVoteSearchRoomMsg(int dramaId, String playerId, String typeName) {
+        super(playerId, dramaId);
         this.typeName = typeName;
     }
 
@@ -14,5 +14,5 @@ public class In_PlayerVoteSearchRoomMsg extends _PlayerInnerMsg {
         return typeName;
     }
 
-   
+
 }

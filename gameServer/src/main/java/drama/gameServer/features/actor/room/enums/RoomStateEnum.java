@@ -23,7 +23,16 @@ public enum RoomStateEnum {
     UNLOCK("UNLOCK", EnumsProtos.RoomStateEnum.UNLOCK),             //  解锁事件
     DRAFT("DRAFT", EnumsProtos.RoomStateEnum.DRAFT),                //  轮抽
     SELECTREAD("SELECTREAD", EnumsProtos.RoomStateEnum.SELECTREAD), //  动态剧本
-    NOSELECT("NOSELECT", EnumsProtos.RoomStateEnum.NOSELECT),               //  强制选角
+    NOSELECT("NOSELECT", EnumsProtos.RoomStateEnum.NOSELECT),       //  强制选角
+    SUBSELECT("SUBSELECT", EnumsProtos.RoomStateEnum.SUBSELECT),    //  选择子角色
+    SECRETTALK("SECRETTALK", EnumsProtos.RoomStateEnum.SECRETTALK), //  私聊
+    SUBVOTE("SUBVOTE", EnumsProtos.RoomStateEnum.SUBVOTE),          //  子剧本投凶
+    CHOICE("CHOICE", EnumsProtos.RoomStateEnum.CHOICE),             //  个人选择
+    AUCTION("AUCTION", EnumsProtos.RoomStateEnum.AUCTION),          //  拍卖
+    SHOOT("SHOOT", EnumsProtos.RoomStateEnum.SHOOT),                //  开枪
+    SUBREAD("SUBREAD", EnumsProtos.RoomStateEnum.SUBREAD),          //  子剧本读本阶段
+    UNLOCKINFO("UNLOCKINFO", EnumsProtos.RoomStateEnum.UNLOCKINFO), //  解锁信息(玩家身上的一些动态信息)
+
 
     NULL("", null);
 

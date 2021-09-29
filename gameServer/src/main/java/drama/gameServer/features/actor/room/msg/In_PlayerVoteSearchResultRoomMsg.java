@@ -13,7 +13,7 @@ public class In_PlayerVoteSearchResultRoomMsg extends _PlayerInnerMsg {
     private RoomPlayer roomPlayer;
 
     public In_PlayerVoteSearchResultRoomMsg(String playerId, Map<Integer, List<Integer>> voteTypeIdToPlayerRoleId, int clueId, RoomPlayer roomPlayer, int dramaId) {
-        super(playerId);
+        super(playerId, dramaId);
         this.voteTypeIdToPlayerRoleId = voteTypeIdToPlayerRoleId;
         this.clueId = clueId;
         this.dramaId = dramaId;

@@ -82,7 +82,6 @@ public class ActorSystemPath {
     public static final String DM_GameServer_World = "world";
     public static final String DM_GameServer_Selection_World = DM_Common_Selection_DMRoot + "/world";
 
-    //all player manager 暂未启用
     public static final String DM_GameServer_PlayerIO = "playerIO-";
     public static final String DM_GameServer_Selection_PlayerIO = DM_GameServer_Selection_World + "/playerIO-*";
 

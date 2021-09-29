@@ -1,0 +1,10 @@
+ID	第几次Sub投凶	Sub角色ID	角色名称	角色图片	真凶	是否显示真凶
+Id	SubVoteNum	SubRoleId	SubRoleName	SubRolePic	Murder	Truth
+int	int	int	string	string	bool	bool
+1	1	101	101房间	101zh	0	0
+2	1	102	102房间	102zh	0	0
+3	1	103	103房间	103zh	0	0
+4	1	202	202房间	202zh	0	0
+5	1	301	301房间	301zh	0	0
+6	1	302	302房间	302zh	1	0
+7	1	303	303房间	303zh	0	0

@@ -1,6 +1,6 @@
 package drama.gameServer.features.actor.room.pojo;
 
-import dm.relationship.topLevelPojos.player.Player;
+import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -15,9 +15,17 @@ public class RoomPlayer {
     private int roleId;
     private String playerIcon;
     /**
+     * 子角色Id
+     */
+    private Map<Integer, Integer> subNumToSubRoleId = new HashMap<>();
+    /**
      * 是否已经投凶
      */
     private boolean voteMurder;
+    /**
+     * 是否已经子角色投凶
+     */
+    private boolean subVoteMurder;
     /**
      * 是否已经举手准备
      */
@@ -45,13 +53,28 @@ public class RoomPlayer {
 
     private List<Integer> clueIds = new ArrayList<>();
 
-    public RoomPlayer(Player player, String roomId) {
-        this.playerId = player.getPlayerId();
+    public RoomPlayer(SimplePlayer simplePlayer, String roomId) {
+        this.playerId = simplePlayer.getPlayerId();
         this.roomId = roomId;
-        this.playerName = !StringUtils.isEmpty(player.getBase().getName()) ? player.getBase().getName() : "";
-        this.playerIcon = !StringUtils.isEmpty(player.getBase().getIcon()) ? player.getBase().getIcon() : "";
+        this.playerName = !StringUtils.isEmpty(simplePlayer.getPlayerName()) ? simplePlayer.getPlayerName() : "";
+        this.playerIcon = !StringUtils.isEmpty(simplePlayer.getIcon()) ? simplePlayer.getIcon() : "";
     }
 
+    public boolean isSubVoteMurder() {
+        return subVoteMurder;
+    }
+
+    public void setSubVoteMurder(boolean subVoteMurder) {
+        this.subVoteMurder = subVoteMurder;
+    }
+
+    public Map<Integer, Integer> getSubNumToSubRoleId() {
+        return subNumToSubRoleId;
+    }
+
+    public void setSubNumToSubRoleId(Map<Integer, Integer> subNumToSubRoleId) {
+        this.subNumToSubRoleId = subNumToSubRoleId;
+    }
 
     public boolean isVoteMurder() {
         return voteMurder;

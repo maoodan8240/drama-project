@@ -3,13 +3,13 @@ package dm.relationship.base.msg.implement;
 import com.google.protobuf.Message;
 import dm.relationship.base.msg.AbstractWorldMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
-import dm.relationship.topLevelPojos.player.Player;
+import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import ws.common.network.server.interfaces.Connection;
 
 public class _RoomNetWorkMsg extends AbstractWorldMsg implements RoomNetWorkMsg {
     private final Connection connection;
     private final Message message;
-    private Player player;
+    private SimplePlayer simplePlayer;
 
 
     public _RoomNetWorkMsg(Connection connection, Message message) {
@@ -29,12 +29,12 @@ public class _RoomNetWorkMsg extends AbstractWorldMsg implements RoomNetWorkMsg 
     }
 
     @Override
-    public void setPlayer(Player player) {
-        this.player = player;
+    public void setSimplePlayer(SimplePlayer simplePlayer) {
+        this.simplePlayer = simplePlayer;
     }
 
     @Override
-    public Player getPlayer() {
-        return this.player;
+    public SimplePlayer getSimplePlayer() {
+        return this.simplePlayer;
     }
 }

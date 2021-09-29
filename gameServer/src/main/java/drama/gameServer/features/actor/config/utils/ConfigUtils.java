@@ -102,6 +102,21 @@ public class ConfigUtils {
             case CommonProtos.Cm_Common_Config.Action.DRAFT_VALUE:
                 b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_DRAFT);
                 break;
+            case CommonProtos.Cm_Common_Config.Action.SUBACTER_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SUBACTER);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SECRETTALK_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SECRETTALK);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.SUBMURDER_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_SUBMURDER);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.ITEM_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_ITEM);
+                break;
+            case CommonProtos.Cm_Common_Config.Action.AUCTION_VALUE:
+                b.setAction(CommonProtos.Sm_Common_Config.Action.RESP_AUCTION);
+                break;
             default:
                 break;
         }

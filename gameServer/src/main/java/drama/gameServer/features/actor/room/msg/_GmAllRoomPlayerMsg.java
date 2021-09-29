@@ -24,13 +24,19 @@ public class _GmAllRoomPlayerMsg {
 
     public static class Response implements GmRoomMsg {
         private List<RoomPlayer> roomPlayerList;
+        private int dramaId;
 
-        public Response(List<RoomPlayer> roomPlayerList) {
+        public Response(List<RoomPlayer> roomPlayerList, int dramaId) {
             this.roomPlayerList = roomPlayerList;
+            this.dramaId = dramaId;
         }
 
         public List<RoomPlayer> getRoomPlayerList() {
             return roomPlayerList;
+        }
+
+        public int getDramaId() {
+            return dramaId;
         }
     }
 }

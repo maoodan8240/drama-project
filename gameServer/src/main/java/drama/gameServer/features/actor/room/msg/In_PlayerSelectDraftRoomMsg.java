@@ -12,6 +12,7 @@ public class In_PlayerSelectDraftRoomMsg extends _PlayerInnerMsg {
         this.roleId = roleId;
     }
 
+
     public int getDraftId() {
         return draftId;
     }

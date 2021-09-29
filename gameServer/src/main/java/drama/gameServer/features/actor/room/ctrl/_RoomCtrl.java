@@ -1,7 +1,10 @@
 package drama.gameServer.features.actor.room.ctrl;
 
+import akka.actor.ActorRef;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.MagicWords_Mongodb;
+import dm.relationship.base.cluster.ActorSystemPath;
+import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
 import dm.relationship.daos.DaoContainer;
 import dm.relationship.daos.simpleId.SimpleIdDao;
 import dm.relationship.enums.SimpleIdTypeEnum;
@@ -15,11 +18,20 @@ import dm.relationship.table.tableRows.Table_RunDown_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
-import dm.relationship.topLevelPojos.player.Player;
+import dm.relationship.table.tableRows.Table_SubActer_Row;
+import dm.relationship.table.tableRows.Table_SubMurder_Row;
 import dm.relationship.topLevelPojos.simpleId.SimpleId;
+import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.enums.RoomStateEnum;
+import drama.gameServer.features.actor.room.msg.In_PlayerSelectSubActerRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteListRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRemainRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteResultRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerVoteResultRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerVoteRoomMsg;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
+import drama.gameServer.system.actor.DmActorSystem;
 import drama.protos.EnumsProtos;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -29,9 +41,11 @@ import ws.common.mongoDB.interfaces.MongoDBClient;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.mc.controler.AbstractControler;
+import ws.common.utils.message.interfaces.InnerMsg;
 import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -76,15 +90,15 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void createRoom(String roomId, Player player, int dramaId) {
+    public void createRoom(String roomId, SimplePlayer simplePlayer, int dramaId) {
         int simpleRoomId = SIMPLE_ID_DAO.nextSimpleId(SimpleIdTypeEnum.ROOM);
 //        int simpleRoomId = 10001;
         Table_SceneList_Row tabRow = RootTc.get(Table_SceneList_Row.class).get(dramaId);
-        String playerName = !StringUtils.isEmpty(player.getBase().getName()) ? player.getBase().getName() : "";
-        target = new Room(roomId, dramaId, player.getPlayerId(), simpleRoomId, playerName, tabRow);
+        String playerName = !StringUtils.isEmpty(simplePlayer.getPlayerName()) ? simplePlayer.getPlayerName() : "";
+        target = new Room(roomId, dramaId, simplePlayer.getPlayerId(), simpleRoomId, playerName, tabRow);
         setNextStateAndTimes();
         setTarget(target);
-        RoomPlayer roomPlayer = new RoomPlayer(player, roomId);
+        RoomPlayer roomPlayer = new RoomPlayer(simplePlayer, roomId);
         RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
         roomPlayerCtrl.setTarget(roomPlayer);
         addPlayer(roomPlayer, roomPlayerCtrl);
@@ -299,6 +313,13 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 for (Integer roleId : allRoleId) {
                     target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
                 }
+            } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
+                roomPlayerCtrl.setSubVoteMurder(false);
+                target.getSubVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
+                List<Integer> allSubRoleId = Table_SubMurder_Row.getAllRoleId(getDramaId());
+                for (Integer subRoleId : allSubRoleId) {
+                    target.getSubVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(subRoleId, new ArrayList<>());
+                }
             } else if (roomState == EnumsProtos.RoomStateEnum.SOLO) {
                 setSoloIdx(MagicNumbers.DEFAULT_ZERO);
             }
@@ -343,7 +364,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public int RemainNum() {
+    public int remainVoteNum() {
         int num = 0;
         Map<Integer, List<Integer>> voteRoleIdToRoleId = target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
         for (Map.Entry<Integer, List<Integer>> entry : voteRoleIdToRoleId.entrySet()) {
@@ -354,9 +375,26 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
+    public int remainSubVoteNum() {
+        int num = 0;
+        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
+        for (Map.Entry<Integer, List<Integer>> entry : subVoteRoleIdToRoleId.entrySet()) {
+            num += entry.getValue().size();
+        }
+        //TODO 配置 replace getRoomPlayerNum()
+        return getRoomPlayerNum() - num;
+    }
+
+    @Override
     public Map<Integer, List<Integer>> getVoteRoleIdToPlayerRoleId(int voteNum) {
         return target.getVoteNumToVoteRoleIdToRoleId().get(voteNum);
     }
+
+    @Override
+    public Map<Integer, List<Integer>> getSubVoteRoleIdToPlayerRoleId(int voteNum) {
+        return target.getSubVoteNumToVoteRoleIdToRoleId().get(voteNum);
+    }
+
 
     @Override
     public Map<Integer, List<Integer>> getVoteSearchTypeIdToPlayerRoleId(int voteNum) {
@@ -489,13 +527,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return Table_Search_Row.getRowIdByIdAndDramaId(typeId, getDramaId());
     }
 
-//    @Override
-//    public Map<Integer, List<Integer>> clearVoteSearchTypeIdToPlayerRoleId(int voteNum) {
-//        Map<Integer, List<Integer>> voteTypeIdToRoleId = new ConcurrentHashMap<>();
-//        voteTypeIdToRoleId.putAll(target.getVoteNumToVoteTypeIdToRoleId().get(voteNum));
-//        target.getVoteNumToVoteTypeIdToRoleId().get(voteNum).clear();
-//        return voteTypeIdToRoleId;
-//    }
 
     @Override
     public void removeCanVoteSearchTypeId(int clueId) {
@@ -605,4 +636,136 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
         return true;
     }
+
+    @Override
+    public Map<Integer, String> subSelectList(int subNum) {
+        Map<Integer, String> canSubSelect = new HashMap<>();
+        List<Integer> allSubRoleIds = Table_SubActer_Row.getAllSubRoleIds(getDramaId(), subNum);
+        for (Integer id : allSubRoleIds) {
+            for (Map.Entry<String, RoomPlayer> entry : getTarget().getIdToRoomPlayer().entrySet()) {
+                int subRoleId = 0;
+                if (entry.getValue().getSubNumToSubRoleId().get(subNum) != null) {
+                    subRoleId = entry.getValue().getSubNumToSubRoleId().get(subNum);
+                }
+                if ((subRoleId == id)) {
+                    canSubSelect.put(id, entry.getKey());
+                } else {
+                    canSubSelect.put(id, "");
+                }
+            }
+        }
+        return canSubSelect;
+    }
+
+    @Override
+    public void onSubSelect(int subRoleId, int subNum, String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        if (_hasSelectedSubRole(roomPlayerCtrl, subNum)) {
+            String msg = String.format("玩家已经选过角色了 playerId=%s,  subRoleId=%s", playerId, roomPlayerCtrl.getSubRoleId(subNum));
+            LOGGER.debug(msg);
+            throw new BusinessLogicMismatchConditionException(msg);
+        }
+        if (canSelectSubRole(subRoleId, subNum)) {
+            String msg = String.format("手慢了,被别人抢先了 playerId=%s,  subRoleId=%s", playerId, subRoleId);
+            LOGGER.debug(msg);
+            throw new BusinessLogicMismatchConditionException(msg);
+        }
+        selectSubRole(subRoleId, subNum, roomPlayerCtrl);
+        for (String id : getTarget().getIdToRoomPlayer().keySet()) {
+            In_PlayerSelectSubActerRoomMsg msg = new In_PlayerSelectSubActerRoomMsg(getDramaId(), id, playerId, subRoleId, subNum);
+            sendToWorld(msg);
+        }
+    }
+
+    @Override
+    public void onSubVote(int subRoleId, int subNum, String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        if (roomPlayerCtrl.isSubVoteMurder()) {
+            String msg = String.format("已经投过凶,这个请求应该被客户端挡住的! playerId=%s", playerId);
+            LOGGER.debug(msg);
+            return;
+        }
+        addSubVote(playerId, subRoleId, subNum);
+        int remainNum = remainSubVoteNum();
+        sendToWorld(new In_PlayerVoteRoomMsg(getDramaId(), roomPlayerCtrl.getPlayerId(), roomPlayerCtrl.getRoleId()));
+        if (remainNum == 0) {
+            for (String otherId : getTarget().getIdToRoomPlayer().keySet()) {
+                In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherId, getSubVoteRoleIdToPlayerRoleId(getRoomStateTimes()), getSuRoleIdToRoomPlayer(subNum), getDramaId());
+                sendToWorld(in_playerVoteResultRoomMsg);
+            }
+        } else {
+            //还有人未投完凶
+            for (String otherId : getTarget().getIdToRoomPlayer().keySet()) {
+                In_PlayerSubVoteRemainRoomMsg msg = new In_PlayerSubVoteRemainRoomMsg(getDramaId(), otherId, remainNum);
+                sendToWorld(msg);
+            }
+        }
+    }
+
+    @Override
+    public void onSubVoteResult(int subNum, String playerId) {
+        if (getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
+            for (String otherPlayerId : getTarget().getIdToRoomPlayer().keySet()) {
+                In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherPlayerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId());
+                sendToWorld(in_playerVoteResultRoomMsg);
+            }
+        } else {
+            sendToWorld(new In_PlayerVoteResultRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getDramaId()));
+        }
+    }
+
+    @Override
+    public void onSubVoteList(int subNum, String playerId) {
+        sendToWorld(new In_PlayerSubVoteListRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId()));
+    }
+
+    private Map<Integer, RoomPlayer> getSuRoleIdToRoomPlayer(int subNum) {
+        Map<Integer, RoomPlayer> map = new HashMap<>();
+        for (Map.Entry<String, RoomPlayer> entry : getTarget().getIdToRoomPlayer().entrySet()) {
+            map.put(entry.getValue().getSubNumToSubRoleId().get(subNum), entry.getValue());
+        }
+        return map;
+    }
+
+
+    public void addSubVote(String playerId, int subRoleId, int subNum) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteRoleIdToRoleId().get(subNum);
+        if (!subVoteRoleIdToRoleId.get(subRoleId).contains(roomPlayerCtrl.getRoleId())) {
+            subVoteRoleIdToRoleId.get(subRoleId).add(roomPlayerCtrl.getRoleId());
+            roomPlayerCtrl.setSubVoteMurder(true);
+        }
+    }
+
+    private void selectSubRole(int subRoleId, int subNum, RoomPlayerCtrl roomPlayerCtrl) {
+        roomPlayerCtrl.setSelectSubRole(subRoleId, subNum);
+    }
+
+    private boolean canSelectSubRole(int subRoleId, int subNum) {
+        Map<Integer, String> subSelectList = subSelectList(subNum);
+        return !subSelectList.get(subRoleId).equals("");
+    }
+
+    private boolean _hasSelectedSubRole(RoomPlayerCtrl roomPlayerCtrl, int subNum) {
+        return roomPlayerCtrl.hasSelectedSubRole(subNum);
+    }
+
+
+    private void sendToWorld(PlayerInnerMsg msg) {
+        sendToWorld(msg, ActorRef.noSender());
+    }
+
+    private void sendToWorld(PlayerInnerMsg msg, ActorRef actorRef) {
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
+    }
+
+    private void sendToWorld(InnerMsg msg) {
+        sendToWorld(msg, ActorRef.noSender());
+    }
+
+    private void sendToWorld(InnerMsg msg, ActorRef actorRef) {
+        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
+    }
+
 }
+

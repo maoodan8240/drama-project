@@ -14,7 +14,12 @@ public enum ConfigTableNameEnums {
     SOLO(CommonProtos.Cm_Common_Config.Action.SOLO, "Table_Solo"),                      //      独白
     SOLODRAMA(CommonProtos.Cm_Common_Config.Action.SOLODRAMA, "Table_SoloDrama"),       //      独白剧本
     DRAFT(CommonProtos.Cm_Common_Config.Action.DRAFT, "Table_Draft"),                   //      轮抽
-    
+    SUBACTER(CommonProtos.Cm_Common_Config.Action.SUBACTER, "Table_SubActer"),          //      子角色
+    SECRETTALK(CommonProtos.Cm_Common_Config.Action.SECRETTALK, "Table_SecretTalk"),    //      私聊
+    SUBMURDER(CommonProtos.Cm_Common_Config.Action.SUBMURDER, "Table_SubMurder"),       //      子剧本投凶
+    ITEM(CommonProtos.Cm_Common_Config.Action.ITEM, "Table_Item"),                      //      道具
+    AUCTION(CommonProtos.Cm_Common_Config.Action.AUCTION, "Table_Auction"),             //      拍卖
+
 
     NULL(null, "");
 
@@ -44,7 +49,7 @@ public enum ConfigTableNameEnums {
                 }
             }
         }
-        String msg = String.format("TableName 解析失败 aciton=%s", action);
+        String msg = String.format("TableName 解析失败 action=%s", action);
         throw new BusinessLogicMismatchConditionException(msg);
     }
 }

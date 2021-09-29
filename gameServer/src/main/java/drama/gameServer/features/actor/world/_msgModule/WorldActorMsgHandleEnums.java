@@ -18,12 +18,14 @@ import drama.gameServer.features.actor.world.ctrl.WorldCtrl;
 public enum WorldActorMsgHandleEnums {
 
     _In_LoginMsg(new HandleLoginMsgAction()),//
+    _In_LoginResponseAction(new In_LoginResponseAction()),//
+
     _In_PlayerMsgAction(new HandlePlayerMsgkAction()),//
+    _In_RoomMsgAction(new HandleRoomMsgAction()),//
+
     _In_ConfigNetWorkMsgAction(new HandleConfigMsgAction()),//
     _In_ConnectionStatusAction(new HandleConnectionStatusAction()),//
-    _In_RoomMsgAction(new HandleRoomMsgAction()),//
     _In_PlayerKillRoomMsg(new In_KillRoomMsgAction()),//
-    _In_LoginResponseAction(new In_LoginResponseAction()),//
     _In_NoticeToKillOverTimeCachePlayerActorAction(new In_NoticeToKillOverTimeCachePlayerActorAction()),//
     _In_PrepareToKillPlayerActorResponse(new In_PrepareToKillPlayerActorResponseAction()),//
     _In_GmSupport(new In_GmSupportAction()),//

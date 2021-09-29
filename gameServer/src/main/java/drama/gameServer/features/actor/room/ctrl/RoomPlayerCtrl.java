@@ -90,9 +90,42 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
     void setVoteMurder(boolean voteMurder);
 
     /**
+     * 设置子角色投凶状态
+     *
+     * @param subVoteMurder
+     */
+    void setSubVoteMurder(boolean subVoteMurder);
+
+    /**
      * 是否投凶
      *
      * @return
      */
     boolean isVoteMurder();
+
+    /**
+     * 子角色是否投凶
+     *
+     * @return
+     */
+    boolean isSubVoteMurder();
+
+    /**
+     * 是否已经选择子角色
+     */
+    boolean hasSelectedSubRole(int subNum);
+
+    /**
+     * 返回子角色Id
+     *
+     * @return
+     */
+    int getSubRoleId(int subNum);
+
+    /**
+     * 选择子角色
+     *
+     * @param subRoleId
+     */
+    void setSelectSubRole(int subRoleId, int subNum);
 }
