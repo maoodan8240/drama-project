@@ -2,7 +2,7 @@ package drama.gameServer.features.actor.room.msg;
 
 import dm.relationship.base.msg.implement._PlayerInnerMsg;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
-import drama.protos.RoomProtos;
+import drama.protos.room.RoomProtos;
 
 public class In_PlayerChooseRoleRoomMsg extends _PlayerInnerMsg {
     private RoomPlayer roomPlayer;

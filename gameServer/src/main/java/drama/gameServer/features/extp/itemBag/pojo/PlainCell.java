@@ -1,10 +1,10 @@
-package dm.relationship.topLevelPojos.itemBag;
+package drama.gameServer.features.extp.itemBag.pojo;
 
 import java.io.Serializable;
 
 public class PlainCell implements Serializable {
     private static final long serialVersionUID = -6663214987854405761L;
-    
+
     private int itemTemplateId;
     private long stackSize;
     private boolean useCell;

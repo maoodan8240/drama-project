@@ -9,12 +9,14 @@ public class In_PlayerOnCanSearchRoomMsg extends _PlayerInnerMsg {
     private List<Integer> typeIds;
     private RoomPlayer roomPlayer;
     private int dramaId;
+    private int srchNum;
 
-    public In_PlayerOnCanSearchRoomMsg(String playerId, List<Integer> typeIds, RoomPlayer roomPlayer, int dramaId) {
+    public In_PlayerOnCanSearchRoomMsg(String playerId, List<Integer> typeIds, RoomPlayer roomPlayer, int dramaId, int srchNum) {
         super(playerId);
         this.typeIds = typeIds;
         this.roomPlayer = roomPlayer;
         this.dramaId = dramaId;
+        this.srchNum = srchNum;
     }
 
     public int getDramaId() {
@@ -29,5 +31,7 @@ public class In_PlayerOnCanSearchRoomMsg extends _PlayerInnerMsg {
         return typeIds;
     }
 
-
+    public int getSrchNum() {
+        return srchNum;
+    }
 }

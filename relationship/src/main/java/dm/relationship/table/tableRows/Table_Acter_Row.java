@@ -1,5 +1,8 @@
 package dm.relationship.table.tableRows;
 
+import dm.relationship.base.IdAndCount;
+import dm.relationship.base.IdMaptoCount;
+import dm.relationship.base.MagicNumbers;
 import dm.relationship.exception.TableRowLogicCheckFailedException;
 import dm.relationship.table.RootTc;
 import drama.protos.EnumsProtos;
@@ -120,8 +123,8 @@ public class Table_Acter_Row extends AbstractRow {
         return vSAp.getAll();
     }
 
-    public TupleListCell<String> getProp() {
-        return prop;
+    public List<TupleCell<String>> getProp() {
+        return prop.getAll();
     }
 
     public static EnumsProtos.SexEnum getSex(int roleIdx, int dramaId) {
@@ -130,7 +133,6 @@ public class Table_Acter_Row extends AbstractRow {
             if (row.getRoleId() == roleIdx) {
                 return EnumsProtos.SexEnum.valueOf(row.getSex());
             }
-
         }
         return null;
     }
@@ -240,6 +242,22 @@ public class Table_Acter_Row extends AbstractRow {
         return map;
     }
 
+    public static boolean hasProp(int dramaId, int roleId) {
+        Table_Acter_Row row = getTableActerRowByRoleId(roleId, dramaId);
+        return row.getProp().size() > MagicNumbers.DEFAULT_ZERO;
+    }
+
+    public static IdMaptoCount getProp(int dramaId, int roleId) {
+        Table_Acter_Row row = getTableActerRowByRoleId(roleId, dramaId);
+        IdMaptoCount idMaptoCount = new IdMaptoCount();
+        for (TupleCell<String> tupleCell : row.getProp()) {
+            Integer id = Integer.valueOf(tupleCell.get(TupleCell.FIRST));
+            Long count = Long.valueOf(tupleCell.get(TupleCell.SECOND));
+            IdAndCount idAndCount = new IdAndCount(id, count);
+            idMaptoCount.add(idAndCount);
+        }
+        return idMaptoCount;
+    }
 
     @Override
     public String toString() {

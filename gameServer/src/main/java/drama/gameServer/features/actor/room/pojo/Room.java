@@ -84,11 +84,15 @@ public class Room {
     /**
      * 第几轮子剧本被投凶的角色Id对应投凶角色Id
      */
-    private Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteRoleIdToRoleId = new ConcurrentHashMap<>();
+    private Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteSubRoleIdToRoleId = new ConcurrentHashMap<>();
     /**
      * 下一阶段解锁时间
      */
     private long nextSTime;
+    /**
+     * 强制切换到下一阶段的时间
+     */
+    private long nextLTime;
     /**
      * 第几个的被投票的线索分类Id对应玩家角色Ids
      */
@@ -101,6 +105,10 @@ public class Room {
      * 可以被选择的轮抽
      */
     private Map<Integer, Map<Integer, Integer>> draftNumToSelectDraftIdToRoleId = new ConcurrentHashMap<>();
+    /**
+     * 拍卖信息
+     */
+    private List<Auction> auctionList = new ArrayList<>();
     /**
      * 答题的soloIdx solo答题阶段
      */
@@ -118,6 +126,10 @@ public class Room {
      */
     private String createAt;
 
+    /***
+     * 竞拍结果
+     */
+//    private Map<Integer, List<AuctionResult>> roleToAuctionResults = new HashMap<>();
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
         this.dramaId = dramaId;
@@ -129,6 +141,15 @@ public class Room {
         this.playerNum = tabRow.getPlaNum();
         this.masterName = masterName;
         this.createAt = WsDateUtils.dateToFormatStr(new Date(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss);
+    }
+
+
+    public List<Auction> getAuctionList() {
+        return auctionList;
+    }
+
+    public void setAuctionList(List<Auction> auctionList) {
+        this.auctionList = auctionList;
     }
 
     public String getCreateAt() {
@@ -167,12 +188,12 @@ public class Room {
         return voteNumToVoteTypeIdToRoleId;
     }
 
-    public Map<Integer, Map<Integer, List<Integer>>> getSubVoteNumToVoteRoleIdToRoleId() {
-        return subVoteNumToVoteRoleIdToRoleId;
+    public Map<Integer, Map<Integer, List<Integer>>> getSubVoteNumToVoteSubRoleIdToRoleId() {
+        return subVoteNumToVoteSubRoleIdToRoleId;
     }
 
-    public void setSubVoteNumToVoteRoleIdToRoleId(Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteRoleIdToRoleId) {
-        this.subVoteNumToVoteRoleIdToRoleId = subVoteNumToVoteRoleIdToRoleId;
+    public void setSubVoteNumToVoteSubRoleIdToRoleId(Map<Integer, Map<Integer, List<Integer>>> subVoteNumToVoteSubRoleIdToRoleId) {
+        this.subVoteNumToVoteSubRoleIdToRoleId = subVoteNumToVoteSubRoleIdToRoleId;
     }
 
     public List<Integer> getCanVoteSearchTypeId() {
@@ -201,6 +222,14 @@ public class Room {
 
     public void setNextSTime(long nextSTime) {
         this.nextSTime = nextSTime;
+    }
+
+    public long getNextLTime() {
+        return nextLTime;
+    }
+
+    public void setNextLTime(long nextLTime) {
+        this.nextLTime = nextLTime;
     }
 
     public int getPlayerNum() {
@@ -296,6 +325,15 @@ public class Room {
     public void setIdToRoomPlayerCtrl(Map<String, RoomPlayerCtrl> idToRoomPlayerCtrl) {
         this.idToRoomPlayerCtrl = idToRoomPlayerCtrl;
     }
+
+
+//    public Map<Integer, List<AuctionResult>> getRoleToAuctionResults() {
+//        return roleToAuctionResults;
+//    }
+//
+//    public void setRoleToAuctionResults(Map<Integer, List<AuctionResult>> roleToAuctionResults) {
+//        this.roleToAuctionResults = roleToAuctionResults;
+//    }
 
     @Override
     public String toString() {

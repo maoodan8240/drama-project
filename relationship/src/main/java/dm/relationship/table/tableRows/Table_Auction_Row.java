@@ -1,9 +1,13 @@
 package dm.relationship.table.tableRows;
 
+import dm.relationship.table.RootTc;
 import ws.common.table.table.exception.CellParseFailedException;
 import ws.common.table.table.implement.AbstractRow;
 import ws.common.table.table.utils.CellParser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Table_Auction_Row extends AbstractRow {
@@ -48,5 +52,25 @@ public class Table_Auction_Row extends AbstractRow {
 
     public Integer getAucNum() {
         return aucNum;
+    }
+
+    public static Map<Integer, Table_Auction_Row> getIdToAuctionRow(int dramaId) {
+        Map<Integer, Table_Auction_Row> map = new HashMap<>();
+        for (Table_Auction_Row row : RootTc.get(Table_Auction_Row.class).values()) {
+            if (row.getDramaId() == dramaId) {
+                map.put(row.getId(), row);
+            }
+        }
+        return map;
+    }
+
+    public static List<Table_Auction_Row> getAllAuctionByRunDown(int runDown, int dramaId) {
+        List<Table_Auction_Row> arr = new ArrayList<>();
+        for (Table_Auction_Row row : RootTc.get(Table_Auction_Row.class).values()) {
+            if (row.getDramaId() == dramaId && row.getAucNum() == runDown) {
+                arr.add(row);
+            }
+        }
+        return arr;
     }
 }

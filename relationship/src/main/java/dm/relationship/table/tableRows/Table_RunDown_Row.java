@@ -36,6 +36,10 @@ public class Table_RunDown_Row extends AbstractRow {
      */
     private Integer nextSTime;
     /**
+     * int 下一阶段最长时间锁(时间到达后阶段强制结束，剩余5分钟时给与倒计时提示)
+     */
+    private int nextLTime;
+    /**
      * string 了失剧本
      */
     private ListCell<String> text2;
@@ -99,7 +103,7 @@ public class Table_RunDown_Row extends AbstractRow {
      * int 解锁线索
      */
     private int unlockClueId;
-    private Integer dramaId;
+
 
     @Override
     public void parseRow(Map<String, String> map) throws CellParseFailedException {
@@ -117,6 +121,7 @@ public class Table_RunDown_Row extends AbstractRow {
         num = CellParser.parseSimpleCell("Num", map, Integer.class);
         dub = CellParser.parseSimpleCell("Dub", map, Boolean.class);
         nextSTime = CellParser.parseSimpleCell("NextSTime", map, Integer.class);
+        nextLTime = CellParser.parseSimpleCell("NextLTime", map, Integer.class);
         text5 = CellParser.parseListCell("Text5", map, String.class);
         text6 = CellParser.parseListCell("Text6", map, String.class);
         text7 = CellParser.parseListCell("Text7", map, String.class);
@@ -221,11 +226,25 @@ public class Table_RunDown_Row extends AbstractRow {
         return task7;
     }
 
+    public int getNextLTime() {
+        return nextLTime;
+    }
+
     public static long getNextSTime(String status, int num, int dramaId) {
         int nextSTime = 0;
         for (Table_RunDown_Row value : RootTc.get(Table_RunDown_Row.class).values()) {
             if (value.getNum() == num && value.getStatus().equals(status) && value.getDramaId() == dramaId) {
                 nextSTime += value.getNextSTime();
+            }
+        }
+        return nextSTime;
+    }
+
+    public static long getNextLTime(String status, int num, int dramaId) {
+        int nextSTime = 0;
+        for (Table_RunDown_Row value : RootTc.get(Table_RunDown_Row.class).values()) {
+            if (value.getNum() == num && value.getStatus().equals(status) && value.getDramaId() == dramaId) {
+                nextSTime += value.getNextLTime();
             }
         }
         return nextSTime;

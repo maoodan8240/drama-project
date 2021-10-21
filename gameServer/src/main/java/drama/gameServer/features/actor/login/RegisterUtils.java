@@ -7,8 +7,9 @@ import dm.relationship.daos.simpleId.SimpleIdDao;
 import dm.relationship.enums.SimpleIdTypeEnum;
 import dm.relationship.topLevelPojos.player.Player;
 import dm.relationship.topLevelPojos.simpleId.SimpleId;
-import drama.gameServer.features.actor.login.ext.base.ExtCommonData;
-import drama.gameServer.features.actor.login.ext.base.ExtensionIniter;
+import drama.gameServer.features.actor.room.mc.ExtensionIniterClassHolder;
+import drama.gameServer.features.actor.room.mc.extensionIniter.base.ExtCommonData;
+import drama.gameServer.features.actor.room.mc.extensionIniter.base.ExtensionIniter;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,7 @@ public class RegisterUtils {
         commonDataIniter.clear();
     }
 
-  
+
     public static Player createPlayer() {
         int simpleId = SIMPLE_ID_DAO.nextSimpleId(SimpleIdTypeEnum.PLAYER);
         Player player = new Player();

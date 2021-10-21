@@ -28,4 +28,5 @@ public class In_PlayerOnReadyRoomMsg extends _PlayerInnerMsg {
     public int getCanReadyTime() {
         return canReadyTime;
     }
+
 }

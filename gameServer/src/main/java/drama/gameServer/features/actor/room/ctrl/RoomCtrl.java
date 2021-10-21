@@ -1,9 +1,15 @@
 package drama.gameServer.features.actor.room.ctrl;
 
+import akka.actor.ActorContext;
+import akka.actor.ActorRef;
+import dm.relationship.base.msg.interfaces.RoomInnerExtpMsg;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.RoomStateEnum;
+import ws.common.network.server.interfaces.Connection;
+import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.mc.controler.Controler;
 
 import java.util.List;
@@ -17,7 +23,7 @@ public interface RoomCtrl extends Controler<Room> {
      * @param player
      * @param dramaId
      */
-    void createRoom(String roomId, SimplePlayer player, int dramaId);
+    void createRoom(String roomId, SimplePlayer player, int dramaId, Connection connection);
 
     /**
      * 清出玩家
@@ -83,7 +89,7 @@ public interface RoomCtrl extends Controler<Room> {
      * 获取房间状态
      * @return
      */
-    EnumsProtos.RoomStateEnum getRoomState();
+    RoomStateEnum getRoomState();
 
     /***
      * 当前状态的次数
@@ -252,6 +258,7 @@ public interface RoomCtrl extends Controler<Room> {
      */
     int getCanReadyTime();
 
+
     /**
      * 凶手是否被投中
      *
@@ -375,12 +382,6 @@ public interface RoomCtrl extends Controler<Room> {
      */
     boolean isRightVote(int voteNum);
 
-    /**
-     * 房间剧本是否开始
-     *
-     * @return
-     */
-    boolean isBegin();
 
     /**
      * 取第一个玩家,房间易主用
@@ -439,4 +440,58 @@ public interface RoomCtrl extends Controler<Room> {
     void onSubVoteResult(int subNum, String playerId);
 
     void onSubVoteList(int subNum, String playerId);
+
+    ActorContext getContext();
+
+    void setContext(ActorContext context);
+
+    ActorRef getActorRef();
+
+    void setActorRef(ActorRef actorRef);
+
+    ActorRef getCurSendActorRef();
+
+    void setCurSendActorRef(ActorRef curSendActorRef);
+
+    void onRoomExtpMsg(String playerId, RoomInnerExtpMsg msg);
+
+    /**
+     * 解锁信息(玩家的一些动态信息)
+     *
+     * @param voteNum
+     * @param simplePlayer
+     */
+    void onUnlockInfo(int voteNum, SimplePlayer simplePlayer);
+
+
+    /**
+     * 拍卖结果
+     *
+     * @param playerId
+     */
+    void onAuctionResult(String playerId);
+
+    /**
+     * 拍卖物品信息
+     *
+     * @param playerId
+     */
+    void onAuctionInfo(String playerId);
+
+    /**
+     * 出价
+     *
+     * @param playerId
+     * @param idOrTpId
+     * @param price
+     * @param auctionId
+     */
+    void onAuction(String playerId, int idOrTpId, int price, int auctionId);
+
+    /**
+     * 获取下一个阶段信息
+     *
+     * @return
+     */
+    TupleCell<String> getNexStateAndTimes();
 }

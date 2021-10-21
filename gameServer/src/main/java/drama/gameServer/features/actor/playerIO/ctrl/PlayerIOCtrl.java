@@ -7,7 +7,7 @@ import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
-import drama.protos.RoomProtos;
+import drama.protos.room.RoomProtos;
 import ws.common.utils.mc.controler.Controler;
 
 

@@ -2,36 +2,33 @@ package dm.relationship.utils;
 
 import dm.relationship.base.IdAndCount;
 import dm.relationship.base.IdMaptoCount;
-import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.msg.db.getter.In_DbResponse;
 import dm.relationship.base.resultCode.ResultCodeEnum;
-import dm.relationship.topLevelPojos.mails.Mail;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.utils.date.WsDateFormatEnum;
 import ws.common.utils.date.WsDateUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * Created by lee on 17-4-28.
  */
 public class RelationshipCommonUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(RelationshipCommonUtils.class);
-
-
-    /**
-     * 设置发送时间和过期时间
-     *
-     * @param m
-     */
-    public static void setSendTimeAndExpiredTime(Mail m) {
-        Date expireDate = DateUtils.addDays(new Date(), MagicNumbers.MAIL_EXPIRE_DAYS);
-        m.setExpireTime(WsDateUtils.dateToFormatStr(expireDate, WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss));
-        m.setSendTime(WsDateUtils.dateToFormatStr(new Date(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss));
-    }
 
 
     /**
@@ -126,7 +123,6 @@ public class RelationshipCommonUtils {
             }
         }
     }
-
 
 
     /**

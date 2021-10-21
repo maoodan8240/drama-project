@@ -72,12 +72,12 @@ public class Table_SearchType_Row extends AbstractRow {
     }
 
 
-    public static Map<String, String> getTypeById(List<Integer> typeIds, int dramaId) {
+    public static Map<String, String> getTypeById(List<Integer> typeIds, int dramaId, int srchNum) {
         Map<String, String> typeNamesAndPic = new HashMap<>();
         for (Table_SearchType_Row value : RootTc.get(Table_SearchType_Row.class).values()) {
             for (Integer id : typeIds) {
                 //id对上,并且名字是唯一,pic不能是空的
-                if (value.getTypeId() == id && !typeNamesAndPic.containsKey(value.getTypename()) && !StringUtils.isEmpty(value.getTypePic()) && value.getDramaId() == dramaId) {
+                if (value.getTypeId() == id && !typeNamesAndPic.containsKey(value.getTypename()) && !StringUtils.isEmpty(value.getTypePic()) && value.getDramaId() == dramaId && value.getSrchNum() == srchNum) {
                     typeNamesAndPic.put(value.getTypename(), value.getTypePic());
                 }
             }

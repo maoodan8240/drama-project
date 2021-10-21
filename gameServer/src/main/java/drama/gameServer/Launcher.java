@@ -3,6 +3,8 @@ package drama.gameServer;
 import dm.relationship.base.LauncherUtils;
 import dm.relationship.exception.LauncherInitException;
 import dm.relationship.table.RootTc;
+import drama.gameServer.features.actor.room.mc.extensionIniter.ExtIniterUtils;
+import drama.gameServer.features.extp.utils.RoomPlayerExtensionClassHolder;
 import drama.gameServer.system.ServerGlobalData;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.gameServer.system.config.AppConfig;
@@ -32,12 +34,14 @@ import ws.common.utils.schedule.GlobalScheduler;
 
 public class Launcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(Launcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Launcher.class);
 
     public static void main(String[] args) {
         _init();
         _startJmxJolokiaServer();
         _startActorSystem();
+        _preproccess();
+
         _waitForSeconds("TcpServer");
         _startTcpServer();
     }
@@ -136,7 +140,7 @@ public class Launcher {
         for (int i = 0; i < seconds; i++) {
             try {
                 Thread.sleep(1000);
-                logger.info("wait for start {}! {} ...", msg, (seconds - i));
+                LOGGER.info("wait for start {}! {} ...", msg, (seconds - i));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -149,5 +153,17 @@ public class Launcher {
         JedisClient jedisClient = GlobalInjector.getInstance(JedisClient.class);
         Jedis jedis = jedisClient.getJedis();
 //        jedis.hset(Red)
+    }
+
+    private static void _preproccess() {
+        try {
+            LOGGER.debug("开始预处理Extensions.....");
+            ExtIniterUtils.init();
+//            ExtensionIniterClassHolder.getExtensionIniterClasses();
+            RoomPlayerExtensionClassHolder.getRoomPlayerUseExtensionClasses();
+        } catch (Exception e) {
+            throw new LauncherInitException("初始化异常", e);
+        }
+
     }
 }

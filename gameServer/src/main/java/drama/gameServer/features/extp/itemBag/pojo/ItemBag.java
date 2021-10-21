@@ -1,13 +1,15 @@
-package dm.relationship.topLevelPojos.itemBag;
+package drama.gameServer.features.extp.itemBag.pojo;
 
-import dm.relationship.topLevelPojos.PlayerTopLevelPojo;
+import dm.relationship.noDbPojo.RoomPlayerNoDbPojo;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ItemBag extends PlayerTopLevelPojo {
-    private static final long serialVersionUID = -5016969318074016812L;
-
+/**
+ * Created by lee on 2021/9/30
+ */
+public class ItemBag extends RoomPlayerNoDbPojo {
+    private String playerId;
     private int maxIdSeq; // itemId 最大的顺序号
     private Map<Integer, PlainCell> tpIdToPlainCell = new HashMap<>(); // 普通物品
     private Map<Integer, SpecialCell> idToSpecialCell = new HashMap<>(); // 特殊物品
@@ -16,7 +18,15 @@ public class ItemBag extends PlayerTopLevelPojo {
     }
 
     public ItemBag(String playerId) {
-        super(playerId);
+        this.playerId = playerId;
+    }
+
+    public String getPlayerId() {
+        return playerId;
+    }
+
+    public void setPlayerId(String playerId) {
+        this.playerId = playerId;
     }
 
     public int getMaxIdSeq() {
@@ -42,4 +52,5 @@ public class ItemBag extends PlayerTopLevelPojo {
     public void setIdToSpecialCell(Map<Integer, SpecialCell> idToSpecialCell) {
         this.idToSpecialCell = idToSpecialCell;
     }
+
 }

@@ -2,6 +2,7 @@ package drama.gameServer.features.actor.world.pojo;
 
 import akka.actor.ActorRef;
 import drama.gameServer.features.actor.room.pojo.RoomCenter;
+import drama.gameServer.features.actor.world.GlobalRoomTimer;
 import ws.common.network.server.interfaces.Connection;
 
 import java.util.Map;
@@ -9,6 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class World {
     private static final RoomCenter roomCenter = new RoomCenter();
+
+    private static final GlobalRoomTimer globalRoomTimer = new GlobalRoomTimer();
+
     private Map<String, String> playerIdToPlayerName = new ConcurrentHashMap<>();//玩家Id<->PlayerName
 
     //
@@ -68,5 +72,9 @@ public class World {
 
     public RoomCenter getRoomCenter() {
         return roomCenter;
+    }
+
+    public static GlobalRoomTimer getGlobalRoomTimer() {
+        return globalRoomTimer;
     }
 }

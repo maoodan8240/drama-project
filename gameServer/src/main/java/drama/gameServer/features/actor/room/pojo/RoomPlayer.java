@@ -1,19 +1,36 @@
 package drama.gameServer.features.actor.room.pojo;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import dm.relationship.noDbPojo.RoomPlayerNoDbPojo;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import org.apache.commons.lang3.StringUtils;
+import ws.common.network.server.interfaces.Connection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RoomPlayer {
+public class RoomPlayer extends RoomPlayerNoDbPojo {
     private String playerId;
-    private String roomId;
     private String playerName;
+    private String roleName;
     private int roleId;
     private String playerIcon;
+    private Connection connection;
+
+    @JSONField(serialize = false)
+    private String roomId;
+
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
+
     /**
      * 子角色Id
      */
@@ -51,13 +68,38 @@ public class RoomPlayer {
      */
     private boolean selectDraft = false;
 
+    /**
+     * 线索
+     */
     private List<Integer> clueIds = new ArrayList<>();
 
-    public RoomPlayer(SimplePlayer simplePlayer, String roomId) {
+    /**
+     * 轮数对应拍卖结果
+     */
+    private Map<Integer, List<AuctionResult>> numToAuctionResults = new HashMap<>();
+
+
+    public RoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection) {
         this.playerId = simplePlayer.getPlayerId();
         this.roomId = roomId;
+        super.dramaId = dramaId;
+        this.connection = connection;
         this.playerName = !StringUtils.isEmpty(simplePlayer.getPlayerName()) ? simplePlayer.getPlayerName() : "";
         this.playerIcon = !StringUtils.isEmpty(simplePlayer.getIcon()) ? simplePlayer.getIcon() : "";
+    }
+
+
+    public Map<Integer, List<AuctionResult>> getNumToAuctionResults() {
+        return numToAuctionResults;
+    }
+
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 
     public boolean isSubVoteMurder() {

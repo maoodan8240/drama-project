@@ -15,7 +15,6 @@ import drama.gameServer.system.actor.DmActorSystem;
 import drama.gameServer.system.network.In_ConnectionStatusRequest;
 import drama.protos.CommonProtos;
 import drama.protos.PlayerLoginProtos.Cm_Login;
-import drama.protos.RoomProtos.Cm_Room;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +55,11 @@ public class MessageTransferForReceiveActor extends DmActor {
 
 
     private void on_In_MessageReceiveHolder(In_MessageReceiveHolder receiveHolder) {
+        String packageName = receiveHolder.getMessage().getClass().getPackage().toString().substring(receiveHolder.getMessage().getClass().getPackage().toString().lastIndexOf(".") + 1);
         if (receiveHolder.getMessage() instanceof Cm_Login) {
             In_LoginMsg msg = new In_LoginMsg(receiveHolder.getMessage(), receiveHolder.getConnection());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());
-        } else if (receiveHolder.getMessage() instanceof Cm_Room) {
+        } else if (packageName.equals(PackageEnums.ROOM.getPackageName())) {
             RoomNetWorkMsg msg = new _RoomNetWorkMsg(receiveHolder.getConnection(), receiveHolder.getMessage());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());
         } else if (receiveHolder.getMessage() instanceof CommonProtos.Cm_Common_Config) {

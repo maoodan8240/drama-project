@@ -1,18 +1,25 @@
 package drama.gameServer.features.actor.room.ctrl;
 
+import akka.actor.ActorContext;
 import akka.actor.ActorRef;
+import dm.relationship.base.IdAndCount;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.base.MagicWords_Mongodb;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.interfaces.PlayerInnerMsg;
+import dm.relationship.base.msg.interfaces.RoomInnerExtpMsg;
 import dm.relationship.daos.DaoContainer;
 import dm.relationship.daos.simpleId.SimpleIdDao;
 import dm.relationship.enums.SimpleIdTypeEnum;
+import dm.relationship.enums.item.IdItemTypeEnum;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.table.RootTc;
 import dm.relationship.table.tableRows.Table_Acter_Row;
+import dm.relationship.table.tableRows.Table_Auction_Row;
 import dm.relationship.table.tableRows.Table_Draft_Row;
+import dm.relationship.table.tableRows.Table_Item_Row;
 import dm.relationship.table.tableRows.Table_Murder_Row;
+import dm.relationship.table.tableRows.Table_NpcActer_Row;
 import dm.relationship.table.tableRows.Table_Result_Row;
 import dm.relationship.table.tableRows.Table_RunDown_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
@@ -20,24 +27,41 @@ import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
 import dm.relationship.table.tableRows.Table_SubActer_Row;
 import dm.relationship.table.tableRows.Table_SubMurder_Row;
+import dm.relationship.table.tableRows.Table_Task_Row;
 import dm.relationship.topLevelPojos.simpleId.SimpleId;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
-import drama.gameServer.features.actor.room.enums.RoomStateEnum;
+import dm.relationship.utils.ProtoUtils;
+import drama.gameServer.features.actor.room.enums.RoomState;
+import drama.gameServer.features.actor.room.mc.extension.RoomPlayerExtension;
+import drama.gameServer.features.actor.room.msg.In_AddRoomTimerMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSelectSubActerRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteListRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRemainRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteResultRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteResultRoomMsg;
-import drama.gameServer.features.actor.room.msg.In_PlayerVoteRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_RemoveRoomTimerMsg;
+import drama.gameServer.features.actor.room.pojo.Auction;
+import drama.gameServer.features.actor.room.pojo.AuctionResult;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
-import drama.gameServer.system.actor.DmActorSystem;
+import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
+import drama.gameServer.features.extp.itemBag.ItemBagExtp;
+import drama.gameServer.features.extp.itemBag.ctrl.ItemBagCtrl;
+import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
+import drama.gameServer.features.extp.itemBag.utils.ItemBagUtils;
+import drama.protos.CodesProtos.ProtoCodes.Code;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.ErrorCodeEnum;
+import drama.protos.MessageHandlerProtos.Response;
+import drama.protos.room.RoomProtos.Sm_Room;
+import drama.protos.room.RoomProtos.Sm_Room.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.mongoDB.interfaces.MongoDBClient;
+import ws.common.network.server.interfaces.Connection;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.mc.controler.AbstractControler;
@@ -45,10 +69,12 @@ import ws.common.utils.message.interfaces.InnerMsg;
 import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
@@ -56,6 +82,48 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
     private static final SimpleIdDao SIMPLE_ID_DAO = DaoContainer.getDao(SimpleId.class);
+
+    private ActorContext context;
+    private ActorRef actorRef;
+    private ActorRef curSendActorRef;
+
+    public ActorRef getCurSendActorRef() {
+        return curSendActorRef;
+    }
+
+    public void setCurSendActorRef(ActorRef curSendActorRef) {
+        this.curSendActorRef = curSendActorRef;
+    }
+
+    @Override
+    public void onRoomExtpMsg(String playerId, RoomInnerExtpMsg msg) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        for (RoomPlayerExtension<?> roomPlayerExtension : roomPlayerCtrl.getAllExtensions().values()) {
+            try {
+                roomPlayerExtension.onRecvInnerExtpMsg(msg);
+            } catch (Throwable t) {
+                LOGGER.error("RoomPlayerExtension onRoomExtpMsg Error,ext ={}", roomPlayerExtension, t);
+                continue;
+            }
+        }
+    }
+
+
+    public ActorContext getContext() {
+        return context;
+    }
+
+    public void setContext(ActorContext context) {
+        this.context = context;
+    }
+
+    public ActorRef getActorRef() {
+        return actorRef;
+    }
+
+    public void setActorRef(ActorRef actorRef) {
+        this.actorRef = actorRef;
+    }
 
     static {
         SIMPLE_ID_DAO.init(MONGO_DB_CLIENT, MagicWords_Mongodb.TopLevelPojo_All_Common);
@@ -90,17 +158,15 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     @Override
-    public void createRoom(String roomId, SimplePlayer simplePlayer, int dramaId) {
+    public void createRoom(String roomId, SimplePlayer simplePlayer, int dramaId, Connection connection) {
         int simpleRoomId = SIMPLE_ID_DAO.nextSimpleId(SimpleIdTypeEnum.ROOM);
-//        int simpleRoomId = 10001;
         Table_SceneList_Row tabRow = RootTc.get(Table_SceneList_Row.class).get(dramaId);
         String playerName = !StringUtils.isEmpty(simplePlayer.getPlayerName()) ? simplePlayer.getPlayerName() : "";
         target = new Room(roomId, dramaId, simplePlayer.getPlayerId(), simpleRoomId, playerName, tabRow);
         setNextStateAndTimes();
         setTarget(target);
-        RoomPlayer roomPlayer = new RoomPlayer(simplePlayer, roomId);
         RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
-        roomPlayerCtrl.setTarget(roomPlayer);
+        RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, dramaId, connection);
         addPlayer(roomPlayer, roomPlayerCtrl);
     }
 
@@ -266,25 +332,44 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return next;
     }
 
+    public TupleCell<String> getNexStateAndTimes() {
+        TupleCell<String> next = null;
+        Iterator<TupleCell<String>> it = this.getTarget().getRunRown().iterator();
+        if (it.hasNext()) {
+            next = it.next();
+        }
+        return next;
+    }
+
     public void setNextStateAndTimes() {
         TupleCell<String> nextStateAndTimes = getAndRemoveNextStateAndTimes();
-        EnumsProtos.RoomStateEnum roomState = RoomStateEnum.getRoomStateByName(nextStateAndTimes.get(TupleCell.FIRST));
+        EnumsProtos.RoomStateEnum roomState = RoomState.getRoomStateByName(nextStateAndTimes.get(TupleCell.FIRST));
         Integer stateTimes = Integer.valueOf(nextStateAndTimes.get(TupleCell.SECOND));
         long nextSTime = Table_RunDown_Row.getNextSTime(roomState.toString(), stateTimes, getDramaId());
+        long nextLTime = Table_RunDown_Row.getNextLTime(roomState.toString(), stateTimes, getDramaId());
         target.setRoomState(roomState);
         target.setStateTimes(stateTimes);
         //设置下一个阶段解锁时间
         target.setNextSTime(System.currentTimeMillis() + nextSTime * DateUtils.MILLIS_PER_SECOND);
+        target.setNextLTime(System.currentTimeMillis() + nextLTime * DateUtils.MILLIS_PER_SECOND);
         //如果不是第一阶段了,说明剧本已经开始,设置剧本开始时间,只设置一次
-        if (!RoomStateEnum.isFirstState(getRoomState(), getDramaId())) {
+        if (!RoomState.isFirstState(getRoomState(), getDramaId())) {
             if (target.getBeginTime() == 0) {
                 getTarget().setBeginTime(System.currentTimeMillis());
             }
         }
         //如果是End阶段,设置剧本结束时间
-        if (RoomStateEnum.isEndState(getRoomState())) {
+        if (RoomState.isEndState(getRoomState())) {
             getTarget().setEndTime(System.currentTimeMillis());
         }
+        //预设一些房间的信息
+        presetRoomInfo(roomState);
+        //设置下一阶段玩家的一些信息
+        presetRoomPlayerInfo(roomState, getRoomStateTimes());
+
+    }
+
+    private void presetRoomPlayerInfo(EnumsProtos.RoomStateEnum roomState, int stateTimes) {
         for (Map.Entry<String, RoomPlayerCtrl> entry : target.getIdToRoomPlayerCtrl().entrySet()) {
             RoomPlayerCtrl roomPlayerCtrl = entry.getValue();
             //切换到下一个状态所有玩家把手放下取消准备状态
@@ -298,35 +383,162 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(getDramaId());
                 int voteSrchTimes = Table_Acter_Row.getVoteSrchTimes(acterRowList, roomPlayerCtrl.getRoleId(), stateTimes);
                 roomPlayerCtrl.setVoteSrchTimes(voteSrchTimes);
-                addCanVoteSearchTypeIds();
             } else if (roomState == EnumsProtos.RoomStateEnum.DRAFT) {
-                List<Integer> draftIds = Table_Draft_Row.getDraftIds(getDramaId());
-                addSelectDraftIdToRoleId(draftIds);
                 roomPlayerCtrl.setSelectDraft(false);
-            } else if (roomState == EnumsProtos.RoomStateEnum.UNLOCK) {
-                List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(getDramaId(), getRoomStateTimes(), getRoomState().toString());
-                addClueIds(unlockClueIds);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
                 roomPlayerCtrl.setVoteMurder(false);
-                target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
-                List<Integer> allRoleId = Table_Murder_Row.getAllRoleId(getDramaId());
-                for (Integer roleId : allRoleId) {
-                    target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
-                }
             } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
                 roomPlayerCtrl.setSubVoteMurder(false);
-                target.getSubVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
-                List<Integer> allSubRoleId = Table_SubMurder_Row.getAllRoleId(getDramaId());
-                for (Integer subRoleId : allSubRoleId) {
-                    target.getSubVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(subRoleId, new ArrayList<>());
-                }
-            } else if (roomState == EnumsProtos.RoomStateEnum.SOLO) {
-                setSoloIdx(MagicNumbers.DEFAULT_ZERO);
             }
         }
     }
 
-    private void addCanVoteSearchTypeIds() {
+    private void presetRoomInfo(EnumsProtos.RoomStateEnum roomState) {
+        if (roomState == EnumsProtos.RoomStateEnum.AUCTION) {
+            _initAuctionInfo();
+        } else if (roomState == EnumsProtos.RoomStateEnum.SOLO) {
+            setSoloIdx(MagicNumbers.DEFAULT_ZERO);
+        } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
+            _initVoteInfo();
+        } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
+            _initSubVoteInfo();
+        } else if (roomState == EnumsProtos.RoomStateEnum.UNLOCK) {
+            List<Integer> unlockClueIds = Table_RunDown_Row.getUnlockClueIds(getDramaId(), getRoomStateTimes(), getRoomState().toString());
+            addClueIds(unlockClueIds);
+        } else if (roomState == EnumsProtos.RoomStateEnum.DRAFT) {
+            List<Integer> draftIds = Table_Draft_Row.getDraftIds(getDramaId());
+            _addSelectDraftIdToRoleId(draftIds);
+        } else if (roomState == EnumsProtos.RoomStateEnum.VOTESEARCH) {
+            _addCanVoteSearchTypeIds();
+        } else if (roomState == EnumsProtos.RoomStateEnum.AUCTIONRESULT) {
+            _onAuctionResult();
+        }
+    }
+
+    private void _onAuctionResult() {
+        sendToWorld(new In_RemoveRoomTimerMsg(getTarget().getRoomId(), RoomState.AUCTIONRESULT));
+        Map<Integer, Table_Auction_Row> auctions = Table_Auction_Row.getIdToAuctionRow(getDramaId());
+        Map<Integer, Table_Item_Row> itemRows = Table_Item_Row.getAllRow(getDramaId());
+        //计算收集拍卖结果扣除资源支付
+        Iterator<Auction> it = target.getAuctionList().iterator();
+        while (it.hasNext()) {
+            Auction auction = it.next();
+            Table_Auction_Row auctionRow = auctions.get(auction.getAuctionId());
+            Table_Item_Row itemRow = itemRows.get(auction.getItemId());
+            //计算拍卖结果并扣除资源进行支付
+            AuctionResult auctionResult = getAuctionResultAndDeductConsume(auction, auctionRow, itemRow);
+            if (auctionResult != null) {//当前竞拍品结果非流拍,并删除这条竞拍品
+                it.remove();
+            }
+            //竞拍品列表中剩余的商品为流拍商品,累计到下一轮中
+        }
+    }
+
+    /**
+     * 计算拍卖结果并扣除资源进行支付
+     *
+     * @param auction
+     * @param auctionRow
+     * @param itemRow
+     * @return 返回当前竞拍品结果
+     */
+    private AuctionResult getAuctionResultAndDeductConsume(Auction auction, Table_Auction_Row auctionRow, Table_Item_Row itemRow) {
+        int maxPriceRoleId = 0;
+        IdAndCount maxPrice = new IdAndCount(MagicNumbers.DEFAULT_ONE, MagicNumbers.DEFAULT_ZERO);
+        AuctionResult auctionResult = null;
+        for (Entry<Integer, IdAndCount> entry : auction.getRoleIdAndAuctionPice().entrySet()) {
+            String playerId = getTarget().getRoleIdToPlayerId().get(entry.getKey());
+            RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+            ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            IdAndCount auctionPirce = entry.getValue();
+            IdItemTypeEnum itemType = ItemBagUtils.getItemTypeById(auctionPirce.getId());
+            if (itemType == IdItemTypeEnum.SP_MONEY) {
+                //出价是耳环,直接break,结束判断,认定为最高价
+                //由于客户端不好做选择实例id的界面,这里传入的耳环实例id都是同一个 服务器这边将耳环ID写死,只要背包内有这个耳环就可以删除
+                if (ItemBagUtils.canRemoveEarRings(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID)) {
+                    //从背包中获取一个可以删除的耳环的实例ID
+                    int canRemoveEarRingItemId = ItemBagUtils.getCanRemoveEarRingItemId(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID);
+                    maxPrice = new IdAndCount(canRemoveEarRingItemId, MagicNumbers.DEFAULT_ONE);
+                    maxPriceRoleId = entry.getKey();
+                    break;
+                }
+            } else if (itemType == IdItemTypeEnum.MONEY) {
+                if (auctionPirce.getCount() > maxPrice.getCount()) {
+                    //出价是否比最高金额更高
+                    if (itemBagCtrl.canRemoveItem(auctionPirce)) {
+                        maxPrice = auctionPirce;
+                        maxPriceRoleId = entry.getKey();
+                    }
+                }
+            }
+        }
+        if (maxPriceRoleId != MagicNumbers.DEFAULT_ZERO) {//出价最高者不是0,否则认为没有人竞拍这个拍品
+            String playerId = getTarget().getRoleIdToPlayerId().get(maxPriceRoleId);
+            RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+            ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            auctionResult = new AuctionResult(auction.getItemId(), auction.getAuctionId(), maxPriceRoleId, maxPrice, itemRow.getItemName(), auctionRow.getAucItemName());
+            deductConsume(auctionResult, itemBagCtrl);
+            roomPlayerCtrl.addAuctionResult(getRoomStateTimes(), auctionResult);
+        }
+        return auctionResult;
+    }
+
+
+    /**
+     * 扣除资源,并发放竞拍物品
+     *
+     * @param auctionResult
+     * @param itemBagCtrl
+     */
+    private void deductConsume(AuctionResult auctionResult, ItemBagCtrl itemBagCtrl) {
+        IdItemTypeEnum itemType = ItemBagUtils.getItemTypeById(auctionResult.getAuctionPrice().getId());
+        if (itemType == IdItemTypeEnum.SP_MONEY) {
+            ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), auctionResult.getAuctionPrice().getId());
+        } else {
+            ItemBagUtils.removePlainCell(itemBagCtrl.getTarget(), auctionResult.getAuctionPrice().getId(), auctionResult.getAuctionPrice().getCount());
+        }
+        ItemBagUtils.addOneSpecialItem(itemBagCtrl.getTarget(), auctionResult.getItemId(), IdItemTypeEnum.parseByItemTemplateId(auctionResult.getItemId()).isUseCell());
+
+    }
+
+    private void _initAuctionInfo() {
+        //上一轮流拍的物品价格清零
+        for (Auction auction : target.getAuctionList()) {
+            auction.getRoleIdAndAuctionPice().clear();
+        }
+        //本轮拍卖物品添加
+        List<Table_Auction_Row> rows = Table_Auction_Row.getAllAuctionByRunDown(getRoomStateTimes(), getDramaId());
+        for (Table_Auction_Row row : rows) {
+            Auction auction = new Auction(row.getAucItem(), row.getId(), row.getAucItemName());
+            target.getAuctionList().add(auction);
+        }
+        //TODO
+        // 读配置获取  强制结束本阶段时间
+        long nextLTime = Table_RunDown_Row.getNextLTime(getRoomState().toString(), getRoomStateTimes(), getDramaId());
+        long millisPerSecond = System.currentTimeMillis() + nextLTime * DateUtils.MILLIS_PER_SECOND;
+        Date date = new Date(millisPerSecond);
+        String timerName = getTarget().getRoomId();
+        sendToWorld(new In_AddRoomTimerMsg(timerName, date, RoomState.AUCTIONRESULT));
+    }
+
+
+    private void _initVoteInfo() {
+        target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
+        List<Integer> allRoleId = Table_Murder_Row.getAllRoleId(getDramaId());
+        for (Integer roleId : allRoleId) {
+            target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
+        }
+    }
+
+    private void _initSubVoteInfo() {
+        target.getSubVoteNumToVoteSubRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
+        List<Integer> allSubRoleId = Table_SubMurder_Row.getAllRoleId(getDramaId());
+        for (Integer subRoleId : allSubRoleId) {
+            target.getSubVoteNumToVoteSubRoleIdToRoleId().get(getRoomStateTimes()).put(subRoleId, new ArrayList<>());
+        }
+    }
+
+    private void _addCanVoteSearchTypeIds() {
         List<Integer> searchTypeIds = Table_SearchType_Row.getSearchTypeRowByStateTimes(getRoomStateTimes(), getDramaId());
         for (Integer searchTypeId : searchTypeIds) {
             if (!target.getCanVoteSearchTypeId().contains(searchTypeId)) {
@@ -335,7 +547,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
     }
 
-    private void addSelectDraftIdToRoleId(List<Integer> draftIds) {
+    private void _addSelectDraftIdToRoleId(List<Integer> draftIds) {
         if (!target.getDraftNumToSelectDraftIdToRoleId().containsKey(getRoomStateTimes())) {
             Map<Integer, Integer> newMap = new ConcurrentHashMap<>();
             target.getDraftNumToSelectDraftIdToRoleId().put(getRoomStateTimes(), newMap);
@@ -353,15 +565,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
     }
 
-    @Override
-    public void addVote(String playerId, int roleId) {
-        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
-        Map<Integer, List<Integer>> voteRoleIdToRoleId = target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
-        if (!voteRoleIdToRoleId.get(roleId).contains(roomPlayerCtrl.getRoleId())) {
-            voteRoleIdToRoleId.get(roleId).add(roomPlayerCtrl.getRoleId());
-            roomPlayerCtrl.setVoteMurder(true);
-        }
-    }
 
     @Override
     public int remainVoteNum() {
@@ -377,7 +580,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public int remainSubVoteNum() {
         int num = 0;
-        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
+        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteSubRoleIdToRoleId().get(getRoomStateTimes());
         for (Map.Entry<Integer, List<Integer>> entry : subVoteRoleIdToRoleId.entrySet()) {
             num += entry.getValue().size();
         }
@@ -392,7 +595,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     @Override
     public Map<Integer, List<Integer>> getSubVoteRoleIdToPlayerRoleId(int voteNum) {
-        return target.getSubVoteNumToVoteRoleIdToRoleId().get(voteNum);
+        return target.getSubVoteNumToVoteSubRoleIdToRoleId().get(voteNum);
     }
 
 
@@ -415,6 +618,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return time;
     }
 
+
     @Override
     public boolean isVotedMurder(int voteNum, int roleId) {
         //TODO 需要通过配置控制投凶的幕数
@@ -427,6 +631,140 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             }
         }
         return flag;
+    }
+
+
+    @Override
+    public void onUnlockInfo(int voteNum, SimplePlayer simplePlayer) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(simplePlayer.getPlayerId());
+        Sm_Room.Action action = Action.RESP_UNLOCKINFO;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        response.setResult(true);
+        b.setAction(action);
+        boolean isNpc = true;
+        //目前只有一次投凶
+        int murderRoleId = getSubVoteMurder(voteNum);
+        for (Entry<String, RoomPlayerCtrl> entry : getTarget().getIdToRoomPlayerCtrl().entrySet()) {
+            if (entry.getValue().getSubRoleId(voteNum) == murderRoleId) {
+                isNpc = false;
+                ItemBag itemBag = entry.getValue().getExtension(ItemBagExtp.class).getControlerForQuery().getTarget();
+                String task = Table_Task_Row.getUnlockTask(entry.getValue().getRoleId(), getDramaId());
+                b.setUnlockInfo(RoomProtoUtils.createSmRoomUnlockInfo(entry.getValue().getRoleId(), task, itemBag, getDramaId()));
+                response.setSmRoom(b.build());
+                break;
+            }
+        }
+        if (isNpc) {
+            Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(getDramaId());
+            String npcTask = npcRow.getNpcTask();
+            List<TupleCell<String>> prop = npcRow.getProp();
+            b.setUnlockInfo(RoomProtoUtils.createNpcSmRoomUnlockInfo(npcTask, prop, getDramaId()));
+            response.setSmRoom(b.build());
+        }
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onAuctionResult(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        List<AuctionResult> auctionResultList = roomPlayerCtrl.getAuctionResult(getRoomStateTimes());
+        int sumPrice = _getSumPrice(auctionResultList);
+        Sm_Room.Action action = Action.RESP_AUCTION_RESULT;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        response.setResult(true);
+        b.setAction(action);
+        b.setSumPic(sumPrice);
+        b.addAllAuctionInfo(RoomProtoUtils.createSmRoomAuctionInfoList(auctionResultList, getDramaId()));
+        response.setSmRoom(b.build());
+        roomPlayerCtrl.send(response.build());
+    }
+
+
+    private int _getSumPrice(List<AuctionResult> auctionResultList) {
+        int sumPrice = 0;
+        for (AuctionResult auctionResult : auctionResultList) {
+            int id = auctionResult.getAuctionPrice().getId();
+            IdItemTypeEnum itemType = ItemBagUtils.getItemTypeById(id);
+            if (itemType == IdItemTypeEnum.MONEY) {
+                sumPrice += auctionResult.getAuctionPrice().getCount();
+            }
+        }
+        return sumPrice;
+    }
+
+
+    @Override
+    public void onAuctionInfo(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Sm_Room.Action action = Action.RESP_AUCTION_INFO;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        response.setResult(true);
+        b.setAction(action);
+        List<Auction> auctions = target.getAuctionList();
+        for (Auction auction : auctions) {
+            IdAndCount auctionPrice = null;
+            if (auction.getRoleIdAndAuctionPice().get(roomPlayerCtrl.getRoleId()) == null) {
+                auctionPrice = new IdAndCount(MagicNumbers.DEFAULT_ONE, MagicNumbers.DEFAULT_ZERO);
+            } else {
+                auctionPrice = auction.getRoleIdAndAuctionPice().get(roomPlayerCtrl.getRoleId());
+            }
+            b.addAuctionInfo(RoomProtoUtils.createSmRoomAuctionInfo(auction.getItemId(), auction.getAuctionId(), auctionPrice, auction.getAuctionName(), getDramaId()));
+        }
+        response.setSmRoom(b.build());
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onAuction(String playerId, int idOrTpId, int price, int auctionId) {
+        Sm_Room.Action action = Action.RESP_AUCTION;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        response.setResult(true);
+        b.setAction(action);
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+        _checkPriceEnough(idOrTpId, price, itemBagCtrl);
+        IdAndCount auctionPirce = new IdAndCount(idOrTpId, price);
+        List<Auction> auctions = getTarget().getAuctionList();
+        for (Auction auction : auctions) {
+            if (auction.getAuctionId() == auctionId) {
+                auction.getRoleIdAndAuctionPice().put(roomPlayerCtrl.getRoleId(), auctionPirce);
+                b.addAuctionInfo(RoomProtoUtils.createSmRoomAuctionInfo(auction.getItemId(), auction.getAuctionId(), auctionPirce, auction.getAuctionName(), getDramaId()));
+                break;
+            }
+        }
+        response.setSmRoom(b.build());
+        roomPlayerCtrl.send(response.build());
+    }
+
+
+    private void _checkPriceEnough(int idOrTpId, int price, ItemBagCtrl itemBagCtrl) {
+        boolean enough = false;
+        //9999代表耳环,判断身上是否有耳环
+        IdItemTypeEnum itemType = ItemBagUtils.getItemTypeById(idOrTpId);
+        IdAndCount idAndCount = new IdAndCount(idOrTpId, price);
+        if (itemBagCtrl.canRemoveItem(idAndCount)) {
+            enough = true;
+        }
+        if (!enough) {
+            String msg = String.format("资源不足, price=%", price);
+            throw new BusinessLogicMismatchConditionException(msg, ErrorCodeEnum.NOT_ENOUGH);
+        }
+    }
+
+    private int getSubVoteMurder(int voteNum) {
+        int roleId = 0;
+        int count = 0;
+        for (Entry<Integer, List<Integer>> entry : target.getSubVoteNumToVoteSubRoleIdToRoleId().get(voteNum).entrySet()) {
+            if (entry.getValue().size() > count) {
+                count = entry.getValue().size();
+                roleId = entry.getKey();
+            }
+        }
+        return roleId;
     }
 
     @Override
@@ -600,12 +938,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return true;
     }
 
-    @Override
-    public boolean isBegin() {
-        Table_SceneList_Row row = Table_SceneList_Row.getRowByDramaId(getDramaId());
-        //TODO 配置一个开始环节
-        return false;
-    }
 
     @Override
     public String getOnePlayer() {
@@ -642,17 +974,18 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Map<Integer, String> canSubSelect = new HashMap<>();
         List<Integer> allSubRoleIds = Table_SubActer_Row.getAllSubRoleIds(getDramaId(), subNum);
         for (Integer id : allSubRoleIds) {
+            int subRoleId = MagicNumbers.DEFAULT_ZERO;
+            String playerId = "";
             for (Map.Entry<String, RoomPlayer> entry : getTarget().getIdToRoomPlayer().entrySet()) {
-                int subRoleId = 0;
                 if (entry.getValue().getSubNumToSubRoleId().get(subNum) != null) {
                     subRoleId = entry.getValue().getSubNumToSubRoleId().get(subNum);
                 }
-                if ((subRoleId == id)) {
-                    canSubSelect.put(id, entry.getKey());
-                } else {
-                    canSubSelect.put(id, "");
+                if (subRoleId == id) {
+                    playerId = entry.getKey();
+                    break;
                 }
             }
+            canSubSelect.put(id, playerId);
         }
         return canSubSelect;
     }
@@ -687,7 +1020,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
         addSubVote(playerId, subRoleId, subNum);
         int remainNum = remainSubVoteNum();
-        sendToWorld(new In_PlayerVoteRoomMsg(getDramaId(), roomPlayerCtrl.getPlayerId(), roomPlayerCtrl.getRoleId()));
+        sendToWorld(new In_PlayerSubVoteRoomMsg(getDramaId(), roomPlayerCtrl.getPlayerId(), roomPlayerCtrl.getRoleId()));
         if (remainNum == 0) {
             for (String otherId : getTarget().getIdToRoomPlayer().keySet()) {
                 In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherId, getSubVoteRoleIdToPlayerRoleId(getRoomStateTimes()), getSuRoleIdToRoomPlayer(subNum), getDramaId());
@@ -701,6 +1034,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             }
         }
     }
+
 
     @Override
     public void onSubVoteResult(int subNum, String playerId) {
@@ -730,10 +1064,20 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     public void addSubVote(String playerId, int subRoleId, int subNum) {
         RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
-        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteRoleIdToRoleId().get(subNum);
+        Map<Integer, List<Integer>> subVoteRoleIdToRoleId = target.getSubVoteNumToVoteSubRoleIdToRoleId().get(subNum);
         if (!subVoteRoleIdToRoleId.get(subRoleId).contains(roomPlayerCtrl.getRoleId())) {
             subVoteRoleIdToRoleId.get(subRoleId).add(roomPlayerCtrl.getRoleId());
             roomPlayerCtrl.setSubVoteMurder(true);
+        }
+    }
+
+    @Override
+    public void addVote(String playerId, int roleId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Map<Integer, List<Integer>> voteRoleIdToRoleId = target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes());
+        if (!voteRoleIdToRoleId.get(roleId).contains(roomPlayerCtrl.getRoleId())) {
+            voteRoleIdToRoleId.get(roleId).add(roomPlayerCtrl.getRoleId());
+            roomPlayerCtrl.setVoteMurder(true);
         }
     }
 
@@ -756,7 +1100,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     private void sendToWorld(PlayerInnerMsg msg, ActorRef actorRef) {
-        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
+        context.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
     }
 
     private void sendToWorld(InnerMsg msg) {
@@ -764,7 +1108,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     private void sendToWorld(InnerMsg msg, ActorRef actorRef) {
-        DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
+        context.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class AllCtrlClassHolder {
     private static List<Class<? extends Controler>> allCtrlClass = null;
-    // dao的接口 对应的 实现类
+    // 接口 对应的 实现类
     private static Map<Class<? extends Controler>, Class<? extends Controler>> intefaceClassToInstanceClass = new HashMap<>();
 
     static {

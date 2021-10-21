@@ -1,7 +1,7 @@
 package drama.gameServer.features.actor.room.msg;
 
 import dm.relationship.base.msg.implement._PlayerInnerMsg;
-import drama.protos.RoomProtos;
+import drama.protos.room.RoomProtos;
 
 import java.util.List;
 

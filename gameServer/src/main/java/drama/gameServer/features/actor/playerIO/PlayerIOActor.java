@@ -49,6 +49,7 @@ import drama.gameServer.features.actor.room.msg.In_PlayerSoloResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteListRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRemainRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteResultRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSyncClueRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSyncSoloIdxRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteListRoomMsg;
@@ -71,7 +72,14 @@ import drama.protos.MessageHandlerProtos.Response;
 import drama.protos.PlayerLoginProtos;
 import drama.protos.PlayerLoginProtos.Sm_Login.Action;
 import drama.protos.PlayerProtos;
-import drama.protos.RoomProtos;
+import drama.protos.room.RoomProtos.Cm_Room;
+import drama.protos.room.RoomProtos.Sm_Room;
+import drama.protos.room.RoomProtos.Sm_Room_Clue;
+import drama.protos.room.RoomProtos.Sm_Room_Murder;
+import drama.protos.room.RoomProtos.Sm_Room_Player;
+import drama.protos.room.RoomProtos.Sm_Room_SubVote;
+import drama.protos.room.RoomProtos.Sm_Room_Vote;
+import drama.protos.room.RoomProtos.Sm_Room_Vote_Search;
 import org.apache.commons.lang3.StringUtils;
 import org.jolokia.util.Base64Util;
 import org.slf4j.Logger;
@@ -193,6 +201,8 @@ public class PlayerIOActor extends DmActor {
             onPlayerOnCanSearchRoomMsg((In_PlayerOnCanSearchRoomMsg) msg);
         } else if (msg instanceof In_PlayerVoteRoomMsg) {
             onPlayerVoteRoomMsg((In_PlayerVoteRoomMsg) msg);
+        } else if (msg instanceof In_PlayerSubVoteRoomMsg) {
+            onPlayerSubVoteRoomMsg((In_PlayerSubVoteRoomMsg) msg);
         } else if (msg instanceof In_PlayerVoteResultRoomMsg) {
             onPlayerVoteResultRoomMsg((In_PlayerVoteResultRoomMsg) msg);
         } else if (msg instanceof In_PlayerVoteListRoomMsg) {
@@ -244,10 +254,6 @@ public class PlayerIOActor extends DmActor {
         }
     }
 
-    private void onPlayerSubVoteRemainRoomMsg(In_PlayerSubVoteRemainRoomMsg msg) {
-
-    }
-
 
     private void onGetPlayerTargetWorldMsg(In_GetPlayerTargetWorldMsg.Request msg) {
         Player player = playerIOCtrl.getTarget();
@@ -260,10 +266,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSelectSubActerRoomMsg(In_PlayerSelectSubActerRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SUBSELECT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SUBSELECT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.addSubRoleInfo(RoomProtoUtils.createSmRoomSubRoleInfo(msg.getSubRoleId(), msg.getSubPlayerId(), msg.getDramaId(), msg.getSubNum()));
         response.setSmRoom(b.build());
@@ -271,10 +277,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerCanSubSelectInfoRoomMsg(In_PlayerCanSubSelectInfoRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CAN_SUBACTER;
+        Sm_Room.Action action = Sm_Room.Action.RESP_CAN_SUBACTER;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         Map<Integer, String> canSubSelectIds = msg.getCanSubSelectIds();
         b.addAllSubRoleInfo(RoomProtoUtils.createSmRoomSubRoleInfoList(canSubSelectIds, msg.getDramaId(), msg.getSubNum()));
@@ -284,10 +290,10 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerAllFinishChooseDubRoomMsg(In_PlayerAllFinishChooseDubRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_ALL_ROOM_PLAYER;
+        Sm_Room.Action action = Sm_Room.Action.RESP_ALL_ROOM_PLAYER;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.addAllAllRoomPlayer(RoomProtoUtils.createSmRoomPlayerList(msg.getRoom()));
         response.setSmRoom(b.build());
@@ -295,10 +301,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSyncSoloIdxRoomMsg(In_PlayerSyncSoloIdxRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SYNC_SOLO_IDX;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SYNC_SOLO_IDX;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setSoloIdx(msg.getSoloIdx());
         response.setSmRoom(b.build());
@@ -306,10 +312,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSelectReadRoomMsg(In_PlayerSelectReadRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SELECTREAD;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SELECTREAD;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setResultId(msg.getResult());
         response.setSmRoom(b.build());
@@ -317,11 +323,11 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerOnUnlockClueRoomMsg(In_PlayerOnUnlockClueRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_UNLOCK;
+        Sm_Room.Action action = Sm_Room.Action.RESP_UNLOCK;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
-        List<RoomProtos.Sm_Room_Clue> smRoomClueList = RoomProtoUtils.createSmRoomClueList(msg.getUnlockClueIds(), msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        List<Sm_Room_Clue> smRoomClueList = RoomProtoUtils.createSmRoomClueList(msg.getUnlockClueIds(), msg.getDramaId());
         b.setAction(action);
         b.addAllRoomClue(smRoomClueList);
         response.setSmRoom(b.build());
@@ -329,10 +335,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSelectDraftRoomMsg(In_PlayerSelectDraftRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SELECT_DRAFT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SELECT_DRAFT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setDraftId(msg.getDraftId());
         b.setRoleId(msg.getRoleId());
@@ -341,10 +347,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerHasSelectDraftRoomMsg(In_PlayerHasSelectDraftRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_HAS_SELECT_DRAFT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_HAS_SELECT_DRAFT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setDraftId(msg.getDraftId());
         response.setSmRoom(b.build());
@@ -352,10 +358,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerCanSelectDraftRoomMsg(In_PlayerCanSelectDraftRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CAN_SELECT_DRAFT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_CAN_SELECT_DRAFT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         List<Table_Draft_Row> rows = Table_Draft_Row.getTableDraftByIds(msg.getDraftIds(), msg.getDramaId());
         b.addAllDraft(RoomProtoUtils.createSmRoomDraftList(rows));
@@ -364,13 +370,13 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteSearchResultRoomMsg(In_PlayerVoteSearchResultRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SYNC_VOTE_SEARCH_RESULT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SYNC_VOTE_SEARCH_RESULT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getVoteTypeIdToPlayerRoleId();
-        List<RoomProtos.Sm_Room_Vote_Search> smRoomVoteList = RoomProtoUtils.createSmRoomVoteSearchList(roleIdToPlayerRoleId, msg.getDramaId());
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
-        RoomProtos.Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
+        List<Sm_Room_Vote_Search> smRoomVoteList = RoomProtoUtils.createSmRoomVoteSearchList(roleIdToPlayerRoleId, msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
         b.setAction(action);
         b.setRoomPlayer(smRoomPlayer);
         b.addAllVoteSearch(smRoomVoteList);
@@ -382,10 +388,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteSearchRoomMsg(In_PlayerVoteSearchRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_SEARCH;
+        Sm_Room.Action action = Sm_Room.Action.RESP_VOTE_SEARCH;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setTypeName(msg.getTypeName());
         response.setSmRoom(b.build());
@@ -394,11 +400,11 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerOnCanVoteSearchRoomMsg(In_PlayerOnCanVoteSearchRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CAN_VOTE_SEARCH;
+        Sm_Room.Action action = Sm_Room.Action.RESP_CAN_VOTE_SEARCH;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
-        RoomProtos.Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
         b.setAction(action);
         b.setRoomPlayer(smRoomPlayer);
         Map<String, String> voteSearchTypeById = Table_SearchType_Row.getVoteSearchTypeById(msg.getClueIds(), msg.getDramaId());
@@ -419,10 +425,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerCanSelectRoomMsg(In_PlayerCanSelectRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CAN_SELECT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_CAN_SELECT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.addAllRoleInfo(RoomProtoUtils.createSmRoomRoleInfoList(msg.getCanSelectRoleIds(), msg.getDramaId()));
         response.setSmRoom(b.build());
@@ -441,11 +447,11 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerIsVotedRoomMsg(In_PlayerIsVotedRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_IS_VOTED;
+        Sm_Room.Action action = Sm_Room.Action.RESP_IS_VOTED;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
-        RoomProtos.Sm_Room_Murder.Builder bm = createSmRoomMurder(msg);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        Sm_Room_Murder.Builder bm = createSmRoomMurder(msg);
         b.setAction(action);
         b.setMurder(bm.build());
         response.setSmRoom(b.build());
@@ -454,10 +460,10 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerSoloResultRoomMsg(In_PlayerSoloResultRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SOLO_ANSWER;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SOLO_ANSWER;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setSoloDramaId(msg.getSoloDramaId());
         b.setAction(action);
         response.setSmRoom(b.build());
@@ -465,12 +471,12 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteResultRoomMsg(In_PlayerVoteResultRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_RESULT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_VOTE_RESULT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getRoleIdToPlayerRoleId();
-        List<RoomProtos.Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomVote(smRoomVoteList);
         b.setAction(action);
         response.setSmRoom(b.build());
@@ -478,13 +484,13 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSubVoteResultRoomMsg(In_PlayerSubVoteResultRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_RESULT;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE_RESULT;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getSubVoteRoleIdToPlayerRoleId();
         Map<Integer, RoomPlayer> subRoleIdToRoomPlayer = msg.getSubRoleIdToRoomPlayer();
-        List<RoomProtos.Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomSubVote(smRoomVoteList);
         b.setAction(action);
         response.setSmRoom(b.build());
@@ -492,12 +498,12 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteListRoomMsg(In_PlayerVoteListRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_LIST;
+        Sm_Room.Action action = Sm_Room.Action.RESP_VOTE_LIST;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getVoteRoleIdToPlayerRoleId();
-        List<RoomProtos.Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomVote(smRoomVoteList);
         b.setAction(action);
         response.setSmRoom(b.build());
@@ -506,13 +512,13 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSubVoteListRoomMsg(In_PlayerSubVoteListRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_LIST;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE_LIST;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getSubVoteRoleIdToPlayerRoleId();
         Map<Integer, RoomPlayer> subRoleIdToRoomPlayer = msg.getSubRoleIdToRoomPlayer();
-        List<RoomProtos.Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomSubVote(smRoomVoteList);
         b.setAction(action);
         response.setSmRoom(b.build());
@@ -520,10 +526,10 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerVoteRemainRoomMsg(In_PlayerVoteRemainRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE_REMAIN;
+        Sm_Room.Action action = Sm_Room.Action.RESP_VOTE_REMAIN;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setVoteNum(msg.getRemainNum());
         response.setSmRoom(b.build());
@@ -531,11 +537,33 @@ public class PlayerIOActor extends DmActor {
 
     }
 
+    private void onPlayerSubVoteRemainRoomMsg(In_PlayerSubVoteRemainRoomMsg msg) {
+//        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE_REMAIN;
+//        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+//        response.setResult(true);
+//        Sm_Room.Builder b = Sm_Room.newBuilder();
+//        b.setAction(action);
+//        b.setVoteNum(msg.getRemainNum());
+//        response.setSmRoom(b.build());
+//        playerIOCtrl.send(response.build());
+    }
+
     private void onPlayerVoteRoomMsg(In_PlayerVoteRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_VOTE;
+        Sm_Room.Action action = Sm_Room.Action.RESP_VOTE;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setMurderRoleId(msg.getMurderRoleId());
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
+    }
+
+    private void onPlayerSubVoteRoomMsg(In_PlayerSubVoteRoomMsg msg) {
+        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         b.setMurderRoleId(msg.getMurderRoleId());
         response.setSmRoom(b.build());
@@ -544,14 +572,14 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerOnCanSearchRoomMsg(In_PlayerOnCanSearchRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SYNC_CAN_SEARCH;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SYNC_CAN_SEARCH;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
-        RoomProtos.Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
+        Sm_Room_Player smRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
         b.setRoomPlayer(smRoomPlayer);
-        b.addAllSearchType(RoomProtoUtils.createSearchType(Table_SearchType_Row.getTypeById(msg.getTypeIds(), msg.getDramaId())));
+        b.addAllSearchType(RoomProtoUtils.createSearchType(Table_SearchType_Row.getTypeById(msg.getTypeIds(), msg.getDramaId(), msg.getSrchNum())));
         response.setSmRoom(b.build());
         playerIOCtrl.send(response.build());
     }
@@ -560,10 +588,10 @@ public class PlayerIOActor extends DmActor {
     private void onPlayerSyncClueRoomMsg(In_PlayerSyncClueRoomMsg msg) {
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, msg.getAction());
         response.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(msg.getAction());
         List<Integer> clueIds = msg.getClueIds();
-        List<RoomProtos.Sm_Room_Clue> smRoomClueList = RoomProtoUtils.createSmRoomClueList(clueIds, msg.getDramaId());
+        List<Sm_Room_Clue> smRoomClueList = RoomProtoUtils.createSmRoomClueList(clueIds, msg.getDramaId());
         b.addAllRoomClue(smRoomClueList);
         response.setSmRoom(b.build());
         playerIOCtrl.send(response.build());
@@ -571,17 +599,17 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerSearchRoomMsg(In_PlayerSearchRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SEARCH;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SEARCH;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         if (msg.getId() == MagicNumbers.DEFAULT_ZERO) {
             response.setResult(false);
             response.setErrorCode(EnumsProtos.ErrorCodeEnum.NO_CLUE);
         } else {
             response.setResult(true);
-            RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+            Sm_Room.Builder b = Sm_Room.newBuilder();
             b.setAction(action);
-            RoomProtos.Sm_Room_Player bRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
-            RoomProtos.Sm_Room_Clue.Builder bClue = RoomProtoUtils.createSmRoomClue(msg.getId(), msg.getDramaId());
+            Sm_Room_Player bRoomPlayer = RoomProtoUtils.createSmRoomPlayer(msg.getRoomPlayer(), msg.getDramaId());
+            Sm_Room_Clue.Builder bClue = RoomProtoUtils.createSmRoomClue(msg.getId(), msg.getDramaId());
             b.addRoomClue(bClue.build());
             b.setRoomPlayer(bRoomPlayer);
             response.setSmRoom(b.build());
@@ -591,18 +619,18 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerOnOpenDubRoomMsg(In_PlayerOnOpenDubRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = msg.getAction();
+        Sm_Room.Action action = msg.getAction();
         RoomPlayer roomPlayer = msg.getRoomPlayer();
-        if (action == RoomProtos.Sm_Room.Action.RESP_IS_DUB) {
+        if (action == Sm_Room.Action.RESP_IS_DUB) {
             playerIOCtrl.sendRoomPlayerOnOpenDubProtos(action, roomPlayer, msg);
-        } else if (action == RoomProtos.Sm_Room.Action.RESP_SOLO_DUB) {
+        } else if (action == Sm_Room.Action.RESP_SOLO_DUB) {
             playerIOCtrl.sendSoloRoomPlayer(action, roomPlayer, msg.getSoloNum(), msg.getDramaId());
         }
     }
 
 
     private void onPlayerOnReadyRoomMsg(In_PlayerOnReadyRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_READY;
+        Sm_Room.Action action = Sm_Room.Action.RESP_READY;
         RoomPlayer roomPlayer = msg.getRoomPlayer();
         playerIOCtrl.sendRoomPlayerOnReadyProtos(action, roomPlayer, msg.getDramaId(), msg.getCanReadyTime());
         checkRoomPlayerAllReady(msg.getRoomPlayer().getRoomId());
@@ -610,36 +638,36 @@ public class PlayerIOActor extends DmActor {
 
 
     private void onPlayerChooseRoleRoomMsg(In_PlayerChooseRoleRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = null;
-        if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.SELECT_VALUE) {
-            action = RoomProtos.Sm_Room.Action.RESP_SELECT;
-        } else if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.ANSWER_VALUE) {
-            action = RoomProtos.Sm_Room.Action.RESP_ANSWER;
-        } else if (msg.getAction().getNumber() == RoomProtos.Cm_Room.Action.NO_SELECT_VALUE) {
-            action = RoomProtos.Sm_Room.Action.RESP_NO_SELECT;
+        Sm_Room.Action action = null;
+        if (msg.getAction().getNumber() == Cm_Room.Action.SELECT_VALUE) {
+            action = Sm_Room.Action.RESP_SELECT;
+        } else if (msg.getAction().getNumber() == Cm_Room.Action.ANSWER_VALUE) {
+            action = Sm_Room.Action.RESP_ANSWER;
+        } else if (msg.getAction().getNumber() == Cm_Room.Action.NO_SELECT_VALUE) {
+            action = Sm_Room.Action.RESP_NO_SELECT;
         }
         RoomPlayer roomPlayer = msg.getRoomPlayer();
         playerIOCtrl.sendRoomPlayerProtos(action, roomPlayer, msg.getDramaId());
     }
 
     private void onPlayerOnSwitchStateRoomMsg(In_PlayerOnSwitchStateRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_SWITCH_STATE;
+        Sm_Room.Action action = Sm_Room.Action.RESP_SWITCH_STATE;
         Room room = msg.getRoom();
         MessageHandlerProtos.Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, action);
+        Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, action);
         response.setSmRoom(b);
         playerIOCtrl.send(response.build());
     }
 
 
     private void onPlayerCreateRoomMsg(In_PlayerCreateRoomMsg msg) {
-        RoomProtos.Sm_Room.Action action = RoomProtos.Sm_Room.Action.RESP_CREATE;
+        Sm_Room.Action action = Sm_Room.Action.RESP_CREATE;
         playerIOCtrl.joinRoom(msg.getRoom().getRoomId());
         Room room = msg.getRoom();
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
-        RoomProtos.Sm_Room b = RoomProtoUtils.createSmRoomByActionWithoutRoomPlayer(room, action);
+        Sm_Room b = RoomProtoUtils.createSmRoomByActionWithoutRoomPlayer(room, action);
         response.setSmRoom(b);
         playerIOCtrl.send(response.build());
         playerIOCtrl.save();
@@ -664,9 +692,9 @@ public class PlayerIOActor extends DmActor {
         Room room = msg.getRoom();
         playerIOCtrl.joinRoom(room.getRoomId());
         LOGGER.debug("玩家加入了房间: playerId={} ,roomId={},dramaName={}", playerId, room.getRoomId(), room.getDramaId());
-        MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_JION);
+        MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, Sm_Room.Action.RESP_JION);
         br.setResult(true);
-        RoomProtos.Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, RoomProtos.Sm_Room.Action.RESP_JION);
+        Sm_Room b = RoomProtoUtils.createSmRoomByAction(room, Sm_Room.Action.RESP_JION);
         br.setSmRoom(b);
         playerIOCtrl.send(br.build());
         playerIOCtrl.save();
@@ -678,10 +706,10 @@ public class PlayerIOActor extends DmActor {
             //如果退出的玩家id是自己,清掉自己的roomId
             playerIOCtrl.quitRoom();
         }
-        Response.Builder br = ProtoUtils.create_Response(Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_QUIT);
+        Response.Builder br = ProtoUtils.create_Response(Code.Sm_Room, Sm_Room.Action.RESP_QUIT);
         br.setResult(true);
-        RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
-        b.setAction(RoomProtos.Sm_Room.Action.RESP_QUIT);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(Sm_Room.Action.RESP_QUIT);
         b.setPlayerId(msg.getQuitPlayerId());
         br.setSmRoom(b.build());
         playerIOCtrl.send(br.build());

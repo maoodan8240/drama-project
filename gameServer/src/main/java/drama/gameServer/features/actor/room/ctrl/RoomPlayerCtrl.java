@@ -1,11 +1,21 @@
 package drama.gameServer.features.actor.room.ctrl;
 
+import akka.actor.ActorRef;
+import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
+import drama.gameServer.features.actor.room.mc.extension.RoomPlayerExtension;
+import drama.gameServer.features.actor.room.pojo.AuctionResult;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
+import drama.protos.MessageHandlerProtos;
+import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.mc.controler.Controler;
 
 import java.util.List;
+import java.util.TreeMap;
 
 public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
+
+    RoomPlayer createRoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection);
+
     /**
      * 是否持有这个证物
      *
@@ -42,6 +52,7 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
      *
      * @return
      */
+
     boolean hasRole();
 
     boolean isReady();
@@ -128,4 +139,48 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
      * @param subRoleId
      */
     void setSelectSubRole(int subRoleId, int subNum);
+
+    /**
+     * 添加扩展
+     *
+     * @param extension
+     */
+    void addExtension(RoomPlayerExtension<?> extension);
+
+    /**
+     * 返回扩展
+     *
+     * @param type
+     * @return
+     */
+    <T extends RoomPlayerExtension<?>> T getExtension(Class<T> type);
+
+    /**
+     * 返回全部扩展
+     *
+     * @return
+     */
+    TreeMap<String, RoomPlayerExtension<?>> getAllExtensions();
+
+    /**
+     * 发放初始道具
+     *
+     * @param dramaId
+     */
+    void initProp(int dramaId);
+
+
+    String getRoleName();
+
+    void setRoleName(String roleName);
+
+    ActorRef getRoomActorRef();
+
+    void setRoomActorRef(ActorRef roomActorRef);
+
+    void send(MessageHandlerProtos.Response build);
+
+    void addAuctionResult(int runDown, AuctionResult auctionResult);
+
+    List<AuctionResult> getAuctionResult(int runDown);
 }

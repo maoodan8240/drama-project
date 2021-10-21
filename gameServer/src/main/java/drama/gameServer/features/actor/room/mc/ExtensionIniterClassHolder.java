@@ -1,7 +1,7 @@
-package drama.gameServer.features.actor.login;
+package drama.gameServer.features.actor.room.mc;
 
-import drama.gameServer.features.actor.login.ext._999_PaymentExtIniter;
-import drama.gameServer.features.actor.login.ext.base.ExtensionIniter;
+import drama.gameServer.features.actor.room.mc.extensionIniter._999_OtherExtIniter;
+import drama.gameServer.features.actor.room.mc.extensionIniter.base.ExtensionIniter;
 import ws.common.utils.classProcess.ClassFinder;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ public class ExtensionIniterClassHolder {
     private static List<Class<? extends ExtensionIniter>> extensionIniterClasses = null;
 
     static {
-        extensionIniterClasses = new ArrayList<>(ClassFinder.getAllAssignedClass(ExtensionIniter.class, _999_PaymentExtIniter.class));
+        extensionIniterClasses = new ArrayList<>(ClassFinder.getAllAssignedClass(ExtensionIniter.class, _999_OtherExtIniter.class));
         sortByName();
     }
 

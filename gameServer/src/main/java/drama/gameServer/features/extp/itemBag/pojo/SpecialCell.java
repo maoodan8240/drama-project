@@ -1,4 +1,4 @@
-package dm.relationship.topLevelPojos.itemBag;
+package drama.gameServer.features.extp.itemBag.pojo;
 
 
 import java.io.Serializable;

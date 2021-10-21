@@ -8,7 +8,7 @@ import ws.common.table.table.interfaces.cell.TupleCell;
 
 import java.util.List;
 
-public enum RoomStateEnum {
+public enum RoomState {
     ANSWER("ANSWER", EnumsProtos.RoomStateEnum.ANSWER),             //  选角答题
     READ("READ", EnumsProtos.RoomStateEnum.READ),                   //  读剧本
     STAGE("STAGE", EnumsProtos.RoomStateEnum.STAGE),                //  小剧场
@@ -32,14 +32,14 @@ public enum RoomStateEnum {
     SHOOT("SHOOT", EnumsProtos.RoomStateEnum.SHOOT),                //  开枪
     SUBREAD("SUBREAD", EnumsProtos.RoomStateEnum.SUBREAD),          //  子剧本读本阶段
     UNLOCKINFO("UNLOCKINFO", EnumsProtos.RoomStateEnum.UNLOCKINFO), //  解锁信息(玩家身上的一些动态信息)
-
+    AUCTIONRESULT("AUCTIONRESULT", EnumsProtos.RoomStateEnum.AUCTIONRESULT),//  拍卖结果
 
     NULL("", null);
 
     private String name;
     private EnumsProtos.RoomStateEnum state;
 
-    private RoomStateEnum(String name, EnumsProtos.RoomStateEnum state) {
+    private RoomState(String name, EnumsProtos.RoomStateEnum state) {
         this.name = name;
         this.state = state;
     }
@@ -54,9 +54,19 @@ public enum RoomStateEnum {
     }
 
     public static EnumsProtos.RoomStateEnum getRoomStateByName(String name) {
-        for (RoomStateEnum stateEnum : RoomStateEnum.values()) {
+        for (RoomState stateEnum : RoomState.values()) {
             if (stateEnum.getName().equals(name)) {
                 return stateEnum.getState();
+            }
+        }
+        String msg = String.format("RoomStateEnum解析失败! name=%s", name);
+        throw new BusinessLogicMismatchConditionException(msg);
+    }
+
+    public static RoomState getRoomState(String name) {
+        for (RoomState stateEnum : RoomState.values()) {
+            if (stateEnum.getName().equals(name)) {
+                return stateEnum;
             }
         }
         String msg = String.format("RoomStateEnum解析失败! name=%s", name);
@@ -67,7 +77,7 @@ public enum RoomStateEnum {
         Table_SceneList_Row row = Table_SceneList_Row.getRowByDramaId(dramaId);
         List<TupleCell<String>> runDown = row.getRunDown();
         String tabRundown = runDown.get(Integer.valueOf(MagicNumbers.DEFAULT_ZERO)).get(TupleCell.FIRST);
-        EnumsProtos.RoomStateEnum roomStateByName = RoomStateEnum.getRoomStateByName(tabRundown);
+        EnumsProtos.RoomStateEnum roomStateByName = RoomState.getRoomStateByName(tabRundown);
         return roomStateByName == roomStateEnum;
     }
 

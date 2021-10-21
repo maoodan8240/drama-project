@@ -22,8 +22,9 @@ import drama.protos.CodesProtos;
 import drama.protos.EnumsProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.MessageHandlerProtos.Response;
-import drama.protos.RoomProtos;
-import drama.protos.RoomProtos.Cm_Room;
+import drama.protos.room.RoomProtos.Cm_Room;
+import drama.protos.room.RoomProtos.Sm_Room;
+import drama.protos.room.RoomProtos.Sm_Room_Info;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -57,7 +58,7 @@ public class HandleRoomMsgAction implements Action {
     }
 
     private void onNetWorkRoomMsg(RoomNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
-        if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
+        if (msg.getMessage() instanceof Cm_Room) {
             if (!worldCtrl.contains(msg.getConnection())) {
                 ProtoUtils.needReLogin(msg.getConnection());
                 return;
@@ -65,8 +66,8 @@ public class HandleRoomMsgAction implements Action {
             String playerId = worldCtrl.getPlayerId(msg.getConnection());
             if (worldCtrl.containsPlayerActorRef(playerId)) {
                 SimplePlayer simplePlayer = getSimplePlayer(playerId, worldCtrl, worldActorContext, self);
-                RoomProtos.Cm_Room cm_room = (RoomProtos.Cm_Room) msg.getMessage();
-                RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
+                Cm_Room cm_room = (Cm_Room) msg.getMessage();
+                Sm_Room.Builder b = Sm_Room.newBuilder();
                 b = RoomProtoUtils.setAction(b, cm_room);
                 try {
                     if (cm_room.getAction().getNumber() == Cm_Room.Action.CREAT_VALUE) {
@@ -87,11 +88,24 @@ public class HandleRoomMsgAction implements Action {
             } else {
                 throw new BusinessLogicMismatchConditionException("玩家不在线或Actor不可用 playerId=" + playerId);
             }
+        } else {
+            if (!worldCtrl.contains(msg.getConnection())) {
+                ProtoUtils.needReLogin(msg.getConnection());
+                return;
+            }
+            String playerId = worldCtrl.getPlayerId(msg.getConnection());
+            if (worldCtrl.containsPlayerActorRef(playerId)) {
+                SimplePlayer simplePlayer = getSimplePlayer(playerId, worldCtrl, worldActorContext, self);
+                onOtherRoomMsg(msg, simplePlayer, worldCtrl, self);
+            } else {
+                throw new BusinessLogicMismatchConditionException("玩家不在线或Actor不可用 playerId=" + playerId);
+            }
         }
     }
 
+
     private void onJoinRoom(RoomNetWorkMsg msg, SimplePlayer simplePlayer, WorldCtrl worldCtrl, ActorRef self) {
-        if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
+        if (msg.getMessage() instanceof Cm_Room) {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             String roomId = cm_room.getRoomId();
             if (StringUtils.isEmpty(roomId) && !worldCtrl.containsRoom(roomId)) {
@@ -108,33 +122,31 @@ public class HandleRoomMsgAction implements Action {
     }
 
     private void onSyncRoomList(RoomNetWorkMsg msg, WorldCtrl worldCtrl) {
-        MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_SYNC);
+        MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, Sm_Room.Action.RESP_SYNC);
         br.setResult(true);
-        RoomProtos.Sm_Room.Builder broom = RoomProtos.Sm_Room.newBuilder();
+        Sm_Room.Builder broom = Sm_Room.newBuilder();
         for (Map.Entry<String, Room> entries : worldCtrl.getRoomCenter().getRoomIdToRoom().entrySet()) {
             Room room = (Room) entries.getValue();
-            RoomProtos.Sm_Room_Info sm_room_info = RoomProtoUtils.createSmRoomInfoWithoutRoomPlayer(room);
+            Sm_Room_Info sm_room_info = RoomProtoUtils.createSmRoomInfoWithoutRoomPlayer(room);
             broom.addRoomInfos(sm_room_info);
         }
-        broom.setAction(RoomProtos.Sm_Room.Action.RESP_SYNC);
+        broom.setAction(Sm_Room.Action.RESP_SYNC);
         br.setSmRoom(broom.build());
         msg.getConnection().send(new MessageSendHolder(br.build(), br.getSmMsgAction(), new ArrayList<>()));
     }
 
     private void onOtherRoomMsg(RoomNetWorkMsg msg, SimplePlayer simplePlayer, WorldCtrl worldCtrl, ActorRef self) {
-        if (msg.getMessage() instanceof RoomProtos.Cm_Room) {
-            String roomId = simplePlayer.getRoomId();
-            if (StringUtils.isEmpty(roomId) && !worldCtrl.containsRoom(roomId)) {
-                LOGGER.debug("RoomContainer没有找到房间 或者玩家不在房间内 playerId={},roomId={}", simplePlayer.getPlayerId(), roomId);
-                throw new BusinessLogicMismatchConditionException("没有找到房间 roomId=" + roomId, EnumsProtos.ErrorCodeEnum.ROOM_NOT_EXISTS);
-            }
-            if (!worldCtrl.roomActorCanUse(roomId)) {
-                LOGGER.debug("world中没有找到roomActorRef roomId={}", roomId);
-                throw new BusinessLogicMismatchConditionException("world中没有找到roomActorRef roomId=" + roomId);
-            }
-            msg.setSimplePlayer(simplePlayer);
-            worldCtrl.getRoomActorRef(roomId).tell(msg, self);
+        String roomId = simplePlayer.getRoomId();
+        if (StringUtils.isEmpty(roomId) && !worldCtrl.containsRoom(roomId)) {
+            LOGGER.debug("RoomContainer没有找到房间 或者玩家不在房间内 playerId={},roomId={}", simplePlayer.getPlayerId(), roomId);
+            throw new BusinessLogicMismatchConditionException("没有找到房间 roomId=" + roomId, EnumsProtos.ErrorCodeEnum.ROOM_NOT_EXISTS);
         }
+        if (!worldCtrl.roomActorCanUse(roomId)) {
+            LOGGER.debug("world中没有找到roomActorRef roomId={}", roomId);
+            throw new BusinessLogicMismatchConditionException("world中没有找到roomActorRef roomId=" + roomId);
+        }
+        msg.setSimplePlayer(simplePlayer);
+        worldCtrl.getRoomActorRef(roomId).tell(msg, self);
     }
 
 
@@ -143,13 +155,13 @@ public class HandleRoomMsgAction implements Action {
         Cm_Room cm_room = (Cm_Room) msg.getMessage();
         if (worldCtrl.containsPlayerRoom(simplePlayer.getPlayerId())) {
             String roomId = worldCtrl.getRoomId(simplePlayer.getPlayerId());
-            LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->roomId={}<->roomSimplePlayerId={}", simplePlayer.getPlayerId(), roomId, worldCtrl.getRoomIdToRoom().get(roomId).getSimpleRoomId());
+            LOGGER.debug("玩家已经有一个房间在名下,不能再创建了,直接进入player={}<->simpleRoomId={}<->roomId={}<->roomSimplePlayerId={}", simplePlayer.getPlayerId(), worldCtrl.getRoomIdToRoom().get(roomId).getSimpleRoomId(), roomId, worldCtrl.getRoomIdToRoom().get(roomId).getSimpleRoomId());
             throw new BusinessLogicMismatchConditionException("玩家名下已经有房间,无法再创建,playerId:" + simplePlayer.getPlayerId() + ",roomId:" + roomId, EnumsProtos.ErrorCodeEnum.CREATE_ROOM_HAS_ONE);
         }
         msg.setSimplePlayer(simplePlayer);
         String roomId = ObjectId.get().toString();
         RoomCtrl roomCtrl = GlobalInjector.getInstance(RoomCtrl.class);
-        roomCtrl.createRoom(roomId, simplePlayer, cm_room.getDramaId());
+        roomCtrl.createRoom(roomId, simplePlayer, cm_room.getDramaId(), msg.getConnection());
         worldCtrl.addRoom(roomCtrl.getTarget(), simplePlayer.getPlayerId());
         String roomActorName = ActorSystemPath.DM_GameServer_Room + roomId;
         ActorRef actorRef = worldActorContext.actorOf(Props.create(RoomActor.class, roomCtrl, roomId, simplePlayer.getPlayerId()), roomActorName);
@@ -168,6 +180,7 @@ public class HandleRoomMsgAction implements Action {
                 LOGGER.debug("没有找到玩家或玩家不可用 connection={}, playerId={}", ((playerId != null) ? playerId : "null"));
                 throw new BusinessLogicMismatchConditionException("没有找到玩家或玩家不可用");
             }
+            LOGGER.debug("RoomHandle 从DB库中获取了player, playerId={}", playerId);
             Player player = worldCtrl.getPlayerDao().findPlayerByPlayerId(playerId);
             simplePlayer = new SimplePlayer(player.getPlayerId(), //
                     player.getBase().getSimpleId(), player.getBase().getName(),//

@@ -15,7 +15,7 @@ import drama.protos.CodesProtos;
 import drama.protos.EnumsProtos;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.PlayerLoginProtos;
-import drama.protos.RoomProtos;
+import drama.protos.room.RoomProtos;
 import org.apache.commons.lang3.StringUtils;
 import ws.common.mongoDB.interfaces.MongoDBClient;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
@@ -136,7 +136,7 @@ public class _PlayerIOCtrl extends AbstractControler<Player> implements PlayerIO
         bRoom.setAction(action);
         RoomProtos.Sm_Room_Player sm_room_player = RoomProtoUtils.createSmRoomPlayer(roomPlayer, dramaId);
         bRoom.setRoomPlayer(sm_room_player);
-        bRoom.setCanReadyTime(canReadyTime);
+        bRoom.setNextSTime(canReadyTime);
         response.setSmRoom(bRoom.build());
         send(response.build());
     }

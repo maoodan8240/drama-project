@@ -2,6 +2,7 @@ package dm.relationship.topLevelPojos.simplePlayer;
 
 import drama.protos.EnumsProtos.SexEnum;
 
+
 /**
  * Created by leetony on 16-8-25.
  */
@@ -19,6 +20,7 @@ public class SimplePlayer {
     private long lastLogoutTime;   // 最近一次登出时间
 
     private String roomId;         // 房间Id
+
 
     /**
      * @param playerId
@@ -76,6 +78,7 @@ public class SimplePlayer {
     public String getRoomId() {
         return roomId;
     }
+
 
     @Override
     public String toString() {
