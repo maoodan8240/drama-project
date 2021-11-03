@@ -1,15 +1,18 @@
 package drama.gameServer.features.actor.room.pojo;
 
 
+import dm.relationship.base.OneToOneConcurrentMapWithAttachment;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.PowerEnum;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.date.WsDateFormatEnum;
 import ws.common.utils.date.WsDateUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,9 +130,33 @@ public class Room {
     private String createAt;
 
     /***
-     * 竞拍结果
+     * 可以开枪RoomPlayer和开枪类型
      */
-//    private Map<Integer, List<AuctionResult>> roleToAuctionResults = new HashMap<>();
+    private Map<Integer, Map<PowerEnum, Integer>> roleIdToPowerAndBulletNum = new HashMap<>();
+    /**
+     * 记录玩家是否开枪
+     */
+    private Map<Integer, Boolean> roleIdIsShoot = new HashMap<>();
+    /**
+     * 上一轮开枪的玩家
+     */
+    private int lastShootRoleId;
+
+    /**
+     * Npc
+     */
+    private Npc npc;
+
+    /**
+     * 枪战是否结束
+     */
+    private boolean isShootEnding;
+
+    /**
+     * roleId对应使用枪支射击某个RoleId
+     */
+    private OneToOneConcurrentMapWithAttachment<Integer, PowerEnum, Integer> roleIdAndPowerToBeShoot = new OneToOneConcurrentMapWithAttachment<>();
+
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
         this.dramaId = dramaId;
@@ -143,6 +170,46 @@ public class Room {
         this.createAt = WsDateUtils.dateToFormatStr(new Date(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss);
     }
 
+
+    public OneToOneConcurrentMapWithAttachment<Integer, PowerEnum, Integer> getRoleIdAndPowerToBeShoot() {
+        return roleIdAndPowerToBeShoot;
+    }
+
+    public boolean isShootEnding() {
+        return isShootEnding;
+    }
+
+    public void setShootEnding(boolean shootEnding) {
+        isShootEnding = shootEnding;
+    }
+
+    public Npc getNpc() {
+        return npc;
+    }
+
+    public void setNpc(Npc npc) {
+        this.npc = npc;
+    }
+
+    public Map<Integer, Boolean> getRoleIdIsShoot() {
+        return roleIdIsShoot;
+    }
+
+    public int getLastShootRoleId() {
+        return lastShootRoleId;
+    }
+
+    public void setLastShootRoleId(int lastShootRoleId) {
+        this.lastShootRoleId = lastShootRoleId;
+    }
+
+    public Map<Integer, Map<PowerEnum, Integer>> getRoleIdToPowerAndBulletNum() {
+        return roleIdToPowerAndBulletNum;
+    }
+
+    public void setRoleIdToPowerAndBulletNum(Map<Integer, Map<PowerEnum, Integer>> roleIdToPowerAndBulletNum) {
+        this.roleIdToPowerAndBulletNum = roleIdToPowerAndBulletNum;
+    }
 
     public List<Auction> getAuctionList() {
         return auctionList;

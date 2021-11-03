@@ -78,6 +78,15 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
      */
     private Map<Integer, List<AuctionResult>> numToAuctionResults = new HashMap<>();
 
+    /**
+     * 是否存活
+     */
+    private boolean isLive;
+
+    /**
+     * 个人选择
+     */
+    private int choiceRoleId;
 
     public RoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection) {
         this.playerId = simplePlayer.getPlayerId();
@@ -89,10 +98,25 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
     }
 
 
+    public int getChoiceRoleId() {
+        return choiceRoleId;
+    }
+
+    public void setChoiceRoleId(int choiceRoleId) {
+        this.choiceRoleId = choiceRoleId;
+    }
+
     public Map<Integer, List<AuctionResult>> getNumToAuctionResults() {
         return numToAuctionResults;
     }
 
+    public boolean isLive() {
+        return isLive;
+    }
+
+    public void setLive(boolean live) {
+        isLive = live;
+    }
 
     public String getRoleName() {
         return roleName;
@@ -221,8 +245,15 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
     public String toString() {
         return "RoomPlayer{" +
                 "playerId='" + playerId + '\'' +
-                ", roomId='" + roomId + '\'' +
+                ", playerName='" + playerName + '\'' +
+                ", roleName='" + roleName + '\'' +
                 ", roleId=" + roleId +
+                ", playerIcon='" + playerIcon + '\'' +
+                ", connection=" + connection +
+                ", roomId='" + roomId + '\'' +
+                ", subNumToSubRoleId=" + subNumToSubRoleId +
+                ", voteMurder=" + voteMurder +
+                ", subVoteMurder=" + subVoteMurder +
                 ", isReady=" + isReady +
                 ", isDub=" + isDub +
                 ", srchTimes=" + srchTimes +
@@ -230,6 +261,9 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
                 ", soloAnswer=" + soloAnswer +
                 ", selectDraft=" + selectDraft +
                 ", clueIds=" + clueIds +
+                ", numToAuctionResults=" + numToAuctionResults +
+                ", isLive=" + isLive +
+                ", dramaId=" + dramaId +
                 '}';
     }
 }

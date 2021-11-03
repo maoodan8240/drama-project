@@ -18,16 +18,21 @@ import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.enums.RoomState;
 import drama.gameServer.features.actor.room.msg.In_PlayerIsVotedRoomMsg;
 import drama.gameServer.features.actor.room.pojo.AuctionResult;
+import drama.gameServer.features.actor.room.pojo.Npc;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
+import drama.gameServer.features.extp.itemBag.enums.EquipEnum;
 import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
 import drama.gameServer.features.extp.itemBag.pojo.PlainCell;
 import drama.gameServer.features.extp.itemBag.pojo.SpecialCell;
 import drama.gameServer.features.extp.itemBag.utils.ItemBagCtrlProtos;
 import drama.gameServer.features.extp.itemBag.utils.ItemBagUtils;
+import drama.protos.EnumsProtos.DefPowerEnum;
+import drama.protos.EnumsProtos.PowerEnum;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag_PlainCell;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag_SpecialCell;
 import drama.protos.room.RoomProtos.Cm_Room;
+import drama.protos.room.RoomProtos.Cm_Room.Action;
 import drama.protos.room.RoomProtos.Sm_Room;
 import drama.protos.room.RoomProtos.Sm_Room_AuctionInfo;
 import drama.protos.room.RoomProtos.Sm_Room_Clue;
@@ -37,17 +42,21 @@ import drama.protos.room.RoomProtos.Sm_Room_Murder;
 import drama.protos.room.RoomProtos.Sm_Room_Player;
 import drama.protos.room.RoomProtos.Sm_Room_RoleInfo;
 import drama.protos.room.RoomProtos.Sm_Room_SearchType;
+import drama.protos.room.RoomProtos.Sm_Room_ShootInfo;
+import drama.protos.room.RoomProtos.Sm_Room_ShootResult;
 import drama.protos.room.RoomProtos.Sm_Room_SubRoleInfo;
 import drama.protos.room.RoomProtos.Sm_Room_SubVote;
 import drama.protos.room.RoomProtos.Sm_Room_UnlockInfo;
 import drama.protos.room.RoomProtos.Sm_Room_Vote;
 import drama.protos.room.RoomProtos.Sm_Room_Vote_Search;
 import org.apache.commons.lang3.time.DateUtils;
+import org.bson.types.ObjectId;
 import ws.common.table.table.interfaces.cell.TupleCell;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class RoomProtoUtils {
     public static Sm_Room createSmRoomByActionWithoutRoomPlayer(Room room, Sm_Room.Action action) {
@@ -85,6 +94,7 @@ public class RoomProtoUtils {
         }
         return arr;
     }
+
 
     public static Sm_Room_Info createSmRoomInfoWithoutRoomPlayer(Room room) {
         Sm_Room_Info.Builder broom = Sm_Room_Info.newBuilder();
@@ -256,6 +266,7 @@ public class RoomProtoUtils {
         bRoomPlayer.setVoteSrchTimes(roomPlayer.getVoteSrchTimes());
         bRoomPlayer.setPlayerName(roomPlayer.getPlayerName());
         bRoomPlayer.setPlayerIcon(roomPlayer.getPlayerIcon());
+        bRoomPlayer.setIsLive(roomPlayer.isLive());
         if (roomPlayer.getRoleId() != MagicNumbers.DEFAULT_ZERO) {
             Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roomPlayer.getRoleId(), dramaId);
             bRoomPlayer.setPic(row.getPic());
@@ -266,6 +277,18 @@ public class RoomProtoUtils {
         }
         bRoomPlayer.addAllSubRoleInfo(createSmRoomSubRoleInfoList(roomPlayer.getSubNumToSubRoleId(), dramaId));
         return bRoomPlayer.build();
+    }
+
+    public static Sm_Room_Player createSmNpcRoomPlayer(Npc npc) {
+        Sm_Room_Player.Builder bRoomPlayer = Sm_Room_Player.newBuilder();
+        bRoomPlayer.setPlayerId(ObjectId.get().toString());
+        bRoomPlayer.setIsReady(true);
+        bRoomPlayer.setRoleId(npc.getRoleId());
+        bRoomPlayer.setPlayerName(npc.getRoleName());
+        bRoomPlayer.setProfile(npc.getRoleProfile());
+        bRoomPlayer.setIsLive(npc.isLive());
+        return bRoomPlayer.build();
+
     }
 
     public static List<Sm_Room_SubRoleInfo> createSmRoomSubRoleInfoList(Map<Integer, Integer> subNumToSubRoleIds, int dramaId) {
@@ -323,18 +346,26 @@ public class RoomProtoUtils {
 
 
     public static Sm_Room.Builder setAction(Sm_Room.Builder b, Cm_Room cm_room) {
-        if (cm_room.getAction().getNumber() == Cm_Room.Action.CREAT_VALUE) {
+        if (cm_room.getAction().getNumber() == Action.CREAT_VALUE) {
             b.setAction(Sm_Room.Action.RESP_CREATE);
-        } else if (cm_room.getAction().getNumber() == Cm_Room.Action.JION_VALUE) {
+        } else if (cm_room.getAction().getNumber() == Action.JION_VALUE) {
             b.setAction(Sm_Room.Action.RESP_JION);
-        } else if (cm_room.getAction().getNumber() == Cm_Room.Action.QUIT_VALUE) {
+        } else if (cm_room.getAction().getNumber() == Action.QUIT_VALUE) {
             b.setAction(Sm_Room.Action.RESP_QUIT);
-        } else if (cm_room.getAction().getNumber() == Cm_Room.Action.SYNC_VALUE) {
+        } else if (cm_room.getAction().getNumber() == Action.SYNC_VALUE) {
             b.setAction(Sm_Room.Action.RESP_SYNC);
-        } else if (cm_room.getAction().getNumber() == Cm_Room.Action.ANSWER_VALUE) {
+        } else if (cm_room.getAction().getNumber() == Action.ANSWER_VALUE) {
             b.setAction(Sm_Room.Action.RESP_ANSWER);
-        } else if (cm_room.getAction().getNumber() == Cm_Room.Action.READY_VALUE) {
+        } else if (cm_room.getAction().getNumber() == Action.READY_VALUE) {
             b.setAction(Sm_Room.Action.RESP_READY);
+        } else if (cm_room.getAction().getNumber() == Action.SHOOT_VALUE) {
+            b.setAction(Sm_Room.Action.RESP_SHOOT);
+        } else if (cm_room.getAction().getNumber() == Action.SHOOT_LIST_VALUE) {
+            b.setAction(Sm_Room.Action.RESP_SHOOT_LIST);
+        } else if (cm_room.getAction().getNumber() == Action.CAN_SHOOT_VALUE) {
+            b.setAction(Sm_Room.Action.RESP_CAN_SHOOT);
+        } else if (cm_room.getAction().getNumber() == Action.SHOOT_ENDING_VALUE) {
+            b.setAction(Sm_Room.Action.RESP_SHOOT_ENDING);
         }
         return b;
     }
@@ -358,6 +389,27 @@ public class RoomProtoUtils {
             }
         }
         return arr;
+    }
+
+    public static List<Sm_Room_RoleInfo> createSmRoomRoleInfoListByRoleId(List<Integer> roleIds, int dramaId) {
+        List<Sm_Room_RoleInfo> arr = new ArrayList<>();
+        for (Table_Acter_Row row : RootTc.get(Table_Acter_Row.class).values()) {
+            if (row.getDramaId() == dramaId && roleIds.contains(row.getRoleId())) {
+                arr.add(createSmRoomRoleInfo(row));
+            }
+        }
+        return arr;
+    }
+
+    public static Sm_Room_RoleInfo createSmRoomRoleInfo(Table_Acter_Row row) {
+        Sm_Room_RoleInfo.Builder b = Sm_Room_RoleInfo.newBuilder();
+        b.setRoleId(row.getRoleId());
+        b.setName(row.getName());
+        b.setSex(row.getSex());
+        b.setPic(row.getPic());
+        b.setProfile(row.getProfile());
+        b.addAllBgm(row.getBgm());
+        return b.build();
     }
 
     public static Sm_Room_RoleInfo createSmRoomRoleInfo(int roleId, int dramaId, boolean selected) {
@@ -487,6 +539,78 @@ public class RoomProtoUtils {
             arr.add(createSmRoomAuctionInfo(auctionResult, dramaId));
         }
         return arr;
+    }
+
+    public static Sm_Room_ShootResult createSmRoomShootResult(int shootRoleId, int beShootRoleId, boolean isLive, PowerEnum power, DefPowerEnum defPowerEnum, int dramaId) {
+        Sm_Room_ShootResult.Builder b = Sm_Room_ShootResult.newBuilder();
+        setShootResultBase(shootRoleId, beShootRoleId, isLive, power, dramaId, b);
+        Table_Item_Row itemRow = Table_Item_Row.getRowByItemId(EquipEnum.parseByDefPower(defPowerEnum).getItemId(), dramaId);
+        b.setDefPower(defPowerEnum);
+        b.setDefItemName(itemRow.getItemName());
+        return b.build();
+    }
+
+    private static void setShootResultBase(int shootRoleId, int beShootRoleId, boolean isLive, PowerEnum power, int dramaId, Sm_Room_ShootResult.Builder b) {
+        if (_isNpc(shootRoleId, dramaId)) {
+            Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(dramaId);
+            b.setShootRolePic(npcRow.getProfile());
+            b.setShootRoleName(npcRow.getName());
+        } else {
+            Table_Acter_Row shootRow = Table_Acter_Row.getTableActerRowByRoleId(shootRoleId, dramaId);
+            b.setShootRolePic(shootRow.getProfile());
+            b.setShootRoleName(shootRow.getName());
+        }
+        b.setShootRoleId(shootRoleId);
+        if (_isNpc(beShootRoleId, dramaId)) {
+            Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(dramaId);
+            b.setBeShootRolePic(npcRow.getProfile());
+            b.setBeShootRoleName(npcRow.getName());
+        } else {
+            Table_Acter_Row beShooterRow = Table_Acter_Row.getTableActerRowByRoleId(beShootRoleId, dramaId);
+            b.setBeShootRoleName(beShooterRow.getName());
+            b.setBeShootRolePic(beShooterRow.getProfile());
+        }
+        b.setBeRoleId(beShootRoleId);
+        b.setIsLive(isLive);
+        b.setPower(power);
+        Table_Item_Row itemRow = Table_Item_Row.getRowByItemId(EquipEnum.parseByPower(power).getItemId(), dramaId);
+        b.setItemBigPic(itemRow.getItemBigPic());
+        b.setItemName(EquipEnum.getSetName(power));
+    }
+
+
+    private static boolean _isNpc(int RoleId, int dramaId) {
+        Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(dramaId);
+        return npcRow.getRoleId() == RoleId;
+    }
+
+    public static Sm_Room_ShootResult createSmRoomShootResult(int shootRoleId, int beShootRoleId, boolean isLive, PowerEnum power, List<SpecialCell> specialCells, int dramaId) {
+        Sm_Room_ShootResult.Builder b = Sm_Room_ShootResult.newBuilder();
+        Sm_ItemBag_SpecialCell.Builder b$Special = Sm_ItemBag_SpecialCell.newBuilder();
+        setShootResultBase(shootRoleId, beShootRoleId, isLive, power, dramaId, b);
+        specialCells.forEach(specialCell -> {
+            ItemBagCtrlProtos.addSpecial(specialCell, b, b$Special, dramaId);
+        });
+        return b.build();
+    }
+
+    public static List<Sm_Room_ShootInfo> createSmShootInfoList(Map<PowerEnum, Integer> powerAndBulletNum, int dramaId) {
+        List<Sm_Room_ShootInfo> arr = new ArrayList<>();
+        for (Entry<PowerEnum, Integer> entry : powerAndBulletNum.entrySet()) {
+            arr.add(createSmShootInfo(entry.getKey(), entry.getValue(), dramaId));
+        }
+        return arr;
+    }
+
+    public static Sm_Room_ShootInfo createSmShootInfo(PowerEnum powerEnum, int bulletNum, int dramaId) {
+        Sm_Room_ShootInfo.Builder b = Sm_Room_ShootInfo.newBuilder();
+        EquipEnum equipEnum = EquipEnum.parseByPower(powerEnum);
+        Table_Item_Row row = Table_Item_Row.getRowByItemId(equipEnum.getItemId(), dramaId);
+        b.setPowers(powerEnum);
+        b.setItemBigPic(row.getItemBigPic());
+        b.setItemName(row.getItemName());
+        b.setBulletNum(bulletNum);
+        return b.build();
     }
 
 

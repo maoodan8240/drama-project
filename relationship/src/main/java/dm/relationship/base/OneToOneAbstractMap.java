@@ -35,6 +35,12 @@ public abstract class OneToOneAbstractMap<K, V, A> implements Serializable {
         return false;
     }
 
+    public void clear() {
+        KToV.clear();
+        VToK.clear();
+        KToAttachment.clear();
+    }
+
     public boolean addAttachment(K k, A a) {
         if (containsK(k) && _isNotNull(a)) {
             KToAttachment.put(k, a);
@@ -148,4 +154,6 @@ public abstract class OneToOneAbstractMap<K, V, A> implements Serializable {
     public Map<K, A> getKToAttachment() {
         return Collections.unmodifiableMap(KToAttachment);
     }
+
+
 }

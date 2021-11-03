@@ -2,9 +2,5 @@ ID	子剧本次数	sub角色ID	Sub角色名	Sub角色对应剧本动画	Sub角�
 Id	SubNum	SubRoleId	SubName	SubScene	SubPic	SubBigPic
 int	int	int	string	string	string	string
 1	1	101	101房间	101	101tx	101lh
-2	1	102	102房间	102	102tx	102lh
-3	1	103	103房间	103	103tx	103lh
-4	1	202	202房间	202	202tx	202lh
-5	1	301	301房间	301	301tx	301lh
 6	1	302	302房间	302	302tx	302lh
-7	1	303	303房间	303	303tx	303lh
+8	99	201	201房间		201tx	201lh

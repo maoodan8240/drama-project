@@ -7,6 +7,7 @@ import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.PowerEnum;
 import drama.protos.EnumsProtos.RoomStateEnum;
 import ws.common.network.server.interfaces.Connection;
 import ws.common.table.table.interfaces.cell.TupleCell;
@@ -494,4 +495,50 @@ public interface RoomCtrl extends Controler<Room> {
      * @return
      */
     TupleCell<String> getNexStateAndTimes();
+
+    /**
+     * 是否可以开枪
+     *
+     * @param playerId
+     */
+    void onCanShoot(String playerId);
+
+
+    /**
+     * 开枪
+     *
+     * @param playerId
+     * @param isShoot
+     * @param power
+     * @param beShootRoleId
+     */
+    void onShoot(String playerId, boolean isShoot, PowerEnum power, int beShootRoleId);
+
+    /**
+     * 开枪列表
+     *
+     * @param playerId
+     */
+    void onShootList(String playerId);
+
+    /**
+     * 开枪是否结束
+     *
+     * @param playerId
+     */
+    void onShootEnding(String playerId);
+
+
+    /**
+     * 个人选择列表
+     */
+    void onCanChoice(String playerId);
+
+    /**
+     * 个人选择
+     *
+     * @param playerId
+     * @param beRoleId
+     */
+    void onChoice(String playerId, int beRoleId);
 }

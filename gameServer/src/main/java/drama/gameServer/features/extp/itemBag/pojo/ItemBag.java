@@ -53,4 +53,16 @@ public class ItemBag extends RoomPlayerNoDbPojo {
         this.idToSpecialCell = idToSpecialCell;
     }
 
+    @Override
+    public String toString() {
+        return "ItemBag{" +
+                "playerId='" + playerId + '\'' +
+                ", maxIdSeq=" + maxIdSeq +
+                ", tpIdToPlainCell=" + tpIdToPlainCell +
+                ", idToSpecialCell=" + idToSpecialCell +
+                ", playerId='" + playerId + '\'' +
+                ", roomId='" + roomId + '\'' +
+                ", dramaId=" + dramaId +
+                '}';
+    }
 }

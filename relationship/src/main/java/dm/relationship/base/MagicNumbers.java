@@ -89,5 +89,30 @@ public class MagicNumbers {
      */
     public static final int ERARINGS_ID = 51;
 
+    /**
+     * 98kItemId
+     */
+    public static final int WEAPON_98K_ID = 21;
+    /**
+     * 勃朗宁ItemId
+     */
+    public static final int WEAPON_BROWNING_ID = 25;
+    /**
+     * 一级甲ItemId
+     */
+    public static final int ONE_LV_ARMOR_ID = 27;
+    /**
+     * 二级甲ItemId
+     */
+    public static final int TWO_LV_ARMOR_ID = 28;
+    /**
+     * 孤城剧本ID
+     */
+    public static final int DRMAAID_103 = 103;
+    /**
+     * 98K子弹
+     */
+    public static final int WEAPON_98K_BULLET_ID = 22;
+
 
 }

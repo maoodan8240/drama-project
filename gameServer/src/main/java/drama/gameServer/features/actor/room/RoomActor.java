@@ -59,12 +59,15 @@ import drama.gameServer.features.actor.room.msg.In_PlayerVoteResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteSearchResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteSearchRoomMsg;
+import drama.gameServer.features.actor.room.msg.In_RoomShootEnding;
+import drama.gameServer.features.actor.room.msg.In_RoomShootResult;
 import drama.gameServer.features.actor.room.msg._GmAllRoomPlayerMsg;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
 import drama.gameServer.system.actor.DmActorSystem;
 import drama.protos.CodesProtos;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.PowerEnum;
 import drama.protos.EnumsProtos.RoomStateEnum;
 import drama.protos.MessageHandlerProtos;
 import drama.protos.room.RoomProtos;
@@ -143,28 +146,47 @@ public class RoomActor extends DmActor {
             onPlayerReconnectRoomMsg((In_PlayerReconnectRoomMsg) msg);
         } else if (msg instanceof In_AddRoomTimerCallBackMsg) {
             onAddRoomTimerCallBackMsg((In_AddRoomTimerCallBackMsg) msg);
+        } else if (msg instanceof In_RoomShootResult) {
+            onShootResult((In_RoomShootResult) msg);
+        } else if (msg instanceof In_RoomShootEnding) {
+            onShootEnding((In_RoomShootEnding) msg);
+        }
+    }
+
+    private void onShootEnding(In_RoomShootEnding msg) {
+        for (Entry<String, RoomPlayerCtrl> entry : roomCtrl.getTarget().getIdToRoomPlayerCtrl().entrySet()) {
+            entry.getValue().send(msg.getResponse());
+        }
+    }
+
+    private void onShootResult(In_RoomShootResult msg) {
+        for (Entry<String, RoomPlayerCtrl> entry : roomCtrl.getTarget().getIdToRoomPlayerCtrl().entrySet()) {
+            entry.getValue().send(msg.getResponse());
         }
     }
 
     private void onAddRoomTimerCallBackMsg(In_AddRoomTimerCallBackMsg msg) {
         switch (msg.getAction()) {
             case AUCTIONRESULT:
-                if (!roomCtrl.hasNextStateAndTimes()) {
-                    //没有下一个环节了
-                    LOGGER.debug("没下一个环节了");
-                    return;
-                }
-                if (roomCtrl.getRoomState() != RoomStateEnum.AUCTIONRESULT) {
-                    roomCtrl.setNextStateAndTimes();
-                    for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-                        In_PlayerOnSwitchStateRoomMsg in_playerOnSwitchStateRoomMsg = new In_PlayerOnSwitchStateRoomMsg(playerId, roomCtrl.getTarget());
-                        sendToWorld(in_playerOnSwitchStateRoomMsg);
-                    }
-                }
-
+                auctionResult();
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + msg.getAction());
+        }
+    }
+
+    private void auctionResult() {
+        if (!roomCtrl.hasNextStateAndTimes()) {
+            //没有下一个环节了
+            LOGGER.debug("没下一个环节了");
+            return;
+        }
+        if (roomCtrl.getRoomState() != RoomStateEnum.AUCTIONRESULT) {
+            roomCtrl.setNextStateAndTimes();
+            for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
+                In_PlayerOnSwitchStateRoomMsg in_playerOnSwitchStateRoomMsg = new In_PlayerOnSwitchStateRoomMsg(playerId, roomCtrl.getTarget());
+                sendToWorld(in_playerOnSwitchStateRoomMsg);
+            }
         }
     }
 
@@ -174,7 +196,6 @@ public class RoomActor extends DmActor {
                 roomCtrl.onRoomExtpMsg(entry.getValue(), msg);
             }
         }
-
     }
 
     private void onGmKillRoomMsg(In_GmKillRoomMsg msg) {
@@ -442,10 +463,29 @@ public class RoomActor extends DmActor {
                     case Action.AUCTION_RESULT_VALUE:
                         onAuctionResult();
                         break;
+                    case Action.CAN_SHOOT_VALUE:
+                        onCanShoot();
+                        break;
+                    case Action.SHOOT_VALUE:
+                        onShoot(cm_room.getIsShoot(), cm_room.getPower(), cm_room.getBeRoleId());
+                        break;
+                    case Action.SHOOT_LIST_VALUE:
+                        onShootList();
+                        break;
+                    case Action.SHOOT_ENDING_VALUE:
+                        onShootEnding();
+                        break;
+                    case Action.CHOICE_VALUE:
+                        onChoice(cm_room.getBeRoleId());
+                        break;
+                    case Action.CAN_CHOICE_VALUE:
+                        onCanChoice();
+                        break;
                     default:
                         break;
                 }
             } catch (BusinessLogicMismatchConditionException e) {
+                e.printStackTrace();
                 MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, b.getAction(), e.getErrorCodeEnum());
                 msg.getConnection().send(new MessageSendHolder(br.build(), br.getSmMsgAction(), new ArrayList<>()));
             }
@@ -461,6 +501,66 @@ public class RoomActor extends DmActor {
                 }
             }
         }
+
+    }
+
+    private void onChoice(int beRoleId) {
+        _checkRoomContainsPlayer(simplePlayer);
+        if (roomCtrl.getRoomState() != RoomStateEnum.CHOICE) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onChoice(simplePlayer.getPlayerId(), beRoleId);
+    }
+
+    private void onCanChoice() {
+        _checkRoomContainsPlayer(simplePlayer);
+        if (roomCtrl.getRoomState() != RoomStateEnum.CHOICE) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onCanChoice(simplePlayer.getPlayerId());
+    }
+
+    private void onShootEnding() {
+        _checkRoomContainsPlayer(simplePlayer);
+        if (roomCtrl.getRoomState() != RoomStateEnum.SHOOT) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onShootEnding(simplePlayer.getPlayerId());
+    }
+
+    private void onShootList() {
+        _checkRoomContainsPlayer(simplePlayer);
+        if (roomCtrl.getRoomState() != RoomStateEnum.SHOOT) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onShootList(simplePlayer.getPlayerId());
+    }
+
+    private void onShoot(boolean isShoot, PowerEnum power, int beShootRoleId) {
+        _checkRoomContainsPlayer(simplePlayer);
+//        if (!roomCtrl.getTarget().getRoleIdToPlayerId().keySet().contains(beShootRoleId)) {
+//            LOGGER.debug("被射击玩家不在房间中, roleId={}, roomId={}", beShootRoleId, roomId);
+//            throw new BusinessLogicMismatchConditionException("被射击玩家不在房间中 roleId=" + beShootRoleId + ",roomId=" + roomId, EnumsProtos.ErrorCodeEnum.NOT_IN_ROOM);
+//        }
+        if (roomCtrl.getRoomState() != RoomStateEnum.SHOOT) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onShoot(simplePlayer.getPlayerId(), isShoot, power, beShootRoleId);
+
+    }
+
+    private void onCanShoot() {
+        _checkRoomContainsPlayer(simplePlayer);
+        if (roomCtrl.getRoomState() != RoomStateEnum.SHOOT) {
+            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+            return;
+        }
+        roomCtrl.onCanShoot(simplePlayer.getPlayerId());
 
     }
 
@@ -606,7 +706,6 @@ public class RoomActor extends DmActor {
         }
         if (!roomCtrl.canSelectDraft(draftId, draftNum)) {
             String msg = String.format("手慢了,被别人选走了 playerId=%s, draftId=%s", simplePlayer.getPlayerId(), draftId);
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_DRAFT);
         }
         roomCtrl.selectDraft(roomPlayerCtrl, draftId, draftNum);
@@ -843,13 +942,11 @@ public class RoomActor extends DmActor {
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
         if (roomPlayerCtrl.hasRole()) {
             String msg = String.format("玩家已经选过角色了 playerId=%s,  roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
         }
         List<Integer> canSelectRoleIds = roomCtrl.canSelectRoleIds(roomCtrl.getDramaId());
         if (!canSelectRoleIds.contains(roleId)) {
             String msg = String.format("这个角色已经被选了 playerId=%s, roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.NO_ROLE);
         } else {
             String roleName = Table_Acter_Row.getRoleNameByRoleId(roleId, roomCtrl.getDramaId());
@@ -873,7 +970,6 @@ public class RoomActor extends DmActor {
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
         if (roomPlayerCtrl.hasRole()) {
             String msg = String.format("玩家已经选过角色了 playerId=%s,  roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
         }
         int roleId = Table_Acter_Row.getNoSelectActer(roomCtrl.getDramaId());
@@ -898,7 +994,6 @@ public class RoomActor extends DmActor {
         int roleIdx = roomCtrl.getRoleIdx(rightAnswerIdx);
         if (roomPlayerCtrl.hasRole()) {
             String msg = String.format("玩家已经选过角色了 playerId=%s, answer=%s, roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
         }
         if (roleIdx != MagicNumbers.DEFAULT_ZERO) {
@@ -924,7 +1019,6 @@ public class RoomActor extends DmActor {
                 answer = answer + s;
             }
             String msg = String.format("没有选出角色 playerId=%s, answer=%s", simplePlayer.getPlayerId(), answer);
-            LOGGER.debug(msg);
             throw new BusinessLogicMismatchConditionException(msg);
         }
     }
@@ -1000,7 +1094,7 @@ public class RoomActor extends DmActor {
         }
         if (!roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
             RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
-            RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, roomCtrl.getDramaId(), connection);
+            RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, roomCtrl.getDramaId(), connection, roomCtrl);
             roomPlayerCtrl.setRoomActorRef(getSelf());
             roomCtrl.addPlayer(roomPlayer, roomPlayerCtrl);
         } else {

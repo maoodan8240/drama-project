@@ -151,6 +151,23 @@ public class ItemBagUtils {
     }
 
     /**
+     * 获取特殊物品的数量
+     *
+     * @param itemBag
+     * @param tpId
+     * @return
+     */
+    public static long SpcialTpIdItemCount(ItemBag itemBag, int tpId) {
+        int count = 0;
+        for (SpecialCell specialCell : itemBag.getIdToSpecialCell().values()) {
+            if (specialCell.getTpId() == tpId) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
      * 是否含有1个itemTemplateId，只针对普通物品
      *
      * @param itemBag
@@ -223,13 +240,13 @@ public class ItemBagUtils {
     }
 
     /**
-     * 是否可以删除耳环(孤城定制,别无它用)
+     * 是否可以特殊物品
      *
      * @param itemBag
      * @param tpId
      * @return boolean
      */
-    public static boolean canRemoveEarRings(ItemBag itemBag, int tpId) {
+    public static boolean canRemoveSpecialItem(ItemBag itemBag, int tpId) {
         for (SpecialCell specialCell : itemBag.getIdToSpecialCell().values()) {
             if (specialCell.getTpId() == tpId) {
                 return true;
@@ -239,13 +256,13 @@ public class ItemBagUtils {
     }
 
     /**
-     * 获取可以删除的耳环的实例Id
+     * 获取可以删除的特殊物品的实例Id
      *
      * @param itemBag
      * @param tpId
      * @return itemId
      */
-    public static int getCanRemoveEarRingItemId(ItemBag itemBag, int tpId) {
+    public static int getCanRemoveSpecialItemId(ItemBag itemBag, int tpId) {
         int itemId = 0;
         for (SpecialCell specialCell : itemBag.getIdToSpecialCell().values()) {
             if (specialCell.getTpId() == tpId) {
@@ -255,5 +272,5 @@ public class ItemBagUtils {
         return itemId;
     }
 
-   
+
 }

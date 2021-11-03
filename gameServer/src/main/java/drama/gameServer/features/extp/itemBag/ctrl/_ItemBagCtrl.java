@@ -168,6 +168,11 @@ public class _ItemBagCtrl extends AbstractRoomPlayerExtControler<ItemBag> implem
     }
 
     @Override
+    public long querySpecialCellCount(int tpId) {
+        return ItemBagUtils.SpcialTpIdItemCount(target, tpId);
+    }
+
+    @Override
     public SpecialCell getSpecialCell(int itemId) {
         return ItemBagUtils.getSpecialCell(target, itemId);
     }

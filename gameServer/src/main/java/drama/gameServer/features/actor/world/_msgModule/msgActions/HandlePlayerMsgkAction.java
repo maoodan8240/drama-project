@@ -33,10 +33,6 @@ public class HandlePlayerMsgkAction implements Action {
         if (!worldCtrl.containsPlayerActorRef(playerId)) {
             LOGGER.debug("玩家不在线 待做离线处理playerId={}", playerId);
         }
-//        else if (msg instanceof In_PlayerQuitRoomMsg) {
-//            //这个消息如果用户不在线通知不到,用户再上线会再去找之前的房间,既然用户已经掉线,必须通过改DB库将用户房间退出
-//            onPlayerQuitRoomMsg();
-//        }
         ActorRef playerActorRef = worldCtrl.getPlayerActorRef(playerId);
         playerActorRef.tell(msg, self);
     }

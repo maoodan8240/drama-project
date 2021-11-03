@@ -16,6 +16,7 @@ import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.table.RootTc;
 import dm.relationship.table.tableRows.Table_Acter_Row;
 import dm.relationship.table.tableRows.Table_Auction_Row;
+import dm.relationship.table.tableRows.Table_Choice_Row;
 import dm.relationship.table.tableRows.Table_Draft_Row;
 import dm.relationship.table.tableRows.Table_Item_Row;
 import dm.relationship.table.tableRows.Table_Murder_Row;
@@ -25,6 +26,7 @@ import dm.relationship.table.tableRows.Table_RunDown_Row;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
+import dm.relationship.table.tableRows.Table_Shoot_Row;
 import dm.relationship.table.tableRows.Table_SubActer_Row;
 import dm.relationship.table.tableRows.Table_SubMurder_Row;
 import dm.relationship.table.tableRows.Table_Task_Row;
@@ -41,23 +43,38 @@ import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerVoteResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_RemoveRoomTimerMsg;
+import drama.gameServer.features.actor.room.msg.In_RoomShootEnding;
+import drama.gameServer.features.actor.room.msg.In_RoomShootResult;
 import drama.gameServer.features.actor.room.pojo.Auction;
 import drama.gameServer.features.actor.room.pojo.AuctionResult;
+import drama.gameServer.features.actor.room.pojo.Npc;
 import drama.gameServer.features.actor.room.pojo.Room;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.gameServer.features.actor.room.utils.RoomProtoUtils;
+import drama.gameServer.features.actor.room.utils.RoomUtils;
 import drama.gameServer.features.extp.itemBag.ItemBagExtp;
 import drama.gameServer.features.extp.itemBag.ctrl.ItemBagCtrl;
+import drama.gameServer.features.extp.itemBag.enums.EquipEnum;
+import drama.gameServer.features.extp.itemBag.enums.EquipItemEnum;
+import drama.gameServer.features.extp.itemBag.msg.In_RoomDeadDropItemMsg;
 import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
+import drama.gameServer.features.extp.itemBag.pojo.SpecialCell;
 import drama.gameServer.features.extp.itemBag.utils.ItemBagUtils;
 import drama.protos.CodesProtos.ProtoCodes.Code;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.DefPowerEnum;
 import drama.protos.EnumsProtos.ErrorCodeEnum;
+import drama.protos.EnumsProtos.ItemBigTypePrefixNumEnum;
+import drama.protos.EnumsProtos.PowerEnum;
+import drama.protos.EnumsProtos.RoomStateEnum;
 import drama.protos.MessageHandlerProtos.Response;
 import drama.protos.room.RoomProtos.Sm_Room;
 import drama.protos.room.RoomProtos.Sm_Room.Action;
+import drama.protos.room.RoomProtos.Sm_Room.Builder;
+import drama.protos.room.RoomProtos.Sm_Room_Player;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.mongoDB.interfaces.MongoDBClient;
@@ -75,13 +92,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static drama.gameServer.features.extp.itemBag.enums.EquipEnum.ONE_LV_ARMOR;
+import static drama.protos.EnumsProtos.ErrorCodeEnum.HAS_CHOICED;
+import static drama.protos.EnumsProtos.ErrorCodeEnum.HAS_NO_CHOICE;
 
 public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     private static final Logger LOGGER = LoggerFactory.getLogger(_RoomCtrl.class);
 
     private static final MongoDBClient MONGO_DB_CLIENT = GlobalInjector.getInstance(MongoDBClient.class);
     private static final SimpleIdDao SIMPLE_ID_DAO = DaoContainer.getDao(SimpleId.class);
+    public static final Random RANDOM = new Random();
 
     private ActorContext context;
     private ActorRef actorRef;
@@ -166,7 +189,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         setNextStateAndTimes();
         setTarget(target);
         RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
-        RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, dramaId, connection);
+        RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, dramaId, connection, this);
         addPlayer(roomPlayer, roomPlayerCtrl);
     }
 
@@ -341,6 +364,481 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         return next;
     }
 
+    @Override
+    public void onCanShoot(String playerId) {
+        Sm_Room.Action action = Action.RESP_CAN_SHOOT;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        response.setResult(true);
+        b.setAction(action);
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Map<PowerEnum, Integer> powerAndBulletNum = getTarget().getRoleIdToPowerAndBulletNum().get(roomPlayerCtrl.getRoleId());
+        b.addAllShootInfo(RoomProtoUtils.createSmShootInfoList(powerAndBulletNum, getDramaId()));
+        response.setSmRoom(b.build());
+        roomPlayerCtrl.send(response.build());
+    }
+
+    private void _hasChooseShoot(RoomPlayerCtrl roomPlayerCtrl) {
+        if (target.getRoleIdIsShoot().keySet().contains(roomPlayerCtrl.getRoleId())) {
+            PowerEnum power = getPower(roomPlayerCtrl.getRoleId());
+            int beShootRoleId = getBeShootRoleId(roomPlayerCtrl.getRoleId());
+            String msg = String.format("已经选择过开枪方式和开枪对象:roleName=%s,power=%s,beShootRoleId=%s", roomPlayerCtrl.getRoleName(), power.toString(), beShootRoleId);
+            throw new BusinessLogicMismatchConditionException(msg, ErrorCodeEnum.HAS_CHOOSE_SHOOT);
+        }
+    }
+
+    @Override
+    public void onShoot(String playerId, boolean isShoot, PowerEnum power, int beShootRoleId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        _hasChooseShoot(roomPlayerCtrl);
+        Action action = Action.RESP_SHOOT;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        response.setResult(true);
+        target.getRoleIdIsShoot().put(roomPlayerCtrl.getRoleId(), isShoot);
+        if (!roomPlayerCtrl.isLive()) {
+            //如果玩家已经死亡,直接设置成不开枪
+            target.getRoleIdIsShoot().put(roomPlayerCtrl.getRoleId(), false);
+        }
+        if (checkCanBeNextStat()) {
+            //沒有人开枪了,或者没人可以开枪了,视为枪战结束
+            LOGGER.debug("沒有人开枪了,或者没人可以开枪了,视为枪战结束");
+            target.setShootEnding(true);
+            action = Action.RESP_SHOOT_ENDING;
+            response = ProtoUtils.create_Response(Code.Sm_Room, action);
+            b = Sm_Room.newBuilder();
+            b.setAction(action);
+            b.setIsShootEnding(target.isShootEnding());
+            response.setResult(true);
+            response.setSmRoom(b.build());
+            In_RoomShootEnding msg = new In_RoomShootEnding(target.getRoomId(), response.build());
+            //发送给房间,广播给房间内所有人
+            roomPlayerCtrl.getRoomActorRef().tell(msg, ActorRef.noSender());
+        } else {
+            if (isShoot) {
+                //做出选择,但是还有人未做出决定,等待其他人做出开枪决定
+                choosePowerAndBeShoot(roomPlayerCtrl.getRoleId(), power, beShootRoleId);
+            }
+            response.setSmRoom(b.build());
+            roomPlayerCtrl.send(response.build());
+            //所有人都已做出决定,计算开枪逻辑
+            if (checkAllRoomPlayerChooseShoot()) {
+                choosePowerAndBeShoot(roomPlayerCtrl.getRoleId(), power, beShootRoleId);
+                _shoot(b);
+                _onInitShootInfo();
+                response.setSmRoom(b.build());
+                In_RoomShootResult msg = new In_RoomShootResult(target.getRoomId(), response.build());
+                //发送给房间,广播给房间内所有人
+                roomPlayerCtrl.getRoomActorRef().tell(msg, ActorRef.noSender());
+            }
+
+        }
+    }
+
+
+    @Override
+    public void onShootList(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Action action = Action.RESP_SHOOT_LIST;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        response.setResult(true);
+        List<Sm_Room_Player> smRoomPlayerList = RoomProtoUtils.createSmRoomPlayerList(target);
+        Sm_Room_Player smNpcRoomPlayer = RoomProtoUtils.createSmNpcRoomPlayer(target.getNpc());
+        smRoomPlayerList.add(smNpcRoomPlayer);
+        b.addAllAllRoomPlayer(smRoomPlayerList);
+        response.setSmRoom(b.build());
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onShootEnding(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Action action = Action.RESP_SHOOT_ENDING;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setIsShootEnding(target.isShootEnding());
+        response.setSmRoom(b.build());
+        response.setResult(true);
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onCanChoice(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Action action = Action.RESP_CAN_CHOICE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        List<Integer> choiceIds = Table_Choice_Row.getRowsByRoleId(roomPlayerCtrl.getRoleId(), getDramaId());
+        b.addAllRoleInfo(RoomProtoUtils.createSmRoomRoleInfoListByRoleId(choiceIds, getDramaId()));
+        response.setSmRoom(b.build());
+        response.setResult(true);
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onChoice(String playerId, int beRoleId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Action action = Action.RESP_CHOICE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        response.setSmRoom(b.build());
+        response.setResult(true);
+        roomPlayerCtrl.send(response.build());
+    }
+
+    private void choice(RoomPlayerCtrl roomPlayerCtrl, int beRoleId) {
+        if (!Table_Choice_Row.hasChoiceRole(roomPlayerCtrl.getRoleId(), getDramaId())) {
+            String msg = String.format("你没有个人选择:%s", roomPlayerCtrl.getRoleName());
+            throw new BusinessLogicMismatchConditionException(msg, HAS_NO_CHOICE);
+        }
+        List<Integer> choiceIds = Table_Choice_Row.getRowsByRoleId(roomPlayerCtrl.getRoleId(), getDramaId());
+        if (!choiceIds.contains(beRoleId)) {
+            String msg = String.format("没有这个个人选择:RoleName=%s,choiceId=%s", roomPlayerCtrl.getRoleName(), beRoleId);
+            throw new BusinessLogicMismatchConditionException(msg, HAS_NO_CHOICE);
+        }
+        if (roomPlayerCtrl.getChoice() != MagicNumbers.DEFAULT_ZERO) {
+            String msg = String.format("没有这个个人选择:RoleName=%s,choiceId=%s", roomPlayerCtrl.getRoleName(), beRoleId);
+            throw new BusinessLogicMismatchConditionException(msg, HAS_CHOICED);
+        }
+        roomPlayerCtrl.setChoice(beRoleId);
+    }
+
+    /**
+     * 剔除不开枪的玩家
+     */
+    private void filterNoShootRoomPlayer() {
+        Iterator<Entry<Integer, Map<PowerEnum, Integer>>> it = target.getRoleIdToPowerAndBulletNum().entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<Integer, Map<PowerEnum, Integer>> entry = it.next();
+            if (!target.getRoleIdIsShoot().get(entry.getKey())) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * 随机选出开枪玩家
+     *
+     * @param roleIds
+     * @return
+     */
+    private int randomShooter(List<Integer> roleIds) {
+        int roleId = 0;
+        boolean flag = true;
+        while (flag) {
+            int sed = RANDOM.nextInt(roleIds.size());
+            roleId = roleIds.get(sed);
+            flag = roleId == target.getLastShootRoleId();
+            //如果能开枪的只有一个人了,忽略上一轮开枪者,直接命中
+            if (roleIds.size() == MagicNumbers.DEFAULT_ONE) {
+                flag = false;
+            }
+        }
+
+        //将随机出来的玩家设置成最后一轮开枪的玩家
+        target.setLastShootRoleId(roleId);
+        return roleId;
+    }
+
+    private void _shoot(Sm_Room.Builder b) {
+        filterNoShootRoomPlayer();
+        //随机出一名开枪玩家
+        int shooterRoleId = randomShooter(new ArrayList<>(target.getRoleIdToPowerAndBulletNum().keySet()));
+        String shooterId = target.getRoleIdToPlayerId().get(shooterRoleId);
+        RoomPlayerCtrl shooterCtrl = getRoomPlayerCtrl(shooterId);
+        LOGGER.debug("随机出的玩家是:{}", shooterCtrl.getRoleName());
+        PowerEnum power = getPower(shooterRoleId);
+        int beShootRoleId = getBeShootRoleId(shooterRoleId);
+        if (_isNpc(beShootRoleId)) {
+            shootNpc(power, shooterCtrl, b);
+        } else {
+            shootRoomPlayer(beShootRoleId, power, shooterCtrl, b);
+        }
+    }
+
+    private void shootNpc(PowerEnum power, RoomPlayerCtrl shooterCtrl, Builder b) {
+        Npc npc = target.getNpc();
+        if (!npc.isLive()) {
+            String msg = String.format("你射击的玩家已经死了Shooter=%s,beShootName=%s", shooterCtrl.getRoleName(), npc.getRoleName());
+            throw new BusinessLogicMismatchConditionException(msg);
+        } else {
+            ItemBagCtrl itemBagCtrl = shooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            if (!target.getRoleIdToPowerAndBulletNum().get(shooterCtrl.getRoleId()).containsKey(power)) {
+                String msg = String.format("没有这个开枪方式%s", power.toString());
+                throw new BusinessLogicMismatchConditionException(msg);
+            }
+            dedutShootConsume(itemBagCtrl, power);
+            if (npcHasArmor(npc, power)) {
+                DefPowerEnum defPowerEnum = deductNpcConsume(target.getNpc(), power);
+                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), npc.getRoleId(), true, power, defPowerEnum, getDramaId()));
+                if (hasBullet(target.getNpc())) {
+                    remove(target.getNpc().getEquipEnums(), MagicNumbers.WEAPON_98K_BULLET_ID);
+                    npcCounterattack(target.getNpc(), shooterCtrl, b);
+                }
+            } else {
+                npc.setLive(false);
+                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), npc.getRoleId(), false, power, new ArrayList<>(), getDramaId()));
+            }
+        }
+    }
+
+    private boolean hasBullet(Npc npc) {
+        return npc.getEquipEnums().contains(MagicNumbers.WEAPON_98K_BULLET_ID);
+    }
+
+
+    private void npcCounterattack(Npc npc, RoomPlayerCtrl beShooterCtrl, Builder b) {
+        PowerEnum power = PowerEnum.WEAPON_98K;
+        ItemBagCtrl beShooterItemBagCtrl = beShooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+        if (hasArmor(beShooterItemBagCtrl, PowerEnum.WEAPON_98K)) {
+            DefPowerEnum defPower = dedutBeShootConsume(beShooterItemBagCtrl, power);
+            b.addShootResult(RoomProtoUtils.createSmRoomShootResult(npc.getRoleId(), beShooterCtrl.getRoleId(), true, power, defPower, getDramaId()));
+        } else {
+            //被打死了,要掉装备
+            beShooterCtrl.setLive(false);
+            List<SpecialCell> specialCells = deadAndDropItem(beShooterCtrl, npc.getRoleId());
+            b.addShootResult(RoomProtoUtils.createSmRoomShootResult(npc.getRoleId(), beShooterCtrl.getRoleId(), false, power, specialCells, getDramaId()));
+        }
+    }
+
+    private void shootRoomPlayer(int beShootRoleId, PowerEnum power, RoomPlayerCtrl shooterCtrl, Sm_Room.Builder b) {
+        RoomPlayerCtrl beShooterCtrl = getRoomPlayerCtrl(beShootRoleId);
+        if (!beShooterCtrl.isLive()) {
+            String msg = String.format("你射击的玩家已经死了Shooter=%s,beShootName=%s", shooterCtrl.getRoleName(), beShooterCtrl.getRoleName());
+            throw new BusinessLogicMismatchConditionException(msg);
+        } else {
+            ItemBagCtrl itemBagCtrl = shooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            LOGGER.debug("最终随机出的开枪玩家是: roleName={},power={},beShoot={}", shooterCtrl.getRoleName(), power.toString(), beShooterCtrl.getRoleName());
+            LOGGER.debug("他的背包信息为:{}", itemBagCtrl.getTarget().toString());
+            if (!target.getRoleIdToPowerAndBulletNum().get(shooterCtrl.getRoleId()).containsKey(power)) {
+                String msg = String.format("没有这个开枪方式%s", power.toString());
+                LOGGER.debug("没有这个开枪方式:{}", power.toString());
+                LOGGER.debug("getRoleIdToPower:{}", target.getRoleIdToPowerAndBulletNum().toString());
+                throw new BusinessLogicMismatchConditionException(msg);
+            }
+            dedutShootConsume(itemBagCtrl, power);
+            ItemBagCtrl beShooterItemBagCtrl = beShooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            if (hasArmor(beShooterItemBagCtrl, power)) {
+                DefPowerEnum defPower = dedutBeShootConsume(beShooterItemBagCtrl, power);
+                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), beShootRoleId, true, power, defPower, getDramaId()));
+            } else {
+                //被打死了,要掉装备
+                List<SpecialCell> specialCells = deadAndDropItem(beShooterCtrl, shooterCtrl.getRoleId());
+                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), beShootRoleId, false, power, specialCells, getDramaId()));
+            }
+        }
+    }
+
+    private boolean _isNpc(int beShootRoleId) {
+        return target.getNpc().getRoleId() == beShootRoleId;
+    }
+
+    private boolean checkCanBeNextStat() {
+        if (target.getRoleIdIsShoot().size() == target.getRoleIdToPlayerId().size()) {
+            for (Entry<Integer, Boolean> entry : target.getRoleIdIsShoot().entrySet()) {
+                if (entry.getValue()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 被射杀,掉落装备给开枪者
+     *
+     * @param beShooterCtrl
+     * @param shooterRoleId
+     * @return arr
+     */
+    private List<SpecialCell> deadAndDropItem(RoomPlayerCtrl beShooterCtrl, int shooterRoleId) {
+        beShooterCtrl.setLive(false);
+        List<SpecialCell> arr = new ArrayList<>();
+        List<SpecialCell> equips = new ArrayList<>();
+        ItemBag itemBag = beShooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery().getTarget();
+        for (Entry<Integer, SpecialCell> entry : itemBag.getIdToSpecialCell().entrySet()) {
+            ItemBigTypePrefixNumEnum prefixNum = IdItemTypeEnum.parseByItemId(entry.getKey()).getPrefixNum();
+            if (prefixNum == ItemBigTypePrefixNumEnum.PREFIXNUM_ITEM) {
+                arr.add(entry.getValue());
+            } else if (prefixNum == ItemBigTypePrefixNumEnum.PREFIXNUM_EQUIP) {
+                equips.add(entry.getValue());
+            }
+        }
+        if (equips.size() > MagicNumbers.DEFAULT_ZERO) {
+            SpecialCell equip = randomItem(equips);
+            arr.add(equip);
+        }
+        In_RoomDeadDropItemMsg msg = new In_RoomDeadDropItemMsg(arr, shooterRoleId, beShooterCtrl.getRoleName(), IdItemTypeEnum.ITEM);
+        beShooterCtrl.getRoomActorRef().tell(msg, ActorRef.noSender());
+        LOGGER.debug(beShooterCtrl.getTarget().toString());
+        LOGGER.debug(itemBag.toString());
+        return arr;
+    }
+
+    /**
+     * 随机选出一个装备
+     *
+     * @param equips
+     * @return specialCell
+     */
+    private SpecialCell randomItem(List<SpecialCell> equips) {
+        SpecialCell specialCell = null;
+        int sed = RANDOM.nextInt(equips.size());
+        specialCell = equips.get(sed);
+        return specialCell;
+    }
+
+
+    /**
+     * 是否有可以用的防弹衣
+     *
+     * @param itemBagCtrl
+     * @param power
+     * @return
+     */
+    private boolean hasArmor(ItemBagCtrl itemBagCtrl, PowerEnum power) {
+        Table_Shoot_Row one = (Table_Shoot_Row) EquipEnum.ONE_LV_ARMOR.getDefPowerRow();
+        Table_Shoot_Row two = (Table_Shoot_Row) EquipEnum.TWO_LV_ARMOR.getDefPowerRow();
+        if (power == PowerEnum.WEAPON_BROWNING) {
+            boolean oneFlag = ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), one.getExpend());
+            boolean twoFlag = ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend());
+            return oneFlag || twoFlag;
+        } else {
+            return ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend());
+        }
+    }
+
+
+    private boolean npcHasArmor(Npc npc, PowerEnum power) {
+        if (power == PowerEnum.WEAPON_BROWNING) {
+            return npc.getEquipEnums().contains(EquipEnum.ONE_LV_ARMOR.getItemId()) || npc.getEquipEnums().contains(EquipEnum.TWO_LV_ARMOR.getItemId());
+        }
+        return npc.getEquipEnums().contains(EquipEnum.TWO_LV_ARMOR.getItemId());
+    }
+
+
+    private RoomPlayerCtrl getRoomPlayerCtrl(int roleId) {
+        String playerId = getTarget().getRoleIdToPlayerId().get(roleId);
+        return getRoomPlayerCtrl(playerId);
+    }
+
+
+    /**
+     * 开枪者扣除消费
+     *
+     * @param itemBagCtrl
+     * @param power
+     */
+    private void dedutShootConsume(ItemBagCtrl itemBagCtrl, PowerEnum power) {
+        EquipEnum equipEnum = EquipEnum.parseByPower(power);
+        int conSumeItemId = 0;
+        //如果是98K开枪优先判断特殊子弹
+        if (power == PowerEnum.WEAPON_98K) {
+            List<Table_Shoot_Row> rows = (List<Table_Shoot_Row>) equipEnum.getPowerRows();
+            Table_Shoot_Row specialEquip = Table_Shoot_Row.getSpecialEquip(getDramaId());
+
+            if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), specialEquip.getExpend())) {
+                conSumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), specialEquip.getExpend());
+            } else {
+                for (Table_Shoot_Row row : rows) {
+                    if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), row.getExpend())) {
+                        conSumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), row.getExpend());
+                        break;
+                    }
+                }
+            }
+        } else {
+            List<Table_Shoot_Row> rows = (List<Table_Shoot_Row>) equipEnum.getPowerRows();
+            for (Table_Shoot_Row row : rows) {
+                if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), row.getExpend())) {
+                    conSumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), row.getExpend());
+                    break;
+                }
+            }
+        }
+        if (conSumeItemId == MagicNumbers.DEFAULT_ZERO) {
+            String msg = String.format("没有这个开枪方式%s, 消耗品ID=%s不足", power.toString(), conSumeItemId);
+            throw new BusinessLogicMismatchConditionException(msg);
+        }
+        ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), conSumeItemId);
+    }
+
+    /**
+     * 开枪者扣除消费
+     *
+     * @param itemBagCtrl
+     * @param power
+     */
+    private DefPowerEnum dedutBeShootConsume(ItemBagCtrl itemBagCtrl, PowerEnum power) {
+        Table_Shoot_Row one = (Table_Shoot_Row) ONE_LV_ARMOR.getDefPowerRow();
+        Table_Shoot_Row two = (Table_Shoot_Row) EquipEnum.TWO_LV_ARMOR.getDefPowerRow();
+        if (power == PowerEnum.WEAPON_BROWNING) {
+            if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), one.getExpend())) {
+                int consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), one.getExpend());
+                ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), consumeItemId);
+                return DefPowerEnum.valueOf(one.getPower());
+            }
+        } else if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend())) {
+            int consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), two.getExpend());
+            ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), consumeItemId);
+            return DefPowerEnum.valueOf(two.getPower());
+        }
+        String msg = String.format("没有防弹衣跟这挡啥呢???");
+        LOGGER.debug(msg);
+        throw new BusinessLogicMismatchConditionException(msg);
+    }
+
+    private DefPowerEnum deductNpcConsume(Npc npc, PowerEnum power) {
+        if (power == PowerEnum.WEAPON_BROWNING) {
+            if (npc.getEquipEnums().contains(EquipEnum.ONE_LV_ARMOR.getItemId())) {
+                remove(npc.getEquipEnums(), EquipEnum.ONE_LV_ARMOR.getItemId());
+                return DefPowerEnum.ONE_LV_ARMOR;
+            }
+        } else if (npc.getEquipEnums().contains(EquipEnum.TWO_LV_ARMOR.getItemId())) {
+            remove(npc.getEquipEnums(), EquipEnum.TWO_LV_ARMOR.getItemId());
+            return DefPowerEnum.TWO_LV_ARMOR;
+        }
+        String msg = String.format("没有防弹衣跟这挡啥呢???");
+        LOGGER.debug(msg);
+        throw new BusinessLogicMismatchConditionException(msg);
+    }
+
+
+    private void remove(List<Integer> arr, int itemId) {
+        Iterator<Integer> it = arr.iterator();
+        while (it.hasNext()) {
+            Integer i = it.next();
+            if (i == itemId) {
+                it.remove();
+                break;
+            }
+        }
+    }
+
+
+    /**
+     * 是否所有人都做出开枪的选择
+     *
+     * @return
+     */
+    private boolean checkAllRoomPlayerChooseShoot() {
+//        Integer plaNum = RootTc.get(Table_SceneList_Row.class).get(target.getDramaId()).getPlaNum();
+//        if (target.getIdToRoomPlayer().size() < plaNum) {
+//            return false;
+//        }
+        LOGGER.debug("还有人没有选择开枪信息:{}", target.getRoleIdIsShoot().toString());
+        return target.getRoleIdIsShoot().size() == target.getRoleIdToPlayerId().size();
+//        return true;
+    }
+
     public void setNextStateAndTimes() {
         TupleCell<String> nextStateAndTimes = getAndRemoveNextStateAndTimes();
         EnumsProtos.RoomStateEnum roomState = RoomState.getRoomStateByName(nextStateAndTimes.get(TupleCell.FIRST));
@@ -362,10 +860,11 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         if (RoomState.isEndState(getRoomState())) {
             getTarget().setEndTime(System.currentTimeMillis());
         }
-        //预设一些房间的信息
-        presetRoomInfo(roomState);
         //设置下一阶段玩家的一些信息
         presetRoomPlayerInfo(roomState, getRoomStateTimes());
+        //预设一些房间的信息
+        presetRoomInfo(roomState);
+
 
     }
 
@@ -389,8 +888,22 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 roomPlayerCtrl.setVoteMurder(false);
             } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
                 roomPlayerCtrl.setSubVoteMurder(false);
+            } else if (roomState == RoomStateEnum.SHOOT) {
+                _initNpc();
+                roomPlayerCtrl.setLive(true);
             }
         }
+    }
+
+    private void _initNpc() {
+        Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(getDramaId());
+        List<Integer> equipEnums = new ArrayList<>();
+        for (TupleCell<String> tupleCell : npcRow.getProp()) {
+            Integer tpId = Integer.valueOf(tupleCell.get(TupleCell.FIRST));
+            equipEnums.add(tpId);
+        }
+        Npc npc = new Npc(ObjectId.get().toString(), npcRow.getRoleId(), npcRow.getName(), true, npcRow.getProfile(), equipEnums);
+        target.setNpc(npc);
     }
 
     private void presetRoomInfo(EnumsProtos.RoomStateEnum roomState) {
@@ -412,7 +925,84 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             _addCanVoteSearchTypeIds();
         } else if (roomState == EnumsProtos.RoomStateEnum.AUCTIONRESULT) {
             _onAuctionResult();
+        } else if (roomState == RoomStateEnum.SHOOT) {
+            _onInitShootInfo();
         }
+    }
+
+    private void _onInitShootInfo() {
+        getTarget().getRoleIdToPowerAndBulletNum().clear();
+        getTarget().getRoleIdIsShoot().clear();
+        getTarget().getRoleIdAndPowerToBeShoot().clear();
+        List<Table_Shoot_Row> rows = Table_Shoot_Row.getRowsByType(getDramaId(), EquipItemEnum.WEAPONE.getType());
+        Map<Integer, Map<PowerEnum, Integer>> canShootRoomPlayerAndPower = getCanShootRoomPlayerAndPower(rows);
+        getTarget().setRoleIdToPowerAndBulletNum(canShootRoomPlayerAndPower);
+    }
+
+
+    /**
+     * 获取可以开枪RoomPlayer和开枪类型
+     *
+     * @param rows
+     * @return
+     */
+    private Map<Integer, Map<PowerEnum, Integer>> getCanShootRoomPlayerAndPower(List<Table_Shoot_Row> rows) {
+        Map<Integer, Map<PowerEnum, Integer>> map = new HashMap<>();
+        for (RoomPlayerCtrl roomPlayerCtrl : getTarget().getIdToRoomPlayerCtrl().values()) {
+            Map<PowerEnum, Integer> powerAndBulletNum = new HashMap<>();
+            if (roomPlayerCtrl.isLive()) {
+                ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+                powerAndBulletNum.putAll(getCanShootPower(rows, itemBagCtrl));
+            }
+
+            map.put(roomPlayerCtrl.getRoleId(), powerAndBulletNum);
+        }
+        return map;
+    }
+
+    /**
+     * 获取可以开枪的Power和子弹数量
+     *
+     * @param rows
+     * @param itemBagCtrl
+     * @return
+     */
+    private Map<PowerEnum, Integer> getCanShootPower(List<Table_Shoot_Row> rows, ItemBagCtrl itemBagCtrl) {
+        Map<PowerEnum, Integer> map = new HashMap<>();
+        for (Table_Shoot_Row row : rows) {
+            if (checkCanShoot(row.getSet(), itemBagCtrl.getTarget()) && row.getType() == 1) {
+                PowerEnum powerEnum = PowerEnum.valueOf(row.getPower());
+                int bulletNum = getPowerBulletNum(row.getExpend(), itemBagCtrl);
+                if (map.containsKey(powerEnum)) {
+                    Integer value = map.get(powerEnum);
+                    bulletNum = bulletNum + value;
+                }
+                map.put(powerEnum, bulletNum);
+            }
+        }
+        return map;
+    }
+
+    private int getPowerBulletNum(int itmeId, ItemBagCtrl itemBagCtrl) {
+        return (int) itemBagCtrl.querySpecialCellCount(itmeId);
+    }
+
+
+    /**
+     * 检查是否可以开枪
+     *
+     * @param strSet
+     * @param itemBag
+     * @return
+     */
+    private boolean checkCanShoot(List<String> strSet, ItemBag itemBag) {
+        List<Integer> set = RoomUtils.parseListStringToListInteger(strSet);
+        for (Integer itemTpId : set) {
+            if (!ItemBagUtils.canRemoveSpecialItem(itemBag, itemTpId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void _onAuctionResult() {
@@ -442,7 +1032,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
      * @param itemRow
      * @return 返回当前竞拍品结果
      */
-    private AuctionResult getAuctionResultAndDeductConsume(Auction auction, Table_Auction_Row auctionRow, Table_Item_Row itemRow) {
+    private AuctionResult getAuctionResultAndDeductConsume(Auction auction, Table_Auction_Row
+            auctionRow, Table_Item_Row itemRow) {
         int maxPriceRoleId = 0;
         IdAndCount maxPrice = new IdAndCount(MagicNumbers.DEFAULT_ONE, MagicNumbers.DEFAULT_ZERO);
         AuctionResult auctionResult = null;
@@ -455,9 +1046,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             if (itemType == IdItemTypeEnum.SP_MONEY) {
                 //出价是耳环,直接break,结束判断,认定为最高价
                 //由于客户端不好做选择实例id的界面,这里传入的耳环实例id都是同一个 服务器这边将耳环ID写死,只要背包内有这个耳环就可以删除
-                if (ItemBagUtils.canRemoveEarRings(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID)) {
+                if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID)) {
                     //从背包中获取一个可以删除的耳环的实例ID
-                    int canRemoveEarRingItemId = ItemBagUtils.getCanRemoveEarRingItemId(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID);
+                    int canRemoveEarRingItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), MagicNumbers.ERARINGS_ID);
                     maxPrice = new IdAndCount(canRemoveEarRingItemId, MagicNumbers.DEFAULT_ONE);
                     maxPriceRoleId = entry.getKey();
                     break;
@@ -477,7 +1068,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
             ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
             auctionResult = new AuctionResult(auction.getItemId(), auction.getAuctionId(), maxPriceRoleId, maxPrice, itemRow.getItemName(), auctionRow.getAucItemName());
-            deductConsume(auctionResult, itemBagCtrl);
+            deductAuctionConsume(auctionResult, itemBagCtrl);
             roomPlayerCtrl.addAuctionResult(getRoomStateTimes(), auctionResult);
         }
         return auctionResult;
@@ -490,7 +1081,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
      * @param auctionResult
      * @param itemBagCtrl
      */
-    private void deductConsume(AuctionResult auctionResult, ItemBagCtrl itemBagCtrl) {
+    private void deductAuctionConsume(AuctionResult auctionResult, ItemBagCtrl itemBagCtrl) {
         IdItemTypeEnum itemType = ItemBagUtils.getItemTypeById(auctionResult.getAuctionPrice().getId());
         if (itemType == IdItemTypeEnum.SP_MONEY) {
             ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), auctionResult.getAuctionPrice().getId());
@@ -1109,6 +1700,30 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     private void sendToWorld(InnerMsg msg, ActorRef actorRef) {
         context.actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, actorRef);
+    }
+
+    /**
+     * 获取刚才选择开枪方式
+     *
+     * @param roleId
+     * @return
+     */
+    private PowerEnum getPower(int roleId) {
+        return target.getRoleIdAndPowerToBeShoot().getVByK(roleId);
+    }
+
+    /**
+     * 获取刚选择的开枪对象
+     *
+     * @param roleId
+     * @return
+     */
+    private int getBeShootRoleId(int roleId) {
+        return target.getRoleIdAndPowerToBeShoot().getAttachmentByK(roleId);
+    }
+
+    private void choosePowerAndBeShoot(int roleId, PowerEnum power, int beShootId) {
+        target.getRoleIdAndPowerToBeShoot().put(roleId, power, beShootId);
     }
 
 }

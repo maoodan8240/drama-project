@@ -3,7 +3,9 @@ package drama.gameServer.features.extp.itemBag;
 import akka.actor.ActorRef;
 import dm.relationship.base.msg.interfaces.RoomInnerExtpMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
+import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.utils.ProtoUtils;
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.gameServer.features.actor.room.mc.extension.AbstractRoomPlayerExtension;
 import drama.gameServer.features.extp.itemBag.ctrl.ItemBagCtrl;
@@ -12,7 +14,8 @@ import drama.gameServer.features.extp.itemBag.msg.In_RoomShowItemMsg;
 import drama.gameServer.features.extp.itemBag.msg.Pr_InitPropMsg;
 import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
 import drama.protos.CodesProtos.ProtoCodes.Code;
-import drama.protos.MessageHandlerProtos.Response;
+import drama.protos.EnumsProtos.RoomStateEnum;
+import drama.protos.MessageHandlerProtos;
 import drama.protos.room.ItemBagProtos.Cm_ItemBag;
 import drama.protos.room.ItemBagProtos.Cm_ItemBag.Action;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag;
@@ -21,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.message.interfaces.PrivateMsg;
 
+import static drama.protos.EnumsProtos.ErrorCodeEnum.CAN_NOT_SHOW_AND_GIVE_ITEM;
+
 /**
  * Created by lee on 2021/9/30
  */
@@ -28,8 +33,8 @@ public class ItemBagExtp extends AbstractRoomPlayerExtension<ItemBagCtrl> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemBagExtp.class);
     public static boolean useExtension = true;
 
-    public ItemBagExtp(RoomPlayerCtrl ownerCtrl) {
-        super(ownerCtrl);
+    public ItemBagExtp(RoomPlayerCtrl ownerCtrl, RoomCtrl roomCtrl) {
+        super(ownerCtrl, roomCtrl);
     }
 
     @Override
@@ -43,6 +48,11 @@ public class ItemBagExtp extends AbstractRoomPlayerExtension<ItemBagCtrl> {
         setControler(itemBagCtrl);
         LOGGER.debug("ItemBagExtp init success");
 
+    }
+
+    @Override
+    public RoomCtrl getRoomCtrl() {
+        return super.getRoomCtrl();
     }
 
     @Override
@@ -121,18 +131,26 @@ public class ItemBagExtp extends AbstractRoomPlayerExtension<ItemBagCtrl> {
                     break;
 
             }
-        } catch (Exception e) {
-            Response.Builder br = ProtoUtils.create_Response(Code.Sm_ItemBag, b.getAction());
+        } catch (BusinessLogicMismatchConditionException e) {
+            MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(Code.Sm_ItemBag, b.getAction(), e.getErrorCodeEnum());
             getControlerForQuery().send(br.build());
             throw e;
         }
     }
 
     private void onShowItem(int id, int count, int roleId) {
+        if (getRoomCtrl().getRoomState() == RoomStateEnum.SHOOT) {
+            String msg = String.format("开枪环节禁止交易和展示物品:%s", getOwnerCtrl().getRoleName());
+            throw new BusinessLogicMismatchConditionException(msg, CAN_NOT_SHOW_AND_GIVE_ITEM);
+        }
         getControlerForQuery().showItem(id, count, roleId);
     }
 
     private void onGiveItem(int id, int count, int roleId) {
+        if (getRoomCtrl().getRoomState() == RoomStateEnum.SHOOT) {
+            String msg = String.format("开枪环节禁止交易和展示物品:%s", getOwnerCtrl().getRoleName());
+            throw new BusinessLogicMismatchConditionException(msg, CAN_NOT_SHOW_AND_GIVE_ITEM);
+        }
         getControlerForQuery().giveItem(id, count, roleId);
     }
 

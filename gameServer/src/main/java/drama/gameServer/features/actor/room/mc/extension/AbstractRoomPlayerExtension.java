@@ -2,6 +2,7 @@ package drama.gameServer.features.actor.room.mc.extension;
 
 import akka.actor.ActorRef;
 import dm.relationship.base.msg.interfaces.RoomInnerExtpMsg;
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,18 @@ public abstract class AbstractRoomPlayerExtension<T extends Controler<?>> extend
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRoomPlayerExtension.class);
 
     protected final RoomPlayerCtrl ownerCtrl;
+    protected final RoomCtrl roomCtrl;
     protected ActorRef curSender;
     protected String playerId;
 
-    public AbstractRoomPlayerExtension(RoomPlayerCtrl ownerCtrl) {
+    public AbstractRoomPlayerExtension(RoomPlayerCtrl ownerCtrl, RoomCtrl roomCtrl) {
+        this.roomCtrl = roomCtrl;
         this.ownerCtrl = ownerCtrl;
+    }
+
+
+    public RoomCtrl getRoomCtrl() {
+        return roomCtrl;
     }
 
     @Override

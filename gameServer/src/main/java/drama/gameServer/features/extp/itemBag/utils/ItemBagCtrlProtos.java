@@ -10,6 +10,7 @@ import drama.protos.room.ItemBagProtos.Sm_ItemBag.Action;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag_PlainCell;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag_PlainCell.Builder;
 import drama.protos.room.ItemBagProtos.Sm_ItemBag_SpecialCell;
+import drama.protos.room.RoomProtos.Sm_Room_ShootResult;
 import drama.protos.room.RoomProtos.Sm_Room_UnlockInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ItemBagCtrlProtos {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemBagCtrlProtos.class);
+
 
     public static Sm_ItemBag createSmItemBagByItem(ItemBag itemBag) {
         Sm_ItemBag.Builder b = Sm_ItemBag.newBuilder();
@@ -46,12 +48,7 @@ public class ItemBagCtrlProtos {
     private static void addSpecial(SpecialCell specialCell, Sm_ItemBag.Builder b, Sm_ItemBag_SpecialCell.Builder b$Special, int dramaId) {
         Table_Item_Row row = Table_Item_Row.getRowByItemId(specialCell.getTpId(), dramaId);
         b$Special.clear();
-        b$Special.setItemTemplateId(specialCell.getTpId());
-        b$Special.setItemId(specialCell.getId());
-        b$Special.setItemPic(row.getItemPic());
-        b$Special.setItemBigPic(row.getItemBigPic());
-        b$Special.setItemName(row.getItemName());
-        b$Special.setItemType(IdItemTypeEnum.parseByItemTemplateId(specialCell.getTpId()).getPrefixNum());
+        addSpecial(specialCell, b$Special, row);
         b.addSpecialCells(b$Special.build());
     }
 
@@ -65,16 +62,12 @@ public class ItemBagCtrlProtos {
     private static void addPlain(PlainCell plainCell, Sm_ItemBag.Builder b, Sm_ItemBag_PlainCell.Builder b$Plain, int dramaId) {
         Table_Item_Row row = Table_Item_Row.getRowByItemId(plainCell.getItemTemplateId(), dramaId);
         b$Plain.clear();
-        b$Plain.setItemTemplateId(plainCell.getItemTemplateId());
-        b$Plain.setCount(plainCell.getStackSize());
-        b$Plain.setItemPic(row.getItemPic());
-        b$Plain.setItemBigPic(row.getItemBigPic());
-        b$Plain.setItemName(row.getItemName());
+        addPlain(plainCell, b$Plain, row);
         b.addPlainCells(b$Plain.build());
     }
 
     /**
-     * 增加特殊物品到 Sm_ItemBag_SpecialCell.Builder
+     * 增加特殊物品到 Sm_ItemBag_SpecialCell.Builder到Sm_Room_UnlockInfo.Builder
      *
      * @param b
      * @param specialCell
@@ -84,17 +77,13 @@ public class ItemBagCtrlProtos {
     public static void addSpecial(SpecialCell specialCell, Sm_Room_UnlockInfo.Builder b, Sm_ItemBag_SpecialCell.Builder b$Special, int dramaId) {
         Table_Item_Row row = Table_Item_Row.getRowByItemId(specialCell.getTpId(), dramaId);
         b$Special.clear();
-        b$Special.setItemTemplateId(specialCell.getTpId());
-        b$Special.setItemId(specialCell.getId());
-        b$Special.setItemPic(row.getItemPic());
-        b$Special.setItemBigPic(row.getItemBigPic());
-        b$Special.setItemName(row.getItemName());
-        b$Special.setItemType(IdItemTypeEnum.parseByItemTemplateId(specialCell.getTpId()).getPrefixNum());
+        addSpecial(specialCell, b$Special, row);
         b.addSpecialCells(b$Special.build());
     }
 
+
     /**
-     * 增加普通物品到 Sm_ItemBag_PlainCell.Builder
+     * 增加普通物品到 Sm_ItemBag_PlainCell.Builder到Sm_Room_UnlockInfo.Builder
      *
      * @param b
      * @param plainCell
@@ -104,13 +93,26 @@ public class ItemBagCtrlProtos {
     public static void addPlain(PlainCell plainCell, Sm_Room_UnlockInfo.Builder b, Builder b$Plain, int dramaId) {
         Table_Item_Row row = Table_Item_Row.getRowByItemId(plainCell.getItemTemplateId(), dramaId);
         b$Plain.clear();
-        b$Plain.setItemTemplateId(plainCell.getItemTemplateId());
-        b$Plain.setCount(plainCell.getStackSize());
-        b$Plain.setItemPic(row.getItemPic());
-        b$Plain.setItemBigPic(row.getItemBigPic());
-        b$Plain.setItemName(row.getItemName());
+        addPlain(plainCell, b$Plain, row);
         b.addPlainCells(b$Plain.build());
     }
+
+
+    /**
+     * 添加特殊物品 Sm_ItemBag_SpecialCell.Builder到Sm_Room_ShootResult.Builder
+     *
+     * @param specialCell
+     * @param b
+     * @param b$Special
+     * @param dramaId
+     */
+    public static void addSpecial(SpecialCell specialCell, Sm_Room_ShootResult.Builder b, Sm_ItemBag_SpecialCell.Builder b$Special, int dramaId) {
+        Table_Item_Row row = Table_Item_Row.getRowByItemId(specialCell.getTpId(), dramaId);
+        b$Special.clear();
+        addSpecial(specialCell, b$Special, row);
+        b.addSpecialCells(b$Special.build());
+    }
+
 
     public static Sm_ItemBag createShowItemBag(SpecialCell specialCell, String roleName, int dramaId) {
         Sm_ItemBag.Builder b = Sm_ItemBag.newBuilder();
@@ -162,5 +164,22 @@ public class ItemBagCtrlProtos {
         addSpecial(specialCell, b, b$Special, dramaId);
         b.setRoleName(roleName);
         return b.build();
+    }
+
+    private static void addPlain(PlainCell plainCell, Builder b$Plain, Table_Item_Row row) {
+        b$Plain.setItemTemplateId(plainCell.getItemTemplateId());
+        b$Plain.setCount(plainCell.getStackSize());
+        b$Plain.setItemPic(row.getItemPic());
+        b$Plain.setItemBigPic(row.getItemBigPic());
+        b$Plain.setItemName(row.getItemName());
+    }
+
+    private static void addSpecial(SpecialCell specialCell, Sm_ItemBag_SpecialCell.Builder b$Special, Table_Item_Row row) {
+        b$Special.setItemTemplateId(specialCell.getTpId());
+        b$Special.setItemId(specialCell.getId());
+        b$Special.setItemPic(row.getItemPic());
+        b$Special.setItemBigPic(row.getItemBigPic());
+        b$Special.setItemName(row.getItemName());
+        b$Special.setItemType(IdItemTypeEnum.parseByItemTemplateId(specialCell.getTpId()).getPrefixNum());
     }
 }

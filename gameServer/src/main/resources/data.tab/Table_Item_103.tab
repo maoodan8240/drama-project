@@ -1,20 +1,19 @@
-ID	道具名	道具图片	道具类型（1角色道具,2武器装备,3金币）
-Id	ItemName	ItemPic	ItemType
-int	string	string	int
-1	98k枪身	item1	2
-2	7.92子弹（98k用，开枪后消耗）	item2	2
-3	98k弹夹	item3	2
-4	勃朗宁弹夹	item4	2
-5	勃朗宁枪身	item5	2
-6	9毫米子弹（勃朗宁用，开枪后消耗）	item6	2
-7	一级防弹衣（可防勃朗宁手枪，防御攻击后消耗）	item7	2
-8	二级防弹衣（可防勃朗宁手枪或98k，防御攻击后消耗）	item8	2
-9	一只左耳环	item9	1
-10	一只右耳环	item10	1
-11	子弹项链	item11	2
-12	军用坐标图	item12	1
-13	人员名单07	item13	1
-14	人员名单08	item14	1
-15	象棋棋子“相”	item15	1
-16	象棋棋子“車”	item16	1
-17	金币	item17	3
+ID	道具名	道具图片	道具详情图	道具类型（1金币,2武器装备,3角色道具,4子弹项链,5耳环）
+Id	ItemName	ItemPic	ItemBigPic	ItemType
+int	string	string	string	int
+1	金币	item1	item1big	1
+21	98k枪身	item21	item21big	2
+22	7.92子弹	item22	item22big	2
+23	98k弹夹	item23	item23big	2
+24	勃朗宁弹夹	item24	item24big	2
+25	勃朗宁枪身	item25	item25big	2
+26	9毫米子弹	item26	item26big	2
+27	一级防弹衣	item27	item27big	2
+28	二级防弹衣	item28	item28big	2
+31	军用坐标图	item31	item31big	3
+32	人员名单07	item32	item32big	3
+33	人员名单08	item33	item33big	3
+34	象棋棋子“相”	item34	item34big	3
+35	象棋棋子“車”	item35	item35big	3
+41	子弹项链	item41	item41big	4
+51	一只价值连城的耳环	item51	item51big	5

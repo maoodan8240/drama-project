@@ -95,6 +95,14 @@ public interface ItemBagCtrl extends RoomPlayerExtControler<ItemBag> {
     long queryTemplateItemCount(int tpId);
 
     /**
+     * 获取特殊物品的数量
+     *
+     * @param tpId
+     * @return
+     */
+    long querySpecialCellCount(int tpId);
+
+    /**
      * 查询特殊物品
      *
      * @param itemId

@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.room.mc.controler;
 
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.protos.MessageHandlerProtos.Response;
 import ws.common.utils.mc.controler.Controler;
@@ -26,6 +27,8 @@ public interface RoomPlayerExtControler<T> extends Controler<T> {
     void sync();
 
     RoomPlayerCtrl getRoomPlayerCtrl();
+
+    RoomCtrl getRoomCtrl();
 
     void setRoomPlayerCtrl(RoomPlayerCtrl roomPlayerCtrl);
 

@@ -14,7 +14,7 @@ import java.util.TreeMap;
 
 public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
 
-    RoomPlayer createRoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection);
+    RoomPlayer createRoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection, RoomCtrl roomCtrl);
 
     /**
      * 是否持有这个证物
@@ -183,4 +183,12 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
     void addAuctionResult(int runDown, AuctionResult auctionResult);
 
     List<AuctionResult> getAuctionResult(int runDown);
+
+    void setLive(boolean isLive);
+
+    boolean isLive();
+
+    void setChoice(int roleId);
+
+    int getChoice();
 }

@@ -1,0 +1,4 @@
+ID	角色ID	角色名	角色性别	选取角色后的立绘	角色头像	初始道具	任务
+Id	RoleId	Name	Sex	Pic	Profile	Prop	NpcTask
+int	int	string	int 	string	string	string	string
+1	99	骆驼	1	ltlh	lttx	21:1,23:1,22:1,22:1,27:1,28:1	伪装成摩尔斯。将凶器放入各个房间内，让仇人亲手杀死伪装成骆驼的摩尔斯。让众人确信骆驼已死，避免继续被追杀。

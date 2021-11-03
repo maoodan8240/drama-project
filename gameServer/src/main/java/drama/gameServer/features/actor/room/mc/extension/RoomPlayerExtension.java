@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import dm.relationship.base.msg.interfaces.RoomInnerExtpMsg;
 import dm.relationship.base.msg.interfaces.RoomInnerMsg;
 import dm.relationship.base.msg.interfaces.RoomNetWorkMsg;
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import ws.common.utils.mc.controler.Controler;
 import ws.common.utils.mc.extension.Extension;
@@ -19,6 +20,13 @@ public interface RoomPlayerExtension<T extends Controler<?>> extends Extension<T
      * @return
      */
     RoomPlayerCtrl getOwnerCtrl();
+
+    /**
+     * 返回所属{@link RoomCtrl}
+     *
+     * @return
+     */
+    RoomCtrl getRoomCtrl();
 
     /**
      * 初始化Ctrl Pojo Gm

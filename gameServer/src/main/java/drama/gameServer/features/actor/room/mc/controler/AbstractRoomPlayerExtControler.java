@@ -1,5 +1,6 @@
 package drama.gameServer.features.actor.room.mc.controler;
 
+import drama.gameServer.features.actor.room.ctrl.RoomCtrl;
 import drama.gameServer.features.actor.room.ctrl.RoomPlayerCtrl;
 import drama.protos.MessageHandlerProtos.Response;
 import ws.common.utils.mc.controler.AbstractControler;
@@ -10,7 +11,7 @@ import ws.common.utils.message.interfaces.PrivateMsg;
  */
 public abstract class AbstractRoomPlayerExtControler<T> extends AbstractControler<T> implements RoomPlayerExtControler<T> {
     private RoomPlayerCtrl ownerCtrl;
-
+    private RoomCtrl roomCtrl;
 
     @Override
     public void postInit() throws Exception {
@@ -26,6 +27,11 @@ public abstract class AbstractRoomPlayerExtControler<T> extends AbstractControle
     public void sync() {
 
 
+    }
+
+    @Override
+    public RoomCtrl getRoomCtrl() {
+        return this.roomCtrl;
     }
 
     @Override

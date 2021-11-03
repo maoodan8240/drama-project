@@ -6,7 +6,6 @@ import dm.relationship.base.MagicNumbers;
 import dm.relationship.table.tableRows.Table_Acter_Row;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.mc.extension.RoomPlayerExtension;
-import drama.gameServer.features.actor.room.mc.extensionIniter.ExtIniterUtils;
 import drama.gameServer.features.actor.room.pojo.AuctionResult;
 import drama.gameServer.features.actor.room.pojo.RoomPlayer;
 import drama.gameServer.features.extp.itemBag.ItemBagExtp;
@@ -65,10 +64,30 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
     }
 
     @Override
-    public RoomPlayer createRoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection) {
+    public void setLive(boolean isLive) {
+        target.setLive(isLive);
+    }
+
+    @Override
+    public boolean isLive() {
+        return target.isLive();
+    }
+
+    @Override
+    public void setChoice(int roleId) {
+        target.setChoiceRoleId(roleId);
+    }
+
+    @Override
+    public int getChoice() {
+        return target.getChoiceRoleId();
+    }
+
+    @Override
+    public RoomPlayer createRoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection, RoomCtrl roomCtrl) {
         RoomPlayer roomPlayer = new RoomPlayer(simplePlayer, roomId, dramaId, connection);
-        ExtIniterUtils.initAllExtensions(roomPlayer);
-        LoadAllRoomPlayerExtensions.loadAll(this);
+//        ExtIniterUtils.initAllExtensions(roomPlayer);
+        LoadAllRoomPlayerExtensions.loadAll(this, roomCtrl);
         setTarget(roomPlayer);
         for (RoomPlayerExtension<?> roomPlayerExtension : getAllExtensions().values()) {
             try {

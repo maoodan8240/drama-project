@@ -421,6 +421,7 @@ public class PlayerIOActor extends DmActor {
         }
         playerIOCtrl.setLsoutTime();
         playerIOCtrl.quitRoom();
+        playerIOCtrl.save();
         getSender().tell(new In_PrepareToKillPlayerActorResponseMsg(playerId), ActorRef.noSender());
     }
 
@@ -674,7 +675,7 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerDisconnected() {
-        //TODO 考虑断线重连,现在不一定要处理退出房间的逻辑
+        //TODO 考虑断线重连,现在不一定要处理退出房间的逻辑,在玩家缓存被杀掉时退出房间
         if (playerIOCtrl.isInRoom()) {
             //玩家在房间中,但不一定是房主,转发到房间中处理相关逻辑
 //            String roomId = playerIOCtrl.getRoomId();

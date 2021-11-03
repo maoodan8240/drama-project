@@ -23,7 +23,7 @@ public enum IdItemTypeEnum {
     /**
      * 装备类型
      */
-    EQUIP(20, 29, ItemBigTypePrefixNumEnum.PREFIXNUM_ITEM, true, IdItemBigTypeEnum.SpecialItem, Table_Item_Row.class), //
+    EQUIP(20, 29, ItemBigTypePrefixNumEnum.PREFIXNUM_EQUIP, true, IdItemBigTypeEnum.SpecialItem, Table_Item_Row.class), //
     /**
      * 道具类型
      */
