@@ -846,7 +846,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
     /**
-     * 开枪者扣除消费
+     * 被开枪者扣除消费
      *
      * @param itemBagCtrl
      * @param power
@@ -854,16 +854,27 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     private DefPowerEnum dedutBeShootConsume(ItemBagCtrl itemBagCtrl, PowerEnum power) {
         Table_Shoot_Row one = (Table_Shoot_Row) ONE_LV_ARMOR.getDefPowerRow();
         Table_Shoot_Row two = (Table_Shoot_Row) EquipEnum.TWO_LV_ARMOR.getDefPowerRow();
+        int consumeItemId = MagicNumbers.DEFAULT_ZERO;
+        int defPower = MagicNumbers.DEFAULT_ZERO;
         if (power == PowerEnum.WEAPON_BROWNING) {
             if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), one.getExpend())) {
-                int consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), one.getExpend());
-                ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), consumeItemId);
-                return DefPowerEnum.valueOf(one.getPower());
+                consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), one.getExpend());
+                defPower = one.getPower();
+            } else {
+                if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend())) {
+                    consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), two.getExpend());
+                    defPower = two.getPower();
+                }
             }
-        } else if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend())) {
-            int consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), two.getExpend());
+        } else {
+            if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), two.getExpend())) {
+                consumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), two.getExpend());
+                defPower = two.getPower();
+            }
+        }
+        if (consumeItemId != MagicNumbers.DEFAULT_ZERO && defPower != MagicNumbers.DEFAULT_ZERO) {
             ItemBagUtils.removeSpecialItem(itemBagCtrl.getTarget(), consumeItemId);
-            return DefPowerEnum.valueOf(two.getPower());
+            return DefPowerEnum.valueOf(defPower);
         }
         String msg = String.format("没有防弹衣跟这挡啥呢???");
         LOGGER.debug(msg);
@@ -962,10 +973,11 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 roomPlayerCtrl.setSelectDraft(false);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
                 roomPlayerCtrl.setVoteMurder(false);
+            } else if (roomState == RoomStateEnum.SUBSELECT) {
+                _initNpc();
             } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
                 roomPlayerCtrl.setSubVoteMurder(false);
             } else if (roomState == RoomStateEnum.SHOOT) {
-                _initNpc();
                 roomPlayerCtrl.setLive(true);
             } else if (roomState == RoomStateEnum.SCORE) {
                 _onRoomPlayerTaskScore(roomPlayerCtrl);
@@ -1626,12 +1638,18 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
      * @return
      */
     private int getSubVoteMurder(int voteNum) {
-        int roleId = 0;
+        int subRoleId = 0;
         int count = 0;
+        int roleId = 0;
         for (Entry<Integer, List<Integer>> entry : target.getSubVoteNumToVoteSubRoleIdToRoleId().get(voteNum).entrySet()) {
             if (entry.getValue().size() > count) {
                 count = entry.getValue().size();
-                roleId = entry.getKey();
+                subRoleId = entry.getKey();
+            }
+        }
+        for (RoomPlayerCtrl roomPlayerCtrl : getTarget().getIdToRoomPlayerCtrl().values()) {
+            if (roomPlayerCtrl.getSubRoleId(voteNum) == subRoleId) {
+                roleId = roomPlayerCtrl.getRoleId();
             }
         }
         return roleId;
