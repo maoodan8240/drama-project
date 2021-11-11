@@ -8,11 +8,13 @@ import java.util.Map;
 public class In_PlayerVoteResultRoomMsg extends _PlayerInnerMsg {
     private Map<Integer, List<Integer>> roleIdToPlayerRoleId;
     private int dramaId;
+    private int voteNum;
 
-    public In_PlayerVoteResultRoomMsg(String playerId, Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId, int dramaId) {
+    public In_PlayerVoteResultRoomMsg(String playerId, Map<Integer, List<Integer>> voteRoleIdToPlayerRoleId, int dramaId, int voteNum) {
         super(playerId, dramaId);
         this.roleIdToPlayerRoleId = voteRoleIdToPlayerRoleId;
         this.dramaId = dramaId;
+        this.voteNum = voteNum;
     }
 
     public Map<Integer, List<Integer>> getRoleIdToPlayerRoleId() {
@@ -23,5 +25,7 @@ public class In_PlayerVoteResultRoomMsg extends _PlayerInnerMsg {
         return dramaId;
     }
 
-
+    public int getVoteNum() {
+        return voteNum;
+    }
 }

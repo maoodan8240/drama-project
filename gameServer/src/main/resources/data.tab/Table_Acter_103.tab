@@ -1,10 +1,10 @@
 ID	角色ID	角色名	角色性别	选取角色后的立绘	角色头像	角色对应剧本动画	剧本背景音乐	搜证次数	投票搜证次数	初始道具
 Id	RoleId	Name	Sex	Pic	Profile	Scene	Bgm	Ap	VSAp	Prop
 int	int	string	int 	string	string	string	string	string	string	string
-1	1	陈怀安	1	chalh	chatx	cha01,cha03,shoot		1:3,2:2,3:1		1:600,33:1
-2	2	蒋古城	1	jgclh	jgctx	jgc01,jgc03,shoot		1:3,2:2,3:1		1:500,31:1
-3	3	丽丽娜依	2	llnylh	llnytx	llny01,llny03,shoot		1:3,2:2,3:1		51:1,51:1
-4	4	柳湘人	2	lxrlh	lxrtx	lxr01,lxr03,shoot		1:3,2:2,3:1		1:450,35:1
-5	5	楼小兰	2	lxllh	lxltx	lxl01,lxl03,shoot		1:3,2:2,3:1		1:600,34:1
-6	6	铁男	1	tnlh	tntx	tn01,tn03,shoot		1:3,2:2,3:1		1:450,32:1
-7	7	夜神	1	yslh	ystx	ys01,ys03,shoot		1:3,2:2,3:1		1:500,41:1
+1	1	陈怀安	1	chalh	chatx	cha01,cha03,shoot		1:3,2:2,3:1		1:600,33:1,21:1,41:1,23:1,41:1
+2	2	蒋古城	1	jgclh	jgctx	jgc01,jgc03,shoot		1:3,2:2,3:1		1:500,31:1,21:1,41:1,23:1,41:1
+3	3	丽丽娜依	2	llnylh	llnytx	llny01,llny03,shoot		1:3,2:2,3:1		51:1,51:1,21:1,41:1,23:1,41:1
+4	4	柳湘人	2	lxrlh	lxrtx	lxr01,lxr03,shoot		1:3,2:2,3:1		1:450,35:1,21:1,41:1,23:1,41:1
+5	5	楼小兰	2	lxllh	lxltx	lxl01,lxl03,shoot		1:3,2:2,3:1		1:600,34:1,21:1,41:1,23:1,41:1
+6	6	铁男	1	tnlh	tntx	tn01,tn03,shoot		1:3,2:2,3:1		1:450,32:1,21:1,41:1,23:1,41:1
+7	7	夜神	1	yslh	ystx	ys01,ys03,shoot		1:3,2:2,3:1		1:500,41:1,21:1,41:1,23:1,41:1

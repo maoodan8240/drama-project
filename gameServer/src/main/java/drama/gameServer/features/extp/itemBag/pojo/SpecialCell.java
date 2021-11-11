@@ -51,4 +51,14 @@ public class SpecialCell implements Serializable {
 //    public void setExtInfo(Map<KeyType, String> extInfo) {
 //        this.extInfo = extInfo;
 //    }
+
+
+    @Override
+    public String toString() {
+        return "SpecialCell{" +
+                "id=" + id +
+                ", tpId=" + tpId +
+                ", useCell=" + useCell +
+                '}';
+    }
 }

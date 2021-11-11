@@ -34,6 +34,7 @@ import dm.relationship.topLevelPojos.simpleId.SimpleId;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.enums.RoomState;
+import drama.gameServer.features.actor.room.enums.TaskEnums;
 import drama.gameServer.features.actor.room.mc.extension.RoomPlayerExtension;
 import drama.gameServer.features.actor.room.msg.In_AddRoomTimerMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSelectSubActerRoomMsg;
@@ -41,7 +42,6 @@ import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteListRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRemainRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_PlayerSubVoteRoomMsg;
-import drama.gameServer.features.actor.room.msg.In_PlayerVoteResultRoomMsg;
 import drama.gameServer.features.actor.room.msg.In_RemoveRoomTimerMsg;
 import drama.gameServer.features.actor.room.msg.In_RoomShootEnding;
 import drama.gameServer.features.actor.room.msg.In_RoomShootResult;
@@ -56,7 +56,6 @@ import drama.gameServer.features.extp.itemBag.ItemBagExtp;
 import drama.gameServer.features.extp.itemBag.ctrl.ItemBagCtrl;
 import drama.gameServer.features.extp.itemBag.enums.EquipEnum;
 import drama.gameServer.features.extp.itemBag.enums.EquipItemEnum;
-import drama.gameServer.features.extp.itemBag.msg.In_RoomDeadDropItemMsg;
 import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
 import drama.gameServer.features.extp.itemBag.pojo.SpecialCell;
 import drama.gameServer.features.extp.itemBag.utils.ItemBagUtils;
@@ -86,6 +85,8 @@ import ws.common.utils.message.interfaces.InnerMsg;
 import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,6 +94,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static drama.gameServer.features.extp.itemBag.enums.EquipEnum.ONE_LV_ARMOR;
@@ -396,6 +398,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Sm_Room.Builder b = Sm_Room.newBuilder();
         b.setAction(action);
         response.setResult(true);
+        if (target.getRoleIdIsShoot().containsKey(roomPlayerCtrl.getRoleId())) {
+            String msg = String.format("已经选择过是否开枪:RoleName={},isShoot={}", roomPlayerCtrl.getRoleId(), target.getRoleIdIsShoot().get(roomPlayerCtrl.getRoleId()));
+            throw new BusinessLogicMismatchConditionException(msg);
+        }
         target.getRoleIdIsShoot().put(roomPlayerCtrl.getRoleId(), isShoot);
         if (!roomPlayerCtrl.isLive()) {
             //如果玩家已经死亡,直接设置成不开枪
@@ -425,6 +431,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             //所有人都已做出决定,计算开枪逻辑
             if (checkAllRoomPlayerChooseShoot()) {
                 choosePowerAndBeShoot(roomPlayerCtrl.getRoleId(), power, beShootRoleId);
+                LOGGER.debug("当前射击信息:{}", target.getRoleIdAndPowerToBeShoot().toString());
                 _shoot(b);
                 _onInitShootInfo();
                 response.setSmRoom(b.build());
@@ -469,6 +476,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     @Override
     public void onCanChoice(String playerId) {
         RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        if (roomPlayerCtrl.getChoice() != MagicNumbers.DEFAULT_ZERO) {
+            String msg = String.format("你已经做出了个人选择:RoleName=%s,choiceId=%s", roomPlayerCtrl.getRoleName(), roomPlayerCtrl.getChoice());
+            throw new BusinessLogicMismatchConditionException(msg, HAS_CHOICED);
+        }
         Action action = Action.RESP_CAN_CHOICE;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         Sm_Room.Builder b = Sm_Room.newBuilder();
@@ -486,7 +497,35 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Action action = Action.RESP_CHOICE;
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         Sm_Room.Builder b = Sm_Room.newBuilder();
+        choice(roomPlayerCtrl, beRoleId);
         b.setAction(action);
+        response.setSmRoom(b.build());
+        response.setResult(true);
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onScoreList(String playerId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        Action action = Action.RESP_SCORE_LIST;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        b.addAllRoleInfo(RoomProtoUtils.createSmRoomRoleInfoListByRoleId(target.getTaskScoreRank(), getDramaId()));
+        response.setSmRoom(b.build());
+        response.setResult(true);
+        roomPlayerCtrl.send(response.build());
+    }
+
+    @Override
+    public void onRoleScore(String playerId, int roleId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
+        RoomPlayerCtrl taskPlayerCtrl = getRoomPlayerCtrl(roleId);
+        Action action = Action.RESP_ROLE_SCORE;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setScore(RoomProtoUtils.createSmScoreByRoleId(roleId, getDramaId(), taskPlayerCtrl.getTotal(getDramaId()), taskPlayerCtrl.getTaskIdToResult()));
         response.setSmRoom(b.build());
         response.setResult(true);
         roomPlayerCtrl.send(response.build());
@@ -503,7 +542,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             throw new BusinessLogicMismatchConditionException(msg, HAS_NO_CHOICE);
         }
         if (roomPlayerCtrl.getChoice() != MagicNumbers.DEFAULT_ZERO) {
-            String msg = String.format("没有这个个人选择:RoleName=%s,choiceId=%s", roomPlayerCtrl.getRoleName(), beRoleId);
+            String msg = String.format("你已经做出了个人选择:RoleName=%s,choiceId=%s", roomPlayerCtrl.getRoleName(), beRoleId);
             throw new BusinessLogicMismatchConditionException(msg, HAS_CHOICED);
         }
         roomPlayerCtrl.setChoice(beRoleId);
@@ -520,6 +559,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 it.remove();
             }
         }
+        LOGGER.debug("本轮筛选后可以开枪的人:{}", target.getRoleIdToPowerAndBulletNum().keySet().toString());
     }
 
     /**
@@ -534,13 +574,14 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         while (flag) {
             int sed = RANDOM.nextInt(roleIds.size());
             roleId = roleIds.get(sed);
-            flag = roleId == target.getLastShootRoleId();
-            //如果能开枪的只有一个人了,忽略上一轮开枪者,直接命中
+            //如果能开枪的只有一个人了,忽略上一轮开枪者不能开枪的逻辑,直接随机为开枪者
             if (roleIds.size() == MagicNumbers.DEFAULT_ONE) {
+                LOGGER.debug("可以开枪的名单只有一人:{}", roleId);
                 flag = false;
+            } else {
+                flag = roleId == target.getLastShootRoleId();
             }
         }
-
         //将随机出来的玩家设置成最后一轮开枪的玩家
         target.setLastShootRoleId(roleId);
         return roleId;
@@ -583,7 +624,18 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 }
             } else {
                 npc.setLive(false);
-                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), npc.getRoleId(), false, power, new ArrayList<>(), getDramaId()));
+                npc.setKillerRoleId(shooterCtrl.getRoleId());
+                ItemBagCtrl shooterItemBagCtrl = shooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+                List<SpecialCell> roomPlayerItems = npc.getRoomPlayerItems();
+                List<Integer> arr = new ArrayList<>();
+                for (SpecialCell specialCell : roomPlayerItems) {
+                    arr.add(specialCell.getTpId());
+                    ItemBagUtils.addSpecialItem(shooterItemBagCtrl.getTarget(), specialCell.getTpId(), MagicNumbers.DEFAULT_ONE, true);
+                }
+                LOGGER.debug("骆驼死亡,掉落物品:{}", arr);
+                b.addShootResult(RoomProtoUtils.createSmRoomShootResult(shooterCtrl.getRoleId(), npc.getRoleId(), false, power, roomPlayerItems, getDramaId()));
+                npc.getRoomPlayerItems().clear();
+
             }
         }
     }
@@ -600,8 +652,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             DefPowerEnum defPower = dedutBeShootConsume(beShooterItemBagCtrl, power);
             b.addShootResult(RoomProtoUtils.createSmRoomShootResult(npc.getRoleId(), beShooterCtrl.getRoleId(), true, power, defPower, getDramaId()));
         } else {
-            //被打死了,要掉装备
+            //被NPC打死了,要掉装备
             beShooterCtrl.setLive(false);
+            beShooterCtrl.setKillerRoleId(npc.getRoleId());
             List<SpecialCell> specialCells = deadAndDropItem(beShooterCtrl, npc.getRoleId());
             b.addShootResult(RoomProtoUtils.createSmRoomShootResult(npc.getRoleId(), beShooterCtrl.getRoleId(), false, power, specialCells, getDramaId()));
         }
@@ -615,7 +668,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         } else {
             ItemBagCtrl itemBagCtrl = shooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
             LOGGER.debug("最终随机出的开枪玩家是: roleName={},power={},beShoot={}", shooterCtrl.getRoleName(), power.toString(), beShooterCtrl.getRoleName());
-            LOGGER.debug("他的背包信息为:{}", itemBagCtrl.getTarget().toString());
+            LOGGER.debug("他的背包信息为:{}", itemBagCtrl.getTarget().getIdToSpecialCell().values().toString());
             if (!target.getRoleIdToPowerAndBulletNum().get(shooterCtrl.getRoleId()).containsKey(power)) {
                 String msg = String.format("没有这个开枪方式%s", power.toString());
                 LOGGER.debug("没有这个开枪方式:{}", power.toString());
@@ -635,8 +688,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
     }
 
-    private boolean _isNpc(int beShootRoleId) {
-        return target.getNpc().getRoleId() == beShootRoleId;
+    private boolean _isNpc(int shootRoleId) {
+        return target.getNpc().getRoleId() == shootRoleId;
     }
 
     private boolean checkCanBeNextStat() {
@@ -661,9 +714,12 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
      */
     private List<SpecialCell> deadAndDropItem(RoomPlayerCtrl beShooterCtrl, int shooterRoleId) {
         beShooterCtrl.setLive(false);
+        beShooterCtrl.setKillerRoleId(shooterRoleId);
+
         List<SpecialCell> arr = new ArrayList<>();
         List<SpecialCell> equips = new ArrayList<>();
-        ItemBag itemBag = beShooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery().getTarget();
+        ItemBagCtrl itemBagCtrl = beShooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+        ItemBag itemBag = itemBagCtrl.getTarget();
         for (Entry<Integer, SpecialCell> entry : itemBag.getIdToSpecialCell().entrySet()) {
             ItemBigTypePrefixNumEnum prefixNum = IdItemTypeEnum.parseByItemId(entry.getKey()).getPrefixNum();
             if (prefixNum == ItemBigTypePrefixNumEnum.PREFIXNUM_ITEM) {
@@ -676,10 +732,28 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             SpecialCell equip = randomItem(equips);
             arr.add(equip);
         }
-        In_RoomDeadDropItemMsg msg = new In_RoomDeadDropItemMsg(arr, shooterRoleId, beShooterCtrl.getRoleName(), IdItemTypeEnum.ITEM);
-        beShooterCtrl.getRoomActorRef().tell(msg, ActorRef.noSender());
-        LOGGER.debug(beShooterCtrl.getTarget().toString());
-        LOGGER.debug(itemBag.toString());
+        List<Integer> arrIds = new ArrayList<>();
+        for (SpecialCell specialCell : arr) {
+            ItemBagUtils.removeSpecialItem(itemBag, specialCell.getId());
+            arrIds.add(specialCell.getId());
+        }
+        if (_isNpc(shooterRoleId)) {
+            for (SpecialCell specialCell : arr) {
+                ItemBigTypePrefixNumEnum prefixNum = IdItemTypeEnum.parseByItemId(specialCell.getId()).getPrefixNum();
+                if (prefixNum == ItemBigTypePrefixNumEnum.PREFIXNUM_ITEM) {
+                    target.getNpc().getRoomPlayerItems().add(specialCell);
+                }
+            }
+        } else {
+            RoomPlayerCtrl shooterCtrl = getRoomPlayerCtrl(shooterRoleId);
+            ItemBagCtrl shootItemBagCtrl = shooterCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            for (SpecialCell specialCell : arr) {
+                ItemBagUtils.addSpecialItem(shootItemBagCtrl.getTarget(), specialCell.getTpId(), MagicNumbers.DEFAULT_ONE, true);
+            }
+        }
+
+        LOGGER.debug("=========roleName={},deadAndDropItem:{}", beShooterCtrl.getRoleName(), arrIds);
+        LOGGER.debug("============ItemBag{}", itemBag.getIdToSpecialCell().toString());
         return arr;
     }
 
@@ -834,7 +908,11 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 //        if (target.getIdToRoomPlayer().size() < plaNum) {
 //            return false;
 //        }
-        LOGGER.debug("还有人没有选择开枪信息:{}", target.getRoleIdIsShoot().toString());
+        if (target.getRoleIdIsShoot().size() != target.getRoleIdToPlayerId().size()) {
+            LOGGER.debug("还有人没有选择开枪信息:{}", target.getRoleIdIsShoot().toString());
+        } else {
+            LOGGER.debug("所有人选择开枪信息:{}", target.getRoleIdIsShoot().toString());
+        }
         return target.getRoleIdIsShoot().size() == target.getRoleIdToPlayerId().size();
 //        return true;
     }
@@ -864,8 +942,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         presetRoomPlayerInfo(roomState, getRoomStateTimes());
         //预设一些房间的信息
         presetRoomInfo(roomState);
-
-
     }
 
     private void presetRoomPlayerInfo(EnumsProtos.RoomStateEnum roomState, int stateTimes) {
@@ -891,8 +967,152 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             } else if (roomState == RoomStateEnum.SHOOT) {
                 _initNpc();
                 roomPlayerCtrl.setLive(true);
+            } else if (roomState == RoomStateEnum.SCORE) {
+                _onRoomPlayerTaskScore(roomPlayerCtrl);
             }
         }
+    }
+
+    private void _onRoomPlayerTaskScore(RoomPlayerCtrl roomPlayerCtrl) {
+        List<Table_Task_Row> taskRows = Table_Task_Row.getRowByRoleId(roomPlayerCtrl.getRoleId(), getDramaId());
+        for (Table_Task_Row row : taskRows) {
+            String taskType = row.getTaskType();
+            int taskRoleId = row.getTaskRoleId();
+            List<Integer> itemIds = RoomUtils.parseListStringToListInteger(row.getTaskItem());
+            if (RoomUtils.isListString(taskType)) {
+                List<String> taskNames = RoomUtils.splitStringToList(taskType);
+                List<TaskEnums> taskEnums = TaskEnums.getTaskTypeListByNames(taskNames);
+                int subVoteNum = row.getSubVoteNum();
+                _mathScore(roomPlayerCtrl, taskEnums, subVoteNum, row.getId());
+            } else {
+                TaskEnums taskEnum = TaskEnums.getTaskTypeByName(taskType);
+                _mathScore(roomPlayerCtrl, taskEnum, itemIds, taskRoleId, row.getId());
+            }
+        }
+        sortByTaskId(new ArrayList(roomPlayerCtrl.getTaskIdToResult().entrySet()));
+        LOGGER.debug("_onRoomPlayerTaskScore:{}", roomPlayerCtrl.getTaskIdToResult().toString());
+    }
+
+    private void sortByTaskId(List<Entry<Integer, Boolean>> rankIdToResult) {
+        Collections.sort(rankIdToResult, new Comparator<Entry<Integer, Boolean>>() {
+            @Override
+            public int compare(Entry<Integer, Boolean> o1, Entry<Integer, Boolean> o2) {
+                return o2.getKey() - o1.getKey();
+            }
+        });
+        LOGGER.debug("rank:{}", rankIdToResult);
+    }
+
+
+    private void _mathScore(RoomPlayerCtrl roomPlayerCtrl, List<TaskEnums> taskEnums, int subVoteNum, int taskId) {
+        if (taskEnums.contains(TaskEnums.ESCAPE) && taskEnums.contains(TaskEnums.VOTEMURDER)) {
+            Table_SubMurder_Row row = Table_SubMurder_Row.getMurderRowByRoleId(roomPlayerCtrl.getSubRoleId(subVoteNum), getDramaId(), subVoteNum);
+            if (row.getMurder()) {
+                _hasEscape(roomPlayerCtrl, subVoteNum, taskId);
+            } else {
+                _hasVoteMurder(roomPlayerCtrl, subVoteNum, taskId);
+            }
+        }
+    }
+
+    /**
+     * 是否投中真凶
+     *
+     * @param selfCtrl
+     * @param subVoteNum
+     * @param taskId
+     */
+    private void _hasVoteMurder(RoomPlayerCtrl selfCtrl, int subVoteNum, int taskId) {
+        selfCtrl.addTaskResult(taskId, _isVoteMurder(selfCtrl.getSubRoleId(subVoteNum), subVoteNum));
+    }
+
+    /**
+     * 自己是真凶,是否逃脱,没被投中
+     *
+     * @param selfCtrl
+     * @param subVoteNum
+     * @param taskId
+     */
+    private void _hasEscape(RoomPlayerCtrl selfCtrl, int subVoteNum, int taskId) {
+        int murderRoleId = getSubVoteMurder(subVoteNum);
+        selfCtrl.addTaskResult(taskId, murderRoleId != selfCtrl.getSubRoleId(subVoteNum));
+    }
+
+    private void _mathScore(RoomPlayerCtrl roomPlayerCtrl, TaskEnums taskEnums, List<Integer> itemIds, int taskRoleId, int taskId) {
+        switch (taskEnums) {
+            case HAVEITEM:
+                _checkHaveItem(roomPlayerCtrl, taskRoleId, itemIds, taskId);
+                break;
+            case DEAD:
+                _checkIsDead(roomPlayerCtrl, taskRoleId, taskId);
+                break;
+            case KILL:
+                _checkIsKill(roomPlayerCtrl, taskRoleId, taskId);
+                break;
+            case ALIVE:
+                _checkIsLive(roomPlayerCtrl, taskRoleId, taskId);
+                break;
+            case CHOICE:
+                _checkIsChoice(roomPlayerCtrl, taskRoleId, taskId);
+                break;
+        }
+    }
+
+    private void _checkIsKill(RoomPlayerCtrl selfCtrl, int taskRoleId, int taskId) {
+        boolean isKiller = false;
+        if (_isNpc(taskRoleId)) {
+            if (!target.getNpc().isLive()) {
+                isKiller = selfCtrl.getRoleId() == target.getNpc().getKillerRoleId();
+            }
+        } else {
+            RoomPlayerCtrl taskCtrl = getRoomPlayerCtrl(taskRoleId);
+            if (!taskCtrl.isLive()) {
+                isKiller = selfCtrl.getRoleId() == taskCtrl.getKillerRoleId();
+            }
+        }
+        selfCtrl.addTaskResult(taskId, isKiller);
+    }
+
+    private void _checkIsChoice(RoomPlayerCtrl selfCtrl, int taskRoleId, int taskId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(taskRoleId);
+        int choiceId = roomPlayerCtrl.getChoice();
+        boolean isChoiced = selfCtrl.getRoleId() == choiceId;
+        selfCtrl.addTaskResult(taskId, isChoiced);
+    }
+
+    private void _checkIsLive(RoomPlayerCtrl selfCtrl, int taskRoleId, int taskId) {
+        boolean isLive;
+        if (_isNpc(taskRoleId)) {
+            isLive = target.getNpc().isLive();
+        } else {
+            if (isSpecialTaskRole(taskRoleId)) {
+                isLive = getRoomPlayerCtrl(selfCtrl.getChoice()).isLive();
+            } else {
+                isLive = getRoomPlayerCtrl(taskRoleId).isLive();
+            }
+        }
+        selfCtrl.addTaskResult(taskId, isLive);
+    }
+
+    private boolean isSpecialTaskRole(int taskRoleId) {
+        return taskRoleId == MagicNumbers.DEFAULT_ZERO;
+    }
+
+    private void _checkIsDead(RoomPlayerCtrl selfCtrl, int taskRoleId, int taskId) {
+        boolean isDead;
+        if (_isNpc(taskRoleId)) {
+            isDead = !target.getNpc().isLive();
+        } else {
+            isDead = !getRoomPlayerCtrl(taskRoleId).isLive();
+        }
+        selfCtrl.addTaskResult(taskId, isDead);
+    }
+
+    private void _checkHaveItem(RoomPlayerCtrl selfCtrl, int taskRoleId, List<Integer> itemIds, int taskId) {
+        RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(taskRoleId);
+        ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+        boolean result = itemBagCtrl.hasItems(itemIds);
+        selfCtrl.addTaskResult(taskId, result);
     }
 
     private void _initNpc() {
@@ -912,7 +1132,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         } else if (roomState == EnumsProtos.RoomStateEnum.SOLO) {
             setSoloIdx(MagicNumbers.DEFAULT_ZERO);
         } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
-            _initVoteInfo();
+            _initVoteInfo(getRoomStateTimes());
         } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
             _initSubVoteInfo();
         } else if (roomState == EnumsProtos.RoomStateEnum.UNLOCK) {
@@ -927,8 +1147,50 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             _onAuctionResult();
         } else if (roomState == RoomStateEnum.SHOOT) {
             _onInitShootInfo();
+        } else if (roomState == RoomStateEnum.SCORE) {
+            _onTaskScoreList();
         }
     }
+
+    /**
+     * 任务结算
+     */
+    private void _onTaskScoreList() {
+        String playerID = "";
+        TreeMap<Integer, Integer> map = new TreeMap<>();
+        for (RoomPlayerCtrl roomPlayerCtrl : target.getIdToRoomPlayerCtrl().values()) {
+            int score = roomPlayerCtrl.getTotal(getDramaId());
+            map.put(roomPlayerCtrl.getRoleId(), score);
+            playerID = roomPlayerCtrl.getPlayerId();
+        }
+        List<Map.Entry<Integer, Integer>> rank = new ArrayList<>(map.entrySet());
+        sortAndSetRank(rank);
+        onScoreList(playerID);
+        Iterator<RoomPlayer> iterator = target.getIdToRoomPlayer().values().iterator();
+        while (iterator.hasNext()) {
+            RoomPlayer next = iterator.next();
+            String playerId = next.getPlayerId();
+            onRoleScore(playerId, next.getRoleId());
+        }
+    }
+
+    private void sortAndSetRank(List<Entry<Integer, Integer>> rank) {
+        Collections.sort(rank, new Comparator<Entry<Integer, Integer>>() {
+            @Override
+            public int compare(Entry<Integer, Integer> o1, Entry<Integer, Integer> o2) {
+                if (o1.getValue() == o2.getValue()) {
+                    return o1.getKey() - o2.getKey();
+                }
+                return o2.getValue() - o1.getValue();
+            }
+        });
+        LOGGER.debug("rank:{}", rank);
+        for (Entry<Integer, Integer> entry : rank) {
+            target.getTaskScoreRank().add(entry.getKey());
+        }
+        LOGGER.debug(target.getTaskScoreRank().toString());
+    }
+
 
     private void _onInitShootInfo() {
         getTarget().getRoleIdToPowerAndBulletNum().clear();
@@ -950,12 +1212,16 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Map<Integer, Map<PowerEnum, Integer>> map = new HashMap<>();
         for (RoomPlayerCtrl roomPlayerCtrl : getTarget().getIdToRoomPlayerCtrl().values()) {
             Map<PowerEnum, Integer> powerAndBulletNum = new HashMap<>();
-            if (roomPlayerCtrl.isLive()) {
+            if (roomPlayerCtrl.isLive() && roomPlayerCtrl.getRoleId() != target.getLastShootRoleId()) {
                 ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
                 powerAndBulletNum.putAll(getCanShootPower(rows, itemBagCtrl));
             }
-
             map.put(roomPlayerCtrl.getRoleId(), powerAndBulletNum);
+        }
+        if (map.size() == MagicNumbers.DEFAULT_ZERO) {
+            RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(target.getLastShootRoleId());
+            ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+            map.put(roomPlayerCtrl.getRoleId(), getCanShootPower(rows, itemBagCtrl));
         }
         return map;
     }
@@ -1113,9 +1379,9 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     }
 
 
-    private void _initVoteInfo() {
+    private void _initVoteInfo(int voteNum) {
         target.getVoteNumToVoteRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
-        List<Integer> allRoleId = Table_Murder_Row.getAllRoleId(getDramaId());
+        List<Integer> allRoleId = Table_Murder_Row.getAllRoleId(getDramaId(), voteNum);
         for (Integer roleId : allRoleId) {
             target.getVoteNumToVoteRoleIdToRoleId().get(getRoomStateTimes()).put(roleId, new ArrayList<>());
         }
@@ -1123,7 +1389,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     private void _initSubVoteInfo() {
         target.getSubVoteNumToVoteSubRoleIdToRoleId().put(getRoomStateTimes(), new ConcurrentHashMap<>());
-        List<Integer> allSubRoleId = Table_SubMurder_Row.getAllRoleId(getDramaId());
+        List<Integer> allSubRoleId = Table_SubMurder_Row.getAllRoleId(getDramaId(), getRoomStateTimes());
         for (Integer subRoleId : allSubRoleId) {
             target.getSubVoteNumToVoteSubRoleIdToRoleId().get(getRoomStateTimes()).put(subRoleId, new ArrayList<>());
         }
@@ -1233,26 +1499,20 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         Sm_Room.Builder b = Sm_Room.newBuilder();
         response.setResult(true);
         b.setAction(action);
-        boolean isNpc = true;
         //目前只有一次投凶
         int murderRoleId = getSubVoteMurder(voteNum);
-        for (Entry<String, RoomPlayerCtrl> entry : getTarget().getIdToRoomPlayerCtrl().entrySet()) {
-            if (entry.getValue().getSubRoleId(voteNum) == murderRoleId) {
-                isNpc = false;
-                ItemBag itemBag = entry.getValue().getExtension(ItemBagExtp.class).getControlerForQuery().getTarget();
-                String task = Table_Task_Row.getUnlockTask(entry.getValue().getRoleId(), getDramaId());
-                b.setUnlockInfo(RoomProtoUtils.createSmRoomUnlockInfo(entry.getValue().getRoleId(), task, itemBag, getDramaId()));
-                response.setSmRoom(b.build());
-                break;
-            }
-        }
-        if (isNpc) {
+        if (!_isNpc(murderRoleId)) {
+            RoomPlayerCtrl murderCtrl = getRoomPlayerCtrl(murderRoleId);
+            ItemBag itemBag = murderCtrl.getExtension(ItemBagExtp.class).getControlerForQuery().getTarget();
+            String task = Table_Task_Row.getUnlockTask(murderRoleId, getDramaId());
+            b.setUnlockInfo(RoomProtoUtils.createSmRoomUnlockInfo(murderRoleId, task, itemBag, getDramaId()));
+        } else {
             Table_NpcActer_Row npcRow = Table_NpcActer_Row.getNpcRow(getDramaId());
             String npcTask = npcRow.getNpcTask();
             List<TupleCell<String>> prop = npcRow.getProp();
             b.setUnlockInfo(RoomProtoUtils.createNpcSmRoomUnlockInfo(npcTask, prop, getDramaId()));
-            response.setSmRoom(b.build());
         }
+        response.setSmRoom(b.build());
         roomPlayerCtrl.send(response.build());
     }
 
@@ -1346,6 +1606,25 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         }
     }
 
+    /**
+     * 是否投中真凶
+     *
+     * @param subRoleId
+     * @param subVoteNum
+     * @return
+     */
+    private boolean _isVoteMurder(int subRoleId, int subVoteNum) {
+        Table_SubMurder_Row murderRow = Table_SubMurder_Row.getRealMurderRow(getDramaId(), subVoteNum);
+        List<Integer> subRoleIds = target.getSubVoteNumToVoteSubRoleIdToRoleId().get(subVoteNum).get(murderRow.getSubRoleId());
+        return subRoleIds.contains(subRoleId);
+    }
+
+    /**
+     * 大家所投中的凶手(不一定是真凶)
+     *
+     * @param voteNum
+     * @return
+     */
     private int getSubVoteMurder(int voteNum) {
         int roleId = 0;
         int count = 0;
@@ -1614,7 +1893,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         sendToWorld(new In_PlayerSubVoteRoomMsg(getDramaId(), roomPlayerCtrl.getPlayerId(), roomPlayerCtrl.getRoleId()));
         if (remainNum == 0) {
             for (String otherId : getTarget().getIdToRoomPlayer().keySet()) {
-                In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherId, getSubVoteRoleIdToPlayerRoleId(getRoomStateTimes()), getSuRoleIdToRoomPlayer(subNum), getDramaId());
+                In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherId, getSubVoteRoleIdToPlayerRoleId(getRoomStateTimes()), getSuRoleIdToRoomPlayer(subNum), getDramaId(), subNum);
                 sendToWorld(in_playerVoteResultRoomMsg);
             }
         } else {
@@ -1629,19 +1908,13 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     @Override
     public void onSubVoteResult(int subNum, String playerId) {
-        if (getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
-            for (String otherPlayerId : getTarget().getIdToRoomPlayer().keySet()) {
-                In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(otherPlayerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId());
-                sendToWorld(in_playerVoteResultRoomMsg);
-            }
-        } else {
-            sendToWorld(new In_PlayerVoteResultRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getDramaId()));
-        }
+        In_PlayerSubVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerSubVoteResultRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId(), subNum);
+        sendToWorld(in_playerVoteResultRoomMsg);
     }
 
     @Override
     public void onSubVoteList(int subNum, String playerId) {
-        sendToWorld(new In_PlayerSubVoteListRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId()));
+        sendToWorld(new In_PlayerSubVoteListRoomMsg(playerId, getSubVoteRoleIdToPlayerRoleId(subNum), getSuRoleIdToRoomPlayer(subNum), getDramaId(), subNum));
     }
 
     private Map<Integer, RoomPlayer> getSuRoleIdToRoomPlayer(int subNum) {

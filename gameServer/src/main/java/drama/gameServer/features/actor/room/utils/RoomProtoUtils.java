@@ -14,6 +14,7 @@ import dm.relationship.table.tableRows.Table_SearchType_Row;
 import dm.relationship.table.tableRows.Table_Search_Row;
 import dm.relationship.table.tableRows.Table_SubActer_Row;
 import dm.relationship.table.tableRows.Table_SubMurder_Row;
+import dm.relationship.table.tableRows.Table_Task_Row;
 import dm.relationship.utils.ProtoUtils;
 import drama.gameServer.features.actor.room.enums.RoomState;
 import drama.gameServer.features.actor.room.msg.In_PlayerIsVotedRoomMsg;
@@ -41,6 +42,7 @@ import drama.protos.room.RoomProtos.Sm_Room_Info;
 import drama.protos.room.RoomProtos.Sm_Room_Murder;
 import drama.protos.room.RoomProtos.Sm_Room_Player;
 import drama.protos.room.RoomProtos.Sm_Room_RoleInfo;
+import drama.protos.room.RoomProtos.Sm_Room_Score;
 import drama.protos.room.RoomProtos.Sm_Room_SearchType;
 import drama.protos.room.RoomProtos.Sm_Room_ShootInfo;
 import drama.protos.room.RoomProtos.Sm_Room_ShootResult;
@@ -49,6 +51,7 @@ import drama.protos.room.RoomProtos.Sm_Room_SubVote;
 import drama.protos.room.RoomProtos.Sm_Room_UnlockInfo;
 import drama.protos.room.RoomProtos.Sm_Room_Vote;
 import drama.protos.room.RoomProtos.Sm_Room_Vote_Search;
+import drama.protos.room.RoomProtos.Sm_Score_Info;
 import org.apache.commons.lang3.time.DateUtils;
 import org.bson.types.ObjectId;
 import ws.common.table.table.interfaces.cell.TupleCell;
@@ -157,25 +160,25 @@ public class RoomProtoUtils {
         return b.build();
     }
 
-    public static List<Sm_Room_Vote> createSmRoomVoteList(Map<Integer, List<Integer>> roleIdToPlayerRoleId, int dramaId) {
+    public static List<Sm_Room_Vote> createSmRoomVoteList(Map<Integer, List<Integer>> roleIdToPlayerRoleId, int dramaId, int voteNum) {
         List<Sm_Room_Vote> voteList = new ArrayList<>();
         for (Map.Entry<Integer, List<Integer>> entry : roleIdToPlayerRoleId.entrySet()) {
             int roleId = entry.getKey();
             List<Integer> voteRoleIds = entry.getValue();
-            Table_Murder_Row murderRow = Table_Murder_Row.getMurderRowByRoleId(roleId, dramaId);
+            Table_Murder_Row murderRow = Table_Murder_Row.getMurderRowByRoleId(roleId, dramaId, voteNum);
             int murderRoleId = murderRow.getRoleId();
             String roleName = murderRow.getRoleName();
             String rolePic = murderRow.getRolePic();
             String roleBigPic = murderRow.getRoleBigPic();
             boolean isMurder = murderRow.isMurder();
             boolean isTruth = murderRow.isTruth();
-            List<String> votePic = Table_Murder_Row.getRolePicByRoleIds(voteRoleIds, dramaId);
+            List<String> votePic = Table_Murder_Row.getRolePicByRoleIds(voteRoleIds, dramaId, voteNum);
             voteList.add(createSmRoomVote(murderRoleId, roleName, rolePic, roleBigPic, isMurder, isTruth, votePic, voteRoleIds));
         }
         return voteList;
     }
 
-    public static List<Sm_Room_SubVote> createSmRoomSubVoteList(Map<Integer, List<Integer>> subRoleIdToPlayerRoleId, Map<Integer, RoomPlayer> subRoleIdToRoomPlayer, int dramaId) {
+    public static List<Sm_Room_SubVote> createSmRoomSubVoteList(Map<Integer, List<Integer>> subRoleIdToPlayerRoleId, Map<Integer, RoomPlayer> subRoleIdToRoomPlayer, int dramaId, int subVoteNum) {
         List<Sm_Room_SubVote> voteList = new ArrayList<>();
         Map<Integer, Table_Acter_Row> allRoleIdToRowByDramaId = Table_Acter_Row.getAllRoleIdToRowByDramaId(dramaId);
         for (Map.Entry<Integer, List<Integer>> entry : subRoleIdToPlayerRoleId.entrySet()) {
@@ -202,7 +205,7 @@ public class RoomProtoUtils {
             // TODO 需要NPC单建一张表获取NPC的名字头像和立绘
 
             List<Integer> voteRoleIds = entry.getValue();
-            Table_SubMurder_Row murderRow = Table_SubMurder_Row.getMurderRowByRoleId(subRoleId, dramaId);
+            Table_SubMurder_Row murderRow = Table_SubMurder_Row.getMurderRowByRoleId(subRoleId, dramaId, subVoteNum);
             String subRoleName = murderRow.getSubRoleName();
             String subRolePic = murderRow.getSubRolePic();
             boolean isSubMurder = murderRow.getMurder();
@@ -366,6 +369,8 @@ public class RoomProtoUtils {
             b.setAction(Sm_Room.Action.RESP_CAN_SHOOT);
         } else if (cm_room.getAction().getNumber() == Action.SHOOT_ENDING_VALUE) {
             b.setAction(Sm_Room.Action.RESP_SHOOT_ENDING);
+        } else if (cm_room.getAction().getNumber() == Action.CHOICE_VALUE) {
+            b.setAction(Sm_Room.Action.RESP_CHOICE);
         }
         return b;
     }
@@ -393,10 +398,9 @@ public class RoomProtoUtils {
 
     public static List<Sm_Room_RoleInfo> createSmRoomRoleInfoListByRoleId(List<Integer> roleIds, int dramaId) {
         List<Sm_Room_RoleInfo> arr = new ArrayList<>();
-        for (Table_Acter_Row row : RootTc.get(Table_Acter_Row.class).values()) {
-            if (row.getDramaId() == dramaId && roleIds.contains(row.getRoleId())) {
-                arr.add(createSmRoomRoleInfo(row));
-            }
+        for (Integer roleId : roleIds) {
+            Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roleId, dramaId);
+            arr.add(createSmRoomRoleInfo(row));
         }
         return arr;
     }
@@ -470,15 +474,12 @@ public class RoomProtoUtils {
             ItemBagCtrlProtos.addPlain(plainCell, b, b$Plain, itemBag.getDramaId());
         });
         // 背包中的特殊物品
-
         itemBag.getIdToSpecialCell().values().forEach(specialCell -> {
             ItemBagCtrlProtos.addSpecial(specialCell, b, b$Special, itemBag.getDramaId());
         });
         b.setRoleName(row.getName());
         b.setRolePic(row.getProfile());
         b.setTask(task);
-        b.addSpecialCells(b$Special.build());
-        b.addPlainCells(b$Plain.build());
         return b.build();
     }
 
@@ -503,8 +504,6 @@ public class RoomProtoUtils {
         b.setTask(task);
         b.setRoleName(npcRow.getName());
         b.setRolePic(npcRow.getProfile());
-        b.addSpecialCells(b$Special.build());
-        b.addPlainCells(b$Plain.build());
         return b.build();
     }
 
@@ -614,4 +613,29 @@ public class RoomProtoUtils {
     }
 
 
+    public static Sm_Room_Score createSmScoreByRoleId(int roleId, int dramaId, int total, Map<Integer, Boolean> taskIdToResult) {
+        Sm_Room_Score.Builder b = Sm_Room_Score.newBuilder();
+        Table_Acter_Row row = Table_Acter_Row.getTableActerRowByRoleId(roleId, dramaId);
+        b.setRoleName(row.getName());
+        b.setRolePic(row.getProfile());
+        b.setTotal(total);
+        b.addAllScoreInfo(createSmScoreInfoList(taskIdToResult, dramaId));
+        return b.build();
+    }
+
+    private static List<Sm_Score_Info> createSmScoreInfoList(Map<Integer, Boolean> taskIdToResult, int dramaId) {
+        List<Sm_Score_Info> arr = new ArrayList<>();
+        for (Entry<Integer, Boolean> entry : taskIdToResult.entrySet()) {
+            Sm_Score_Info.Builder b = Sm_Score_Info.newBuilder();
+            Table_Task_Row row = Table_Task_Row.getRowByTaskId(entry.getKey(), dramaId);
+            b.setTaskName(row.getTaskDes());
+            if (entry.getValue()) {
+                b.setScore(row.getScore());
+            } else {
+                b.setScore(MagicNumbers.DEFAULT_ZERO);
+            }
+            arr.add(b.build());
+        }
+        return arr;
+    }
 }

@@ -476,7 +476,7 @@ public class PlayerIOActor extends DmActor {
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getRoleIdToPlayerRoleId();
-        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
+        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId(), msg.getVoteNum());
         Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomVote(smRoomVoteList);
         b.setAction(action);
@@ -490,7 +490,7 @@ public class PlayerIOActor extends DmActor {
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getSubVoteRoleIdToPlayerRoleId();
         Map<Integer, RoomPlayer> subRoleIdToRoomPlayer = msg.getSubRoleIdToRoomPlayer();
-        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
+        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId(), msg.getSubVoteNum());
         Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomSubVote(smRoomVoteList);
         b.setAction(action);
@@ -503,7 +503,7 @@ public class PlayerIOActor extends DmActor {
         Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getVoteRoleIdToPlayerRoleId();
-        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId());
+        List<Sm_Room_Vote> smRoomVoteList = RoomProtoUtils.createSmRoomVoteList(roleIdToPlayerRoleId, msg.getDramaId(), msg.getVoteNum());
         Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomVote(smRoomVoteList);
         b.setAction(action);
@@ -518,7 +518,7 @@ public class PlayerIOActor extends DmActor {
         response.setResult(true);
         Map<Integer, List<Integer>> roleIdToPlayerRoleId = msg.getSubVoteRoleIdToPlayerRoleId();
         Map<Integer, RoomPlayer> subRoleIdToRoomPlayer = msg.getSubRoleIdToRoomPlayer();
-        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId());
+        List<Sm_Room_SubVote> smRoomVoteList = RoomProtoUtils.createSmRoomSubVoteList(roleIdToPlayerRoleId, subRoleIdToRoomPlayer, msg.getDramaId(), msg.getSubVoteNum());
         Sm_Room.Builder b = Sm_Room.newBuilder();
         b.addAllRoomSubVote(smRoomVoteList);
         b.setAction(action);
@@ -539,14 +539,14 @@ public class PlayerIOActor extends DmActor {
     }
 
     private void onPlayerSubVoteRemainRoomMsg(In_PlayerSubVoteRemainRoomMsg msg) {
-//        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE_REMAIN;
-//        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
-//        response.setResult(true);
-//        Sm_Room.Builder b = Sm_Room.newBuilder();
-//        b.setAction(action);
-//        b.setVoteNum(msg.getRemainNum());
-//        response.setSmRoom(b.build());
-//        playerIOCtrl.send(response.build());
+        Sm_Room.Action action = Sm_Room.Action.RESP_SUB_VOTE_REMAIN;
+        Response.Builder response = ProtoUtils.create_Response(Code.Sm_Room, action);
+        response.setResult(true);
+        Sm_Room.Builder b = Sm_Room.newBuilder();
+        b.setAction(action);
+        b.setVoteNum(msg.getRemainNum());
+        response.setSmRoom(b.build());
+        playerIOCtrl.send(response.build());
     }
 
     private void onPlayerVoteRoomMsg(In_PlayerVoteRoomMsg msg) {

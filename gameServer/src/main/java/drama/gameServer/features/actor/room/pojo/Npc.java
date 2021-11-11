@@ -1,5 +1,8 @@
 package drama.gameServer.features.actor.room.pojo;
 
+import drama.gameServer.features.extp.itemBag.pojo.SpecialCell;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,6 +16,12 @@ public class Npc {
     private String roleProfile;
     private List<Integer> equipEnums;
 
+    private List<SpecialCell> roomPlayerItems = new ArrayList<>();
+    /**
+     * 被谁击杀
+     */
+    private int killerRoleId;
+
     public Npc(String npcId, int roleId, String roleName, boolean isLive, String roleProfile, List<Integer> equipEnums) {
         this.npcId = npcId;
         this.roleId = roleId;
@@ -20,6 +29,18 @@ public class Npc {
         this.isLive = isLive;
         this.roleProfile = roleProfile;
         this.equipEnums = equipEnums;
+    }
+
+    public List<SpecialCell> getRoomPlayerItems() {
+        return roomPlayerItems;
+    }
+
+    public int getKillerRoleId() {
+        return killerRoleId;
+    }
+
+    public void setKillerRoleId(int killerRoleId) {
+        this.killerRoleId = killerRoleId;
     }
 
     public String getNpcId() {

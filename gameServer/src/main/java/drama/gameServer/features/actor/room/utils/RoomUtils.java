@@ -1,6 +1,9 @@
 package drama.gameServer.features.actor.room.utils;
 
+import dm.relationship.base.MagicWords;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,7 +16,16 @@ public class RoomUtils {
             arr.add(Integer.valueOf(str));
         }
         return arr;
-
     }
 
+
+    public static boolean isListString(String str) {
+        return str.contains(MagicWords.CONFIG_LIST_SEPARATOR);
+    }
+
+
+    public static List<String> splitStringToList(String str) {
+        String[] split = str.split(MagicWords.CONFIG_LIST_SEPARATOR);
+        return Arrays.asList(split);
+    }
 }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class RoomPlayer extends RoomPlayerNoDbPojo {
     private String playerId;
@@ -46,7 +47,7 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
     /**
      * 是否已经举手准备
      */
-    private boolean isReady = false;
+    private boolean isReady;
     /**
      * 是否配音
      */
@@ -66,7 +67,7 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
     /**
      * 是否选择心魔
      */
-    private boolean selectDraft = false;
+    private boolean selectDraft;
 
     /**
      * 线索
@@ -81,12 +82,21 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
     /**
      * 是否存活
      */
-    private boolean isLive;
+    private boolean isLive = true;
 
     /**
      * 个人选择
      */
     private int choiceRoleId;
+    /**
+     * 任务id对应结果
+     */
+    private Map<Integer, Boolean> taskIdToResult = new TreeMap<>();
+
+    /**
+     * 被谁击杀
+     */
+    private int killerRoleId;
 
     public RoomPlayer(SimplePlayer simplePlayer, String roomId, int dramaId, Connection connection) {
         this.playerId = simplePlayer.getPlayerId();
@@ -97,6 +107,22 @@ public class RoomPlayer extends RoomPlayerNoDbPojo {
         this.playerIcon = !StringUtils.isEmpty(simplePlayer.getIcon()) ? simplePlayer.getIcon() : "";
     }
 
+
+    public int getKillerRoleId() {
+        return killerRoleId;
+    }
+
+    public void setKillerRoleId(int killerRoleId) {
+        this.killerRoleId = killerRoleId;
+    }
+
+    public Map<Integer, Boolean> getTaskIdToResult() {
+        return taskIdToResult;
+    }
+
+    public void setTaskIdToResult(Map<Integer, Boolean> taskIdToResult) {
+        this.taskIdToResult = taskIdToResult;
+    }
 
     public int getChoiceRoleId() {
         return choiceRoleId;

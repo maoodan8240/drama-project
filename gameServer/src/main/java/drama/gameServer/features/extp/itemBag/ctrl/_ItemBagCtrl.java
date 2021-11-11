@@ -3,6 +3,7 @@ package drama.gameServer.features.extp.itemBag.ctrl;
 import akka.actor.ActorRef;
 import dm.relationship.base.IdAndCount;
 import dm.relationship.base.IdMaptoCount;
+import dm.relationship.base.MagicNumbers;
 import dm.relationship.enums.item.IdItemBigTypeEnum;
 import dm.relationship.enums.item.IdItemTypeEnum;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
@@ -128,6 +129,9 @@ public class _ItemBagCtrl extends AbstractRoomPlayerExtControler<ItemBag> implem
 
     @Override
     public boolean canRemoveItem(IdAndCount idAndCount) {
+        if (idAndCount.getCount() == MagicNumbers.DEFAULT_ZERO) {
+            return true;
+        }
         if (ItemBagUtils.isSpecialItemId(idAndCount.getId())) { // 特殊物品
             if (idAndCount.getCount() != 1) {
                 LOGGER.debug("特殊物品通过itemId一次只能移除一个！ idAndCount={}", idAndCount);
@@ -146,6 +150,21 @@ public class _ItemBagCtrl extends AbstractRoomPlayerExtControler<ItemBag> implem
                 }
             } else {
                 LOGGER.debug("特殊物品不能通过itemTemplateId移除！ idAndCount={}", idAndCount);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean hasItem(int tpId) {
+        return ItemBagUtils.canRemoveSpecialItem(target, tpId);
+    }
+
+    @Override
+    public boolean hasItems(List<Integer> tpIds) {
+        for (Integer tpId : tpIds) {
+            if (!hasItem(tpId)) {
                 return false;
             }
         }
@@ -297,6 +316,7 @@ public class _ItemBagCtrl extends AbstractRoomPlayerExtControler<ItemBag> implem
         response.setSmItemBag(smItemBag);
         getRoomPlayerCtrl().send(response.build());
     }
+
 
     private boolean isMe(int roleId) {
         return getRoomPlayerCtrl().getRoleId() == roleId;

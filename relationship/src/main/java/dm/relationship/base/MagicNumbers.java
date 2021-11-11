@@ -113,6 +113,5 @@ public class MagicNumbers {
      * 98K子弹
      */
     public static final int WEAPON_98K_BULLET_ID = 22;
-
-
+   
 }

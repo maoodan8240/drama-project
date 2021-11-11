@@ -9,6 +9,8 @@ import drama.gameServer.features.extp.itemBag.pojo.ItemBag;
 import drama.gameServer.features.extp.itemBag.pojo.PlainCell;
 import drama.gameServer.features.extp.itemBag.pojo.SpecialCell;
 
+import java.util.List;
+
 /**
  * Created by lee on 2021/9/30
  */
@@ -180,5 +182,9 @@ public interface ItemBagCtrl extends RoomPlayerExtControler<ItemBag> {
      * @param msg
      */
     void onBeGiveItem(In_RoomGiveItemMsg msg);
+
+    boolean hasItem(int tpId);
+
+    boolean hasItems(List<Integer> tpIds);
 }
 

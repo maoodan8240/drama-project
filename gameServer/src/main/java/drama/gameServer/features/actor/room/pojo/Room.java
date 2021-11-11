@@ -157,6 +157,11 @@ public class Room {
      */
     private OneToOneConcurrentMapWithAttachment<Integer, PowerEnum, Integer> roleIdAndPowerToBeShoot = new OneToOneConcurrentMapWithAttachment<>();
 
+    /**
+     * 任务完成排行榜
+     */
+    private List<Integer> taskScoreRank = new ArrayList<>();
+
     public Room(String roomId, int dramaId, String masterId, int simpleRoomId, String masterName, Table_SceneList_Row tabRow) {
         this.roomId = roomId;
         this.dramaId = dramaId;
@@ -170,6 +175,9 @@ public class Room {
         this.createAt = WsDateUtils.dateToFormatStr(new Date(), WsDateFormatEnum.yyyy_MM_dd$HH_mm_ss);
     }
 
+    public List<Integer> getTaskScoreRank() {
+        return taskScoreRank;
+    }
 
     public OneToOneConcurrentMapWithAttachment<Integer, PowerEnum, Integer> getRoleIdAndPowerToBeShoot() {
         return roleIdAndPowerToBeShoot;

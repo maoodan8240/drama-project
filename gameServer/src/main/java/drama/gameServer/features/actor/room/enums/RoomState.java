@@ -4,6 +4,7 @@ import dm.relationship.base.MagicNumbers;
 import dm.relationship.exception.BusinessLogicMismatchConditionException;
 import dm.relationship.table.tableRows.Table_SceneList_Row;
 import drama.protos.EnumsProtos;
+import drama.protos.EnumsProtos.RoomStateEnum;
 import ws.common.table.table.interfaces.cell.TupleCell;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public enum RoomState {
     SUBREAD("SUBREAD", EnumsProtos.RoomStateEnum.SUBREAD),          //  子剧本读本阶段
     UNLOCKINFO("UNLOCKINFO", EnumsProtos.RoomStateEnum.UNLOCKINFO), //  解锁信息(玩家身上的一些动态信息)
     AUCTIONRESULT("AUCTIONRESULT", EnumsProtos.RoomStateEnum.AUCTIONRESULT),//  拍卖结果
+    SCORE("SCORE", RoomStateEnum.SCORE),                            //  积分排行
 
     NULL("", null);
 

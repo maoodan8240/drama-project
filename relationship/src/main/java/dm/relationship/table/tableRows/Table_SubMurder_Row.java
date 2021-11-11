@@ -73,10 +73,10 @@ public class Table_SubMurder_Row extends AbstractRow {
         return truth;
     }
 
-    public static List<Integer> getAllRoleId(int dramaId) {
+    public static List<Integer> getAllRoleId(int dramaId, int subVoteNum) {
         List<Integer> arr = new ArrayList<>();
         for (Table_SubMurder_Row row : RootTc.get(Table_SubMurder_Row.class).values()) {
-            if (row.getDramaId() == dramaId) {
+            if (row.getDramaId() == dramaId && row.getSubVoteNum() == subVoteNum) {
                 arr.add(row.getSubRoleId());
             }
         }
@@ -84,13 +84,23 @@ public class Table_SubMurder_Row extends AbstractRow {
     }
 
 
-    public static Table_SubMurder_Row getMurderRowByRoleId(int subRoleId, int dramaId) {
+    public static Table_SubMurder_Row getMurderRowByRoleId(int subRoleId, int dramaId, int subVoteNum) {
         for (Table_SubMurder_Row row : RootTc.get(Table_SubMurder_Row.class).values()) {
-            if (row.getDramaId() == dramaId && row.getSubRoleId() == subRoleId) {
+            if (row.getDramaId() == dramaId && row.getSubRoleId() == subRoleId && row.getSubVoteNum() == subVoteNum) {
                 return row;
             }
         }
-        String msg = String.format("Table_SubMurder_Row.getMurderRowByRoleId subRoleId=%s,dramaId=%s", subRoleId, dramaId);
+        String msg = String.format("Table_SubMurder_Row.getMurderRowByRoleId subRoleId=%s,dramaId=%s,subVoteNum=%s", subRoleId, dramaId, subVoteNum);
         throw new TableRowLogicCheckFailedException(Table_SubMurder_Row.class, subRoleId, msg);
+    }
+
+    public static Table_SubMurder_Row getRealMurderRow(int dramaId, int subVoteNum) {
+        for (Table_SubMurder_Row row : RootTc.get(Table_SubMurder_Row.class).values()) {
+            if (row.getDramaId() == dramaId && row.getSubVoteNum() == subVoteNum && row.getMurder()) {
+                return row;
+            }
+        }
+        String msg = String.format("Table_SubMurder_Row.getRealMurderRow dramaId=%s,subVoteNum=%s", dramaId, subVoteNum);
+        throw new TableRowLogicCheckFailedException(Table_SubMurder_Row.class, subVoteNum, msg);
     }
 }

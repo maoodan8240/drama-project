@@ -541,4 +541,19 @@ public interface RoomCtrl extends Controler<Room> {
      * @param beRoleId
      */
     void onChoice(String playerId, int beRoleId);
+
+    /**
+     * 积分排行
+     *
+     * @param playerId
+     */
+    void onScoreList(String playerId);
+
+    /**
+     * 查看详细积分
+     *
+     * @param playerId
+     * @param roleId
+     */
+    void onRoleScore(String playerId, int roleId);
 }

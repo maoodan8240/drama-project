@@ -12,11 +12,13 @@ import java.util.Map;
 public class In_PlayerSubVoteListRoomMsg extends _PlayerInnerMsg {
     private Map<Integer, List<Integer>> subVoteRoleIdToPlayerRoleId;
     private Map<Integer, RoomPlayer> subRoleIdToRoomPlayer;
+    private int subVoteNum;
 
-    public In_PlayerSubVoteListRoomMsg(String playerId, Map<Integer, List<Integer>> subVoteRoleIdToPlayerRoleId, Map<Integer, RoomPlayer> subRoleIdToRoomPlayer, int dramaId) {
+    public In_PlayerSubVoteListRoomMsg(String playerId, Map<Integer, List<Integer>> subVoteRoleIdToPlayerRoleId, Map<Integer, RoomPlayer> subRoleIdToRoomPlayer, int dramaId, int subVoteNum) {
         super(playerId, dramaId);
         this.subVoteRoleIdToPlayerRoleId = subVoteRoleIdToPlayerRoleId;
         this.subRoleIdToRoomPlayer = subRoleIdToRoomPlayer;
+        this.subVoteNum = subVoteNum;
     }
 
     public Map<Integer, List<Integer>> getSubVoteRoleIdToPlayerRoleId() {
@@ -25,5 +27,9 @@ public class In_PlayerSubVoteListRoomMsg extends _PlayerInnerMsg {
 
     public Map<Integer, RoomPlayer> getSubRoleIdToRoomPlayer() {
         return subRoleIdToRoomPlayer;
+    }
+
+    public int getSubVoteNum() {
+        return subVoteNum;
     }
 }

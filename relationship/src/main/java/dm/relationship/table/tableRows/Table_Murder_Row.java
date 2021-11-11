@@ -90,10 +90,10 @@ public class Table_Murder_Row extends AbstractRow {
         return truth;
     }
 
-    public static List<Integer> getAllRoleId(int dramaId) {
+    public static List<Integer> getAllRoleId(int dramaId, int voteNum) {
         List<Integer> allRoleIds = new ArrayList<>();
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (!allRoleIds.contains(value.getRoleId()) && value.getDramaId() == dramaId) {
+            if (!allRoleIds.contains(value.getRoleId()) && value.getDramaId() == dramaId && value.getVoteNum() == voteNum) {
                 allRoleIds.add(value.getRoleId());
             }
         }
@@ -101,42 +101,32 @@ public class Table_Murder_Row extends AbstractRow {
     }
 
 
-    public static boolean isMurder(int roleId, int dramaId) {
+    public static boolean isMurder(int roleId, int dramaId, int voteNum) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId && value.getVoteNum() == voteNum) {
                 return value.isMurder();
             }
         }
         return false;
     }
 
-    public static Table_Murder_Row getMurderRowByRoleId(int roleId, int dramaId) {
+    public static Table_Murder_Row getMurderRowByRoleId(int roleId, int dramaId, int voteNum) {
         for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.getRoleId() == roleId && value.getDramaId() == dramaId) {
+            if (value.getRoleId() == roleId && value.getDramaId() == dramaId && value.getVoteNum() == voteNum) {
                 return value;
             }
         }
-        String msg = String.format("getMurderRowByRoleId failed, roleId=%s", roleId);
+        String msg = String.format("getMurderRowByRoleId failed, roleId=%s,voteNum=%s", roleId, voteNum);
         throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, roleId, msg);
     }
 
-    public static List<String> getRolePicByRoleIds(List<Integer> roleIds, int dramaId) {
+    public static List<String> getRolePicByRoleIds(List<Integer> roleIds, int dramaId, int voteNum) {
         List<String> rolePic = new ArrayList<>();
         for (Integer roleId : roleIds) {
-            Table_Murder_Row murderRow = getMurderRowByRoleId(roleId, dramaId);
+            Table_Murder_Row murderRow = getMurderRowByRoleId(roleId, dramaId, voteNum);
             rolePic.add(murderRow.getRolePic());
         }
         return rolePic;
-    }
-
-    public static int getMurderRoleId(int dramaId) {
-        for (Table_Murder_Row value : RootTc.get(Table_Murder_Row.class).values()) {
-            if (value.isMurder() && value.getDramaId() == dramaId) {
-                return value.getRoleId();
-            }
-        }
-        String msg = String.format("getMurderRoleId failed, roleId=%s", 0);
-        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, 0, msg);
     }
 
     public static int getMurderRoleId(int dramaId, int voteNum) {
@@ -145,8 +135,8 @@ public class Table_Murder_Row extends AbstractRow {
                 return value.getRoleId();
             }
         }
-        String msg = String.format("getMurderRoleId failed, roleId=%s", 0);
-        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, 0, msg);
+        String msg = String.format("getMurderRoleId failed, voteNum=%s", voteNum);
+        throw new TableRowLogicCheckFailedException(Table_Murder_Row.class, voteNum, msg);
     }
 
     @Override

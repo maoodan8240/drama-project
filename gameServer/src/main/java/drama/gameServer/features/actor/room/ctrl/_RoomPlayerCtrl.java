@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import dm.relationship.base.IdMaptoCount;
 import dm.relationship.base.MagicNumbers;
 import dm.relationship.table.tableRows.Table_Acter_Row;
+import dm.relationship.table.tableRows.Table_Task_Row;
 import dm.relationship.topLevelPojos.simplePlayer.SimplePlayer;
 import drama.gameServer.features.actor.room.mc.extension.RoomPlayerExtension;
 import drama.gameServer.features.actor.room.pojo.AuctionResult;
@@ -21,6 +22,8 @@ import ws.common.utils.message.interfaces.PrivateMsg;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements RoomPlayerCtrl {
@@ -81,6 +84,38 @@ public class _RoomPlayerCtrl extends AbstractControler<RoomPlayer> implements Ro
     @Override
     public int getChoice() {
         return target.getChoiceRoleId();
+    }
+
+    @Override
+    public void addTaskResult(int taskId, boolean result) {
+        target.getTaskIdToResult().put(taskId, result);
+    }
+
+    @Override
+    public int getKillerRoleId() {
+        return target.getKillerRoleId();
+    }
+
+    @Override
+    public void setKillerRoleId(int killerRoleId) {
+        target.setKillerRoleId(killerRoleId);
+    }
+
+    @Override
+    public int getTotal(int dramaId) {
+        int score = 0;
+        for (Entry<Integer, Boolean> entry : target.getTaskIdToResult().entrySet()) {
+            if (entry.getValue()) {
+                Table_Task_Row row = Table_Task_Row.getRowByTaskId(entry.getKey(), dramaId);
+                score = score + row.getScore();
+            }
+        }
+        return score;
+    }
+
+    @Override
+    public Map<Integer, Boolean> getTaskIdToResult() {
+        return target.getTaskIdToResult();
     }
 
     @Override

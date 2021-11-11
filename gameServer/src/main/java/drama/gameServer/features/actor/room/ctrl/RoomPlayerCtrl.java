@@ -10,6 +10,7 @@ import ws.common.network.server.interfaces.Connection;
 import ws.common.utils.mc.controler.Controler;
 
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
@@ -191,4 +192,14 @@ public interface RoomPlayerCtrl extends Controler<RoomPlayer> {
     void setChoice(int roleId);
 
     int getChoice();
+
+    void addTaskResult(int taskId, boolean result);
+
+    int getKillerRoleId();
+
+    void setKillerRoleId(int killerRoleId);
+
+    int getTotal(int dramaId);
+
+    Map<Integer, Boolean> getTaskIdToResult();
 }

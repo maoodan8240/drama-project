@@ -481,6 +481,12 @@ public class RoomActor extends DmActor {
                     case Action.CAN_CHOICE_VALUE:
                         onCanChoice();
                         break;
+                    case Action.SCORE_LIST_VALUE:
+                        onScoreList();
+                        break;
+                    case Action.ROLE_SCORE_VALUE:
+                        onRoleScore(cm_room.getRoleId());
+                        break;
                     default:
                         break;
                 }
@@ -502,6 +508,24 @@ public class RoomActor extends DmActor {
             }
         }
 
+    }
+
+    private void onRoleScore(int roleId) {
+        _checkRoomContainsPlayer(simplePlayer);
+//        if (roomCtrl.getRoomState() != RoomStateEnum.SCORE) {
+//            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+//            return;
+//        }
+        roomCtrl.onRoleScore(simplePlayer.getPlayerId(), roleId);
+    }
+
+    private void onScoreList() {
+        _checkRoomContainsPlayer(simplePlayer);
+//        if (roomCtrl.getRoomState() != RoomStateEnum.SCORE) {
+//            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+//            return;
+//        }
+        roomCtrl.onScoreList(simplePlayer.getPlayerId());
     }
 
     private void onChoice(int beRoleId) {
@@ -620,10 +644,10 @@ public class RoomActor extends DmActor {
 
     private void onSubVoteResult(int subNum) {
         _checkRoomContainsPlayer(simplePlayer);
-        if (roomCtrl.getRoomState() != RoomStateEnum.SUBVOTE) {
-            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
+//        if (roomCtrl.getRoomState() != RoomStateEnum.SUBVOTE) {
+//            LOGGER.debug("房间状态不匹配 playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
+//            return;
+//        }
         roomCtrl.onSubVoteResult(subNum, simplePlayer.getPlayerId());
 
     }
@@ -759,7 +783,7 @@ public class RoomActor extends DmActor {
 
     private void onIsVoted(int voteNum) {
         _checkRoomContainsPlayer(simplePlayer);
-        int murderRoleId = Table_Murder_Row.getMurderRoleId(roomCtrl.getDramaId());
+        int murderRoleId = Table_Murder_Row.getMurderRoleId(roomCtrl.getDramaId(), voteNum);
         boolean isVoted = roomCtrl.isVotedMurder(voteNum, murderRoleId);
         sendToWorld(new In_PlayerIsVotedRoomMsg(simplePlayer.getPlayerId(), murderRoleId, isVoted));
     }
@@ -768,17 +792,17 @@ public class RoomActor extends DmActor {
         _checkRoomContainsPlayer(simplePlayer);
         if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
             for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-                In_PlayerVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerVoteResultRoomMsg(playerId, roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId());
+                In_PlayerVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerVoteResultRoomMsg(playerId, roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId(), voteNum);
                 sendToWorld(in_playerVoteResultRoomMsg);
             }
         } else {
-            sendToWorld(new In_PlayerVoteResultRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId()));
+            sendToWorld(new In_PlayerVoteResultRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId(), voteNum));
         }
     }
 
     private void onVoteList(int voteNum) {
         _checkRoomContainsPlayer(simplePlayer);
-        sendToWorld(new In_PlayerVoteListRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId()));
+        sendToWorld(new In_PlayerVoteListRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getVoteRoleIdToPlayerRoleId(voteNum), roomCtrl.getDramaId(), voteNum));
     }
 
 
@@ -791,7 +815,7 @@ public class RoomActor extends DmActor {
         int soloDramaId = 0;
         RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
         Table_Solo_Row soloRow = Table_Solo_Row.getSoloRowByRoleId(roomPlayerCtrl.getRoleId(), soloNum, roomCtrl.getDramaId());
-        if (Table_Murder_Row.isMurder(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()) && !roomCtrl.isVotedMurder(MagicNumbers.DEFAULT_ONE, roomPlayerCtrl.getRoleId())) {
+        if (Table_Murder_Row.isMurder(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId(), MagicNumbers.DEFAULT_ONE) && !roomCtrl.isVotedMurder(MagicNumbers.DEFAULT_ONE, roomPlayerCtrl.getRoleId())) {
             //是凶手 没被投中
             soloDramaId = Integer.valueOf(soloRow.getEscapeDramaId(optionsList.get(MagicNumbers.DEFAULT_ZERO)));
         } else {
@@ -819,7 +843,7 @@ public class RoomActor extends DmActor {
         sendToWorld(new In_PlayerVoteRoomMsg(roomCtrl.getDramaId(), simplePlayer.getPlayerId(), roleId));
         if (remainNum == 0) {
             for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-                In_PlayerVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerVoteResultRoomMsg(playerId, roomCtrl.getVoteRoleIdToPlayerRoleId(roomCtrl.getRoomStateTimes()), roomCtrl.getDramaId());
+                In_PlayerVoteResultRoomMsg in_playerVoteResultRoomMsg = new In_PlayerVoteResultRoomMsg(playerId, roomCtrl.getVoteRoleIdToPlayerRoleId(roomCtrl.getRoomStateTimes()), roomCtrl.getDramaId(), roomCtrl.getRoomStateTimes());
                 sendToWorld(in_playerVoteResultRoomMsg);
             }
         } else {
