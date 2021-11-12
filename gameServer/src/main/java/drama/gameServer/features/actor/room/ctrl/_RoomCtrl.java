@@ -374,8 +374,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         response.setResult(true);
         b.setAction(action);
         RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(playerId);
-        Map<PowerEnum, Integer> powerAndBulletNum = getTarget().getRoleIdToPowerAndBulletNum().get(roomPlayerCtrl.getRoleId());
-        b.addAllShootInfo(RoomProtoUtils.createSmShootInfoList(powerAndBulletNum, getDramaId()));
+        if (getTarget().getRoleIdToPowerAndBulletNum().containsKey(roomPlayerCtrl.getRoleId())) {
+            Map<PowerEnum, Integer> powerAndBulletNum = getTarget().getRoleIdToPowerAndBulletNum().get(roomPlayerCtrl.getRoleId());
+            b.addAllShootInfo(RoomProtoUtils.createSmShootInfoList(powerAndBulletNum, getDramaId()));
+        }
         response.setSmRoom(b.build());
         roomPlayerCtrl.send(response.build());
     }
@@ -815,8 +817,8 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         EquipEnum equipEnum = EquipEnum.parseByPower(power);
         int conSumeItemId = 0;
         //如果是98K开枪优先判断特殊子弹
+        List<Table_Shoot_Row> rows = (List<Table_Shoot_Row>) equipEnum.getPowerRows();
         if (power == PowerEnum.WEAPON_98K) {
-            List<Table_Shoot_Row> rows = (List<Table_Shoot_Row>) equipEnum.getPowerRows();
             Table_Shoot_Row specialEquip = Table_Shoot_Row.getSpecialEquip(getDramaId());
 
             if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), specialEquip.getExpend())) {
@@ -830,7 +832,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 }
             }
         } else {
-            List<Table_Shoot_Row> rows = (List<Table_Shoot_Row>) equipEnum.getPowerRows();
             for (Table_Shoot_Row row : rows) {
                 if (ItemBagUtils.canRemoveSpecialItem(itemBagCtrl.getTarget(), row.getExpend())) {
                     conSumeItemId = ItemBagUtils.getCanRemoveSpecialItemId(itemBagCtrl.getTarget(), row.getExpend());
@@ -886,12 +887,17 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             if (npc.getEquipEnums().contains(EquipEnum.ONE_LV_ARMOR.getItemId())) {
                 remove(npc.getEquipEnums(), EquipEnum.ONE_LV_ARMOR.getItemId());
                 return DefPowerEnum.ONE_LV_ARMOR;
+            } else {
+                if (npc.getEquipEnums().contains(EquipEnum.TWO_LV_ARMOR.getItemId())) {
+                    remove(npc.getEquipEnums(), EquipEnum.TWO_LV_ARMOR.getItemId());
+                    return DefPowerEnum.TWO_LV_ARMOR;
+                }
             }
         } else if (npc.getEquipEnums().contains(EquipEnum.TWO_LV_ARMOR.getItemId())) {
             remove(npc.getEquipEnums(), EquipEnum.TWO_LV_ARMOR.getItemId());
             return DefPowerEnum.TWO_LV_ARMOR;
         }
-        String msg = String.format("没有防弹衣跟这挡啥呢???");
+        String msg = String.format("没有防弹衣跟这挡啥呢???{}", power.getNumber());
         LOGGER.debug(msg);
         throw new BusinessLogicMismatchConditionException(msg);
     }
@@ -943,6 +949,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
         if (!RoomState.isFirstState(getRoomState(), getDramaId())) {
             if (target.getBeginTime() == 0) {
                 getTarget().setBeginTime(System.currentTimeMillis());
+                _initNpc();
             }
         }
         //如果是End阶段,设置剧本结束时间
@@ -973,8 +980,6 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
                 roomPlayerCtrl.setSelectDraft(false);
             } else if (roomState == EnumsProtos.RoomStateEnum.VOTE) {
                 roomPlayerCtrl.setVoteMurder(false);
-            } else if (roomState == RoomStateEnum.SUBSELECT) {
-                _initNpc();
             } else if (roomState == EnumsProtos.RoomStateEnum.SUBVOTE) {
                 roomPlayerCtrl.setSubVoteMurder(false);
             } else if (roomState == RoomStateEnum.SHOOT) {
@@ -1226,17 +1231,30 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             Map<PowerEnum, Integer> powerAndBulletNum = new HashMap<>();
             if (roomPlayerCtrl.isLive() && roomPlayerCtrl.getRoleId() != target.getLastShootRoleId()) {
                 ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
-                powerAndBulletNum.putAll(getCanShootPower(rows, itemBagCtrl));
+                if (getCanShootPower(rows, itemBagCtrl).size() != MagicNumbers.DEFAULT_ZERO) {
+                    powerAndBulletNum.putAll(getCanShootPower(rows, itemBagCtrl));
+                    map.put(roomPlayerCtrl.getRoleId(), powerAndBulletNum);
+                }
             }
-            map.put(roomPlayerCtrl.getRoleId(), powerAndBulletNum);
         }
         if (map.size() == MagicNumbers.DEFAULT_ZERO) {
             RoomPlayerCtrl roomPlayerCtrl = getRoomPlayerCtrl(target.getLastShootRoleId());
-            ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
-            map.put(roomPlayerCtrl.getRoleId(), getCanShootPower(rows, itemBagCtrl));
+            if (roomPlayerCtrl.isLive()) {
+                LOGGER.debug("出了上一轮开枪的玩家,没有可以开枪的玩家了,本轮开枪人为={}", target.getLastShootRoleId());
+                ItemBagCtrl itemBagCtrl = roomPlayerCtrl.getExtension(ItemBagExtp.class).getControlerForQuery();
+                map.put(roomPlayerCtrl.getRoleId(), getCanShootPower(rows, itemBagCtrl));
+            }
+        }
+        LOGGER.debug("本轮可以开枪的玩家:{}", map.keySet());
+        for (Entry<Integer, Map<PowerEnum, Integer>> entry : map.entrySet()) {
+            LOGGER.debug("roleId={}", entry.getKey());
+            for (Entry<PowerEnum, Integer> entry1 : entry.getValue().entrySet()) {
+                LOGGER.debug("powerAndBulletNum{}->{}", entry1.getKey(), entry1.getValue());
+            }
         }
         return map;
     }
+
 
     /**
      * 获取可以开枪的Power和子弹数量
@@ -1248,14 +1266,16 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
     private Map<PowerEnum, Integer> getCanShootPower(List<Table_Shoot_Row> rows, ItemBagCtrl itemBagCtrl) {
         Map<PowerEnum, Integer> map = new HashMap<>();
         for (Table_Shoot_Row row : rows) {
-            if (checkCanShoot(row.getSet(), itemBagCtrl.getTarget()) && row.getType() == 1) {
+            if (row.getType() == EquipItemEnum.WEAPONE.getType() && checkCanShoot(row.getSet(), itemBagCtrl.getTarget())) {
                 PowerEnum powerEnum = PowerEnum.valueOf(row.getPower());
                 int bulletNum = getPowerBulletNum(row.getExpend(), itemBagCtrl);
-                if (map.containsKey(powerEnum)) {
-                    Integer value = map.get(powerEnum);
-                    bulletNum = bulletNum + value;
+                if (!map.containsKey(powerEnum) && bulletNum != MagicNumbers.DEFAULT_ZERO) {
+                    map.put(powerEnum, bulletNum);
+                } else if (map.containsKey(powerEnum) && bulletNum != MagicNumbers.DEFAULT_ZERO) {
+                    Integer oldBullet = map.get(powerEnum);
+                    bulletNum = oldBullet + bulletNum;
+                    map.put(powerEnum, bulletNum);
                 }
-                map.put(powerEnum, bulletNum);
             }
         }
         return map;
@@ -1651,6 +1671,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             if (roomPlayerCtrl.getSubRoleId(voteNum) == subRoleId) {
                 roleId = roomPlayerCtrl.getRoleId();
             }
+        }
+        if (roleId == MagicNumbers.DEFAULT_ZERO) {
+            //凶手npc
+            roleId = target.getNpc().getRoleId();
         }
         return roleId;
     }
