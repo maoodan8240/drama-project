@@ -1,6 +1,7 @@
 package drama.gameServer.features.actor.world;
 
 import akka.actor.Props;
+import com.google.protobuf.TextFormat;
 import dm.relationship.base.actor.DmActor;
 import dm.relationship.base.cluster.ActorSystemPath;
 import dm.relationship.base.msg.AbstractWorldMsg;
@@ -33,7 +34,7 @@ public class WorldActor extends DmActor {
             String playerId = worldCtrl.getPlayerId(connection);
             if (playerId != null) {
                 String name = !StringUtils.isEmpty(worldCtrl.getTarget().getPlayerIdToPlayerName().get(playerId)) ? worldCtrl.getTarget().getPlayerIdToPlayerName().get(playerId) : "";
-                LOGGER.debug("接收到playerName={},playerId={},的消息", name, playerId);
+                LOGGER.debug("接收到playerName={},playerId={}的消息,\n{}", name, playerId, TextFormat.printToUnicodeString(worldMsg.getMessage()));
             } else {
                 LOGGER.debug("新登录用户,还没有对应的playerId");
             }

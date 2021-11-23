@@ -11,7 +11,7 @@ public class NewLoginResponseMsg extends AbstractWorldMsg {
     private Message message;
 
     public NewLoginResponseMsg(Connection connection, Player player, Message message) {
-        super(connection);
+        super(connection, message);
         this.connection = connection;
         this.player = player;
         this.message = message;

@@ -11,7 +11,7 @@ public class _PlayerNetWorkMsg extends AbstractWorldMsg implements PlayerNetWork
 
 
     public _PlayerNetWorkMsg(Connection connection, Message message) {
-        super(connection);
+        super(connection, message);
         this.connection = connection;
         this.message = message;
     }

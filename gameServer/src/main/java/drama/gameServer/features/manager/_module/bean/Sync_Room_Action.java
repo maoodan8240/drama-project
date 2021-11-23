@@ -38,6 +38,7 @@ public class Sync_Room_Action implements Action {
         map.put("masterName", room.getMasterName());
         map.put("roomState", room.getRoomState());
         map.put("roomPlayerNum", room.getIdToRoomPlayer().size());
+        map.put("roomCreateTime", room.getCreateAt());
         return map;
     }
 

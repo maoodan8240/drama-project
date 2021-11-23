@@ -9,7 +9,7 @@ public class In_LoginMsg extends AbstractWorldMsg {
     private Connection connection;
 
     public In_LoginMsg(Message message, Connection connection) {
-        super(connection);
+        super(connection, message);
         this.message = message;
         this.connection = connection;
     }

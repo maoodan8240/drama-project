@@ -58,11 +58,11 @@ public class HandleRoomMsgAction implements Action {
     }
 
     private void onNetWorkRoomMsg(RoomNetWorkMsg msg, WorldCtrl worldCtrl, ActorContext worldActorContext, ActorRef self, ActorRef sender) {
+        if (!worldCtrl.contains(msg.getConnection())) {
+            ProtoUtils.needReLogin(msg.getConnection());
+            return;
+        }
         if (msg.getMessage() instanceof Cm_Room) {
-            if (!worldCtrl.contains(msg.getConnection())) {
-                ProtoUtils.needReLogin(msg.getConnection());
-                return;
-            }
             String playerId = worldCtrl.getPlayerId(msg.getConnection());
             if (worldCtrl.containsPlayerActorRef(playerId)) {
                 SimplePlayer simplePlayer = getSimplePlayer(playerId, worldCtrl, worldActorContext, self);
@@ -89,10 +89,6 @@ public class HandleRoomMsgAction implements Action {
                 throw new BusinessLogicMismatchConditionException("玩家不在线或Actor不可用 playerId=" + playerId);
             }
         } else {
-            if (!worldCtrl.contains(msg.getConnection())) {
-                ProtoUtils.needReLogin(msg.getConnection());
-                return;
-            }
             String playerId = worldCtrl.getPlayerId(msg.getConnection());
             if (worldCtrl.containsPlayerActorRef(playerId)) {
                 SimplePlayer simplePlayer = getSimplePlayer(playerId, worldCtrl, worldActorContext, self);

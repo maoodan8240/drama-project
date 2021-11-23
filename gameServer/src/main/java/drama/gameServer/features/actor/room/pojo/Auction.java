@@ -60,4 +60,15 @@ public class Auction {
     public Map<Integer, IdAndCount> getRoleIdAndAuctionPice() {
         return roleIdAndAuctionPice;
     }
+
+
+    @Override
+    public String toString() {
+        return "Auction{" +
+                "itemId=" + itemId +
+                ", auctionId=" + auctionId +
+                ", roleIdAndAuctionPice=" + roleIdAndAuctionPice.toString() +
+                ", auctionName='" + auctionName + '\'' +
+                '}';
+    }
 }

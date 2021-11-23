@@ -13,7 +13,7 @@ public class _RoomNetWorkMsg extends AbstractWorldMsg implements RoomNetWorkMsg 
 
 
     public _RoomNetWorkMsg(Connection connection, Message message) {
-        super(connection);
+        super(connection, message);
         this.connection = connection;
         this.message = message;
     }

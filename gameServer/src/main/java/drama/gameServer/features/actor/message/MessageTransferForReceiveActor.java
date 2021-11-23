@@ -56,6 +56,7 @@ public class MessageTransferForReceiveActor extends DmActor {
 
     private void on_In_MessageReceiveHolder(In_MessageReceiveHolder receiveHolder) {
         String packageName = receiveHolder.getMessage().getClass().getPackage().toString().substring(receiveHolder.getMessage().getClass().getPackage().toString().lastIndexOf(".") + 1);
+       
         if (receiveHolder.getMessage() instanceof Cm_Login) {
             In_LoginMsg msg = new In_LoginMsg(receiveHolder.getMessage(), receiveHolder.getConnection());
             DmActorSystem.get().actorSelection(ActorSystemPath.DM_GameServer_Selection_World).tell(msg, sender());

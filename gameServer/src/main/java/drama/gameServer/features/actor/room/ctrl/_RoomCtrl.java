@@ -1305,6 +1305,10 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
 
     private void _onAuctionResult() {
         sendToWorld(new In_RemoveRoomTimerMsg(getTarget().getRoomId(), RoomState.AUCTIONRESULT));
+        LOGGER.debug("_onAuctionResult:");
+        for (Auction auction : target.getAuctionList()) {
+            LOGGER.debug("/n{}", auction.toString());
+        }
         Map<Integer, Table_Auction_Row> auctions = Table_Auction_Row.getIdToAuctionRow(getDramaId());
         Map<Integer, Table_Item_Row> itemRows = Table_Item_Row.getAllRow(getDramaId());
         //计算收集拍卖结果扣除资源支付
@@ -1633,7 +1637,7 @@ public class _RoomCtrl extends AbstractControler<Room> implements RoomCtrl {
             enough = true;
         }
         if (!enough) {
-            String msg = String.format("资源不足, price=%", price);
+            String msg = String.format("资源不足, price=%s", price);
             throw new BusinessLogicMismatchConditionException(msg, ErrorCodeEnum.NOT_ENOUGH);
         }
     }

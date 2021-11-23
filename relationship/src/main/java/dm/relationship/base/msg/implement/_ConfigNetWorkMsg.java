@@ -12,7 +12,7 @@ public class _ConfigNetWorkMsg extends AbstractWorldMsg implements ConfigNetWork
     private Player player;
 
     public _ConfigNetWorkMsg(Connection connection, Message message) {
-        super(connection);
+        super(connection, message);
         this.connection = connection;
         this.message = message;
     }

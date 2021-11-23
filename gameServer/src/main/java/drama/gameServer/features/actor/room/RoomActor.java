@@ -77,7 +77,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.network.server.interfaces.Connection;
-import ws.common.network.utils.EnumUtils;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.message.interfaces.InnerMsg;
@@ -344,14 +343,14 @@ public class RoomActor extends DmActor {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
             b = setAction(b, cm_room);
-            if (roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
-                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-                if (roomPlayerCtrl.hasRole()) {
-                    LOGGER.debug("æˆ¿é—´æ”¶åˆ°æ¶ˆæ¯: RoomSimpleId={}, roleName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
-                } else {
-                    LOGGER.debug("æˆ¿é—´æ”¶åˆ°æ¶ˆæ¯: RoomSimpleId={}, playerName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), simplePlayer.getPlayerName(), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
-                }
-            }
+//            if (roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
+//                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
+//                if (roomPlayerCtrl.hasRole()) {
+//                    LOGGER.debug("æˆ¿é—´æ”¶åˆ°æ¶ˆæ¯: RoomSimpleId={}, roleName={}, playerId={}, \n{}", roomCtrl.getTarget().getSimpleRoomId(), Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), simplePlayer.getPlayerId(), TextFormat.printToUnicodeString(msg.getMessage()));
+//                } else {
+//                    LOGGER.debug("æˆ¿é—´æ”¶åˆ°æ¶ˆæ¯: RoomSimpleId={}, playerName={}, playerId={}, \n{}", roomCtrl.getTarget().getSimpleRoomId(), simplePlayer.getPlayerName(), simplePlayer.getPlayerId(), TextFormat.printToUnicodeString(msg.getMessage()));
+//                }
+//            }
             try {
                 switch (cm_room.getAction().getNumber()) {
                     case Action.CREAT_VALUE:
@@ -987,214 +986,34 @@ public class RoomActor extends DmActor {
 
     private void onNoSelect(Action action) {
         _checkRoomContainsPlayer(simplePlayer);
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.NOSELECT) {
-            LOGGER.debug("æˆ¿é—´çŠ¶æ€ä¸åŒ¹é… playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-        if (roomPlayerCtrl.hasRole()) {
-            String msg = String.format("ç©å®¶å·²ç»é€‰è¿‡è§’è‰²äº† playerId=%s,  roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
-        }
-        int roleId = Table_Acter_Row.getNoSelectActer(roomCtrl.getDramaId());
-        roomPlayerCtrl.setRoleId(roleId);
-        roomCtrl.chooseRole(roomPlayerCtrl.getTarget());
-        for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-            In_PlayerChooseRoleRoomMsg in_playerChooseRoleRoomMsg = new In_PlayerChooseRoleRoomMsg(playerId, roomPlayerCtrl.getTarget(), action, roomCtrl.getDramaId());
-            sendToWorld(in_playerChooseRoleRoomMsg);
-        }
-    }
-
-    private void onAnswer(Cm_Room cm_room, Action action) {
-        _checkRoomContainsPlayer(simplePlayer);
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER) {
-            LOGGER.debug("æˆ¿é—´çŠ¶æ€ä¸æ˜¯é€‰è§’çŠ¶æ€,éæ³•çš„è¯·æ±‚ playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-        EnumsProtos.SexEnum sex = simplePlayer.getSex();
-        List<String> optionsList = cm_room.getOptionsList();
-        List<Integer> rightAnswerIdx = roomCtrl.getRightAnswerIdx(optionsList, roomCtrl.getDramaId(), sex);
-        int roleIdx = roomCtrl.getRoleIdx(rightAnswerIdx);
-        if (roomPlayerCtrl.hasRole()) {
-            String msg = String.format("ç©å®¶å·²ç»é€‰è¿‡è§’è‰²äº† playerId=%s, answer=%s, roleId=%s", simplePlayer.getPlayerId(), roomPlayerCtrl.getRoleId());
-            throw new BusinessLogicMismatchConditionException(msg, EnumsProtos.ErrorCodeEnum.HAS_CHOOSE_ROLE);
-        }
-        if (roleIdx != MagicNumbers.DEFAULT_ZERO) {
-            String roleName = Table_Acter_Row.getRoleNameByRoleId(roleIdx, roomCtrl.getDramaId());
-            roomPlayerCtrl.setRoleId(roleIdx);
-            roomPlayerCtrl.setRoleName(roleName);
-            roomCtrl.chooseRole(roomPlayerCtrl.getTarget());
-            //é€šçŸ¥æˆ¿é—´å†…æ‰€æœ‰ç©å®¶
-            for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-                In_PlayerChooseRoleRoomMsg in_playerChooseRoleRoomMsg = new In_PlayerChooseRoleRoomMsg(playerId, roomPlayerCtrl.getTarget(), action, roomCtrl.getDramaId());
-                sendToWorld(in_playerChooseRoleRoomMsg);
-            }
-        } else if (roomCtrl.hasChooseRole(roleIdx, roomPlayerCtrl.getPlayerId())) {
-            String answer = "";
-            for (String s : cm_room.getOptionsList()) {
-                answer = answer + s;
-            }
-            String msg = String.format("è¿™ä¸ªè§’è‰²å·²ç»è¢«é€‰äº† playerId=%s, answer=%s, roleId=%s", simplePlayer.getPlayerId(), answer, roomPlayerCtrl.getRoleId());
-            LOGGER.debug(msg);
-        } else {
-            String answer = "";
-            for (String s : cm_room.getOptionsList()) {
-                answer = answer + s;
-            }
-            String msg = String.format("æ²¡æœ‰é€‰å‡ºè§’è‰² playerId=%s, answer=%s", simplePlayer.getPlayerId(), answer);
-            throw new BusinessLogicMismatchConditionException(msg);
-        }
-    }
-
-    private void onSearch(String typeName) {
-        _checkRoomContainsPlayer(simplePlayer);
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SEARCH) {
-            LOGGER.debug("æˆ¿é—´çŠ¶æ€ä¸åŒ¹é… playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-        //TODO è¯»é…ç½® åˆ¤æ–­å‰©ä½™æ¬¡æ•°
-        List<Table_Acter_Row> acterRowList = Table_Acter_Row.getTableActerRowByDramaId(roomCtrl.getDramaId());
-        if (acterRowList == null) {
-            String msg = String.format("å‰§æœ¬IDä¸å­˜åœ¨....é‚£æˆ¿é—´å’‹èƒ½åˆ›å»ºæˆåŠŸå‘¢,dramaId=%s", roomCtrl.getDramaId());
-            LOGGER.debug(msg);
-            return;
-        }
-        if (roomPlayerCtrl.getSrchTimes() == MagicNumbers.DEFAULT_ZERO) {
-            String msg = String.format("æœè¯æ¬¡æ•°å·²ç»ç”¨å®Œäº†,è¿™ä¸ªè¯·æ±‚åº”è¯¥è¢«å®¢æˆ·ç«¯æŒ¡ä½çš„! playerId=%s", simplePlayer.getPlayerId());
-            LOGGER.debug(msg);
-            return;
-        }
-        // è·å–çº¿ç´¢é…ç½® by typeId
-        List<Table_Search_Row> srchRowList = Table_Search_Row.getSearchByTypeNameAndStateTimes(typeName, roomCtrl.getRoomStateTimes(), roomCtrl.getDramaId());
-        int id = MagicNumbers.DEFAULT_ZERO;
-        for (Table_Search_Row row : srchRowList) {
-            //æˆ¿é—´å†…çº¿ç´¢å’Œç©å®¶çš„çº¿ç´¢éƒ½æ²¡æœ‰è¿™æ¡çº¿ç´¢æ‰å¯ä»¥æœå–
-            if (!roomCtrl.containsClueId(row.getIdx()) && !roomPlayerCtrl.containsClueId(row.getIdx())) {
-                roomPlayerCtrl.addClueId(row.getIdx());
-                roomCtrl.addClueId(row.getIdx());
-                //ä¸€æ¬¡åªèƒ½æœä¸€æ¡çº¿ç´¢,æœåˆ°å°±break;
-                id = row.getIdx();
-                roomPlayerCtrl.reduceSrchTimes();
-                break;
-            }
-            //å¦‚æœæ²¡è¿›ä¸Šé¢çš„åˆ¤æ–­ä»£è¡¨å…³äºè¿™ä¸ªtypeIdçš„çº¿ç´¢éƒ½æœç´¢å®Œäº†
-        }
-        //å‘å¾€playerActorå›æ¶ˆæ¯
-        sendToWorld(new In_PlayerSearchRoomMsg(simplePlayer.getPlayerId(), id, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId()));
-        checkPlayerFinishSearchShowHideClueMsg();
-    }
-
-    private void onCanSearch() {
-        _checkRoomContainsPlayer(simplePlayer);
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SEARCH) {
-            LOGGER.debug("æˆ¿é—´çŠ¶æ€ä¸åŒ¹é… playerId={}, RoomStateEnum={}", simplePlayer.getPlayerId(), roomCtrl.getRoomState().toString());
-            return;
-        }
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-        List<Table_SearchType_Row> values = RootTc.get(Table_SearchType_Row.class).values();
-        List<Table_SearchType_Row> result = values.stream().filter(it -> roomCtrl.getRoomStateTimes() == it.getSrchNum() && roomCtrl.getDramaId() == it.getDramaId()).collect(Collectors.toList());
-        List<Integer> typeIds = new ArrayList<>();
-        for (Table_SearchType_Row row : result) {
-            //å¯æœç´¢åˆ—è¡¨ä¸­ä¸èƒ½å·²ç»åŒ…å«è¿™ä¸ªid
-//            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename()) && row.getRoleId() != roomPlayerCtrl.getRoleId()) {
-            if (!typeIds.contains(row.getTypeId()) && !roomCtrl.isEmptyClue(row.getTypename())) {
-                typeIds.add(row.getTypeId());
-            }
-        }
-        sendToWorld(new In_PlayerOnCanSearchRoomMsg(simplePlayer.getPlayerId(), typeIds, roomPlayerCtrl.getTarget(), roomCtrl.getDramaId(), roomCtrl.getRoomStateTimes()));
-    }
-
-    private void onJoinRoomMsg(Cm_Room cm_room, Connection connection) {
-        if (roomCtrl.checkRoomIsFull()) {
-            LOGGER.debug("æˆ¿é—´å·²æ»¡,playerId={},roomId={}", simplePlayer.getPlayerId(), roomId);
-            throw new BusinessLogicMismatchConditionException("æˆ¿é—´å·²æ»¡ roomId=" + roomId + ",playerId=" + simplePlayer.getPlayerId(), EnumsProtos.ErrorCodeEnum.ROOM_FULL);
-        }
-        if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ANSWER && roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.SELECT) {
-            LOGGER.debug("è¯·æ±‚å‡†å¤‡çš„çŠ¶æ€å’Œæˆ¿é—´çŠ¶æ€ä¸åŒ¹é… playerId={}, RequestStateEnum={},RoomStateEnum={},RequestStateTimes={},RoomStateTimes={}", //
-                    simplePlayer.getPlayerId(), roomCtrl.getRoomState(), roomCtrl.getRoomState().toString(), roomCtrl.getRoomStateTimes(), roomCtrl.getRoomStateTimes());//
-            return;
-        }
-        if (!roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
-            RoomPlayerCtrl roomPlayerCtrl = GlobalInjector.getInstance(RoomPlayerCtrl.class);
-            RoomPlayer roomPlayer = roomPlayerCtrl.createRoomPlayer(simplePlayer, roomId, roomCtrl.getDramaId(), connection, roomCtrl);
-            roomPlayerCtrl.setRoomActorRef(getSelf());
-            roomCtrl.addPlayer(roomPlayer, roomPlayerCtrl);
-        } else {
-            LOGGER.debug("ç©å®¶å·²ç»åœ¨æˆ¿é—´å†… playerId={},roomId ={}", simplePlayer.getPlayerId(), roomId);
-        }
-        sendToWorld(new In_PlayerJoinRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getTarget()));
-
-
-    }
-
-    private void onQuitRoomMsg() {
-        if (roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
-//            if (roomCtrl.getRoomState() != EnumsProtos.RoomStateEnum.ENDING) {
-//                LOGGER.debug("æ¸¸æˆæœªåˆ°å®Œæˆé˜¶æ®µ,ä¸èƒ½é€€å‡ºæˆ¿é—´ playerId={}, RequestStateEnum={}", //
-//                        simplePlayer.getPlayerId(), roomCtrl.getRoomState());//
-//                return;
-//            }
-            RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-            if (roomPlayerCtrl.hasRole()) {
-                int roleId = roomPlayerCtrl.getRoleId();
-                roomPlayerCtrl.setRoleId(0);
-                roomCtrl.removeRole(roleId);
-            }
-            for (String playerId : roomCtrl.getTarget().getIdToRoomPlayer().keySet()) {
-                sendToWorld(new In_PlayerQuitRoomMsg(playerId, roomId, simplePlayer.getPlayerId()));
-            }
-            //å¹¿æ’­å‘å®Œä»¥åå†ä»æˆ¿é—´åˆ é™¤è‡ªå·±,ä¸ç„¶å¹¿æ’­ä¸åˆ°è‡ªå·±
-            roomCtrl.removePlayer(simplePlayer.getPlayerId());
-            if (roomCtrl.getRoomPlayerNum() == MagicNumbers.DEFAULT_ZERO) {
-                sendToWorld(new In_PlayerKillRoomMsg(roomId, simplePlayer.getPlayerId()), getSender());
-            }
-        } else {
-            LOGGER.debug("ç©å®¶ä¸åœ¨æˆ¿é—´ä¸­,é€€å‡ºæˆ¿é—´å¼‚å¸¸ å¿½ç•¥: playerId={}, roomId={}", simplePlayer.getPlayerId(), roomId);
-        }
-    }
-
-
-    private void onCreateRoomMsg(Cm_Room cm_room) {
-        LOGGER.debug("RoomActoræ”¶åˆ°æ¶ˆæ¯: onCreateRoom playerId = {}, roomId ={}, dramaName={}", masterId, roomId, cm_room.getDramaId());
-//        MessageHandlerProtos.Response.Builder br = ProtoUtils.create_Response(CodesProtos.ProtoCodes.Code.Sm_Room, RoomProtos.Sm_Room.Action.RESP_CREATE);
-//        br.setResult(true);
-//        RoomProtos.Sm_Room b = createSmRoomByActionWithoutRoomPlayer(roomCtrl.getTarget(), RoomProtos.Sm_Room.Action.RESP_CREATE);
-//        br.setSmRoom(b);
-        RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-        roomPlayerCtrl.setRoomActorRef(getSelf());
-        sendToWorld(new In_PlayerCreateRoomMsg(simplePlayer.getPlayerId(), roomCtrl.getTarget()));
-        LOGGER.debug("æˆ¿é—´åˆ›å»ºæˆåŠŸ roomId={},dramaId={},MasterId={}", roomId, cm_room.getDramaId(), masterId);
-        LogHandler.roomCreateLog(roomCtrl.getTarget());
-    }
-
-    private void _checkRoomContainsPlayer(SimplePlayer simplePlayer) {
-        if (!roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
-            LOGGER.debug("ç©å®¶ä¸åœ¨æˆ¿é—´ä¸­, playerId={}, roomId={}", simplePlayer.getPlayerId(), roomId);
-            throw new BusinessLogicMismatchConditionException("ç©å®¶ä¸åœ¨æˆ¿é—´ä¸­ playerId=" + simplePlayer.getPlayerId() + ",roomId=" + roomId, EnumsProtos.ErrorCodeEnum.NOT_IN_ROOM);
-        }
-    }
-
-    private void _tellPlayerSyncClueMsg(String playerId, List<Integer> clueIds, RoomProtos.Sm_Room.Action action) {
-        sendToWorld(new In_PlayerSyncClueRoomMsg(playerId, clueIds, action, roomCtrl.getDramaId()));
-    }
-
-    private boolean _isMaster(String playerId) {
-        return playerId.equals(roomCtrl.getMasterId());
-    }
-
-
-    public String getRoomId() {
-        return roomId;
-    }
-
-    public String getMasterId() {
-        return masterId;
-    }
-
-    public void sendToWorld(PlayerInnerMsg msg) {
-        sendToWorld(msg, ActorRef.noSender());
+        if (roomCtrl.getRı»6_aáÉæ×£d8Ï9Ã¤¿ç`8K¡¿ã CûÖGA)b¶Í©ÒÒfú<ÂÆA†î–E=ş†¢ø$le±»Ä;qïR2,ŞaNEÆœS‹gå{š×ò:ZÿA€ÎsIÜ)6Xû¯t¼û™¹Rş‰r@»Ş[¹ØUk<ªÿÌ{ç˜Êì S~Õ$Ñ	*Ö“dpÇïf r¡¹ÃE¢ùTBçê	ÁµÑA„ÊAb\Ñ˜‘ÒCİşì{)İ:É¤T(>O_®ÔARË®WLş¤Õñ„ºˆÂ‹_É="#éû)å-3±²4fâ¼VõÅQÄÇCñ)sÆÇmÆêÊwÕ–äHĞÏxÎFnùlLÖ³óDÔësLl£§Mq~5Vâ•1ıòbôÀ:]¯Š Ä+q¬ª ùBbå°óıxÉ¥wÚÛ.{£vØ¬é ŒKì¡¬s5%Ëşy ”=bB³pkm¿Üç‹Zyª¨²ü÷•*mßpÆ~Áä#l€sÒ±OvVÇ²óÓO
+¯e¼‹  œsBÃÉ¥ø#<®?usYÜÿÎJ.3®‰š²ûS<Ór
+õZÃ	ãÃ¨Ïuş¢õˆş\'V+€
+V–ì‘;Á³ñ¤ˆï,îöüÃó%;º§…fdW~‰JWzIó_ÄÆ¸g»õÜíëul‰ƒBAâ—Ñ¡ö=VZI=4(l1P»owè¬Àù(»4I¥Qmk†¶8zF#ç[¿ø°göë“>_¸Œ,”ÎÈ¢yŸ—ğFUv'…¿q‹÷Öç±¶ôßêÀ"İ;¹Š›{yóv£ñÇ¡cFë‚N–³oÏ4 '?b#upÉ®y{=dãâO´Sı›'uÀ =g½Õ9á
+“Ã#‚‰#Ù6Õ †å†DªòüŸ|uV~Ñ¶¦úlìŠ+'Ì`÷~fÈK,DÊKs	ò³ao¢½ºP§yTzğ_}¡äİí|îUÛKrÊ<>ô_!Ïb®Y"-Im4xBÍi¸—æf5L‚]&ËGÕ"ñì&7uË…ĞÍ„Òo
+aQ•™!§Ê˜w€•M!µ»˜U÷œíwşŒÂ×1ONA%[5SR»lçš*°
+ñä¦Dd·ºÖLQ(õºtğ•øèÉÉN_¦TdP.BÄ™Í+^OA‘¾ºé[1“ë
+(Ò}êÚw2)nöÄÔÓdû'E»®ŞwnGè…§ñÄ‘MXO3Èûp;<ñÁ†J
+dá°_èG¢Ë#¬e'åçzœ¦ITS—WJŞAÙb°.(H4}òZã­õI–V­k"*¦º¶õ¯Ä€=‘ïä‹ãÕˆÍ[çV+ŠjyƒÏºË|R‘à43|g¶Å8véş™r§™&IlDVÀâ8]½Í¹u9X¢qü†ŒÏçÕÔ£İ”5ªĞ‹–Ü‰GgÒÃV7]Ü£eH9MÁ?å¸siµŸÏ¹[Ôácy¬ˆWğâ:‰Š²qÄ	ÙÿÀ;-!Q	ÁRó¹ÛVBÉ©)°³ÓÓO_1Ï…ŒvK÷±JÆÁM#æ+‘zŸ6;Ò#d  ®8%¸×HicZ«¯u¬låzv´Uİk—ÆñÚ‘`ÿş	A!âÅ±˜ÃS³ ¦rÓà†_•S¤PŠŞåE1¾L»:é3LğCìpÒãf89øú)r¶éïé»NeQÉ÷§jÄïT×œ#2©hî6¥*Äsß7×wA ¾9²´­/Ì8YAÅ1ğ˜ÈR$ÜOW±¼”ğÿ!90Ÿ<[ı6G+ğ³OXaBÁ)Z¡ÏZ¹OÎŠËU5™×K–xš¨››Àê¸.ÁDÓ»¸Â¢8Á
+]†í7»uõ²ôƒ„„a£›¥<äqñ.#I£qˆggP—îæü$07È§½O’äM&V¼ëŠÎå¢F^n¦ê˜¹Åeh®²ís>5Êiuz©lXíÙ‚­ÛìğÃŸö¸- ³Â£Hïˆr× ?‡áÑfCà£¨»îÌ^a›ĞÚø)\*VX©akŠöòc„î¸rşG7°tb¾¾ Õ[¸¨{é8\ñ“O–$ô.èø.J¤˜ïËÌîğè|=ø¦GôÅŠÊ%ø[A*òÄˆ½âş˜‰	¡}æš½+ë£©í•lãZ“¸´;Äf.úÔ0†ÌáLY›kİcµà¦
+1Ùó€ñ4CÅ~xH­F…›&g[‡ïqğ^fò¼±×=„XÄèí…lxkªa§Ç¨“xÑ–1D^@‘)!×8 Ãè·ĞO\¡½ü…½a¥'ô—DÚKåQñàfıl	H1Œ;U¸bş HŒ¡ş½%K5´pú©¹{™E?Ú¦§†öÑzª¦jjúØpLÕ#Â¤$¼`B’—dMA}ŒClÒ½¼O¬úµ(Ã#z q1ËE5~õ³„­«0n>¡Áú/RSå“îº’¢Ch0˜lsøğI]£ÊÄæ.!í§.*ı0"PÀaKoú…+z­=,ƒæ´ŠèR»‹Åb8e–|Z“%OõxDíŒœYë8rÆPö'6’~æ#	J²¸íåÕú”-„¸¶Û˜9Œƒ‰´…8ê	µÍ©5ğèé^ÅêsÛ÷nÿD0YùØÉà÷FhÙñ`­0gä(ø£÷cOßİÅkÈ8/‚¶dÀP„~sX¬Ñ‰áã
+½ôŞš,ïs	ĞÄhÏÑbƒ)èì¨\.¦vY1 ´d:÷“=Ïa>üßRŞ'ä—£ø³÷„mãÍYhcÍ0N©ôeÖRñYÊß	àSÚIõ¿Ägiı1à~}ø:ÌŞ¹+·Í/öI/úË1LŞ3€U¨b‚íZY=ıĞ~TŸ2ûk+ÚD5énRXõ˜éÓ>Ã˜XÇxvšbÒ&Ô—ŠŸ»ÀûÈç0Ë3§L+ñÃaÚNUÆ{qs²yx­oâ“şƒo®ıpIe´S±àúvŒBü? í‚<Ïö¥
+×-cz<úÑ€FpYeS)«£5fu'·)bì@®n+±RFU~§}”Ãøá9”‡£Uß‹ËÂ®xŸK²/v	¢-U)Ùúp¬§Ùy"ãÒ{Ê?{ÓÏÁbd94_…SCrrÌ0Ù2¹[ÂqM2–â1­Ü.aÒÎ&×øË3¬‚7ß÷2y7S|5xÕVˆLà¤ÎábªNà*“XÓ¸(°$H2]VçaéI•ÆßíRÙNìjYšçñ›Ïå5ˆ§‚6¯Ù°>(újÌo'ÆàªXÀ(½¬©°‹Äç¹-—(#æ»ZPÍ …ƒ¦óhtÎ¢Üs€É#‚RÖTõë*’}vQ—y}øhà ó"Mğ“ØÅ(váË‹§;š¼Y%}‚ãúÏ `y$u•
+oñ„¼vb¹}¹dIŞøu2Y5}eÁİõüz¾Ñ@ô Hn3‘%aÂÎÁõÿêÌW0w¾Üp»¥ò¡Ô„
+HJ1ãRË¥GMi¨¯Ì N€“má-T]7ÁWC.JCºÙ’í½{ÅïÃL}ÿjš@iÛ†§H³æô¤CKAÍĞ<šh~ı3÷¼z"Z ¿t;`ŸGòåoÆÄı´lº„‚AFğ}
+¨D®2E—Â1c™Ş»ËëÉp<l:OO1(§tdk²á3ô,¤*Sè>ë~r(‚S¦°ÖÚºç«Í,„Ï_	ØDŞ­ëéçiÈ2ì;vr^_AvœBûŞÇ28?d|(HÖïÂ§ˆV€Ì“ØG‹¬+›°#ùÓÙá`Jäu1—+³––HOd¶|”Tc åÌ
+.¯†NÊİé¼W…ëŸ~•
+zAs,ÕqOÒÊænF]şÔlèJ’/¸Aù‡7U¾B¬ô®#5^bæ {:Aï§5:¡ÄJ¸ØÂğöÑd£Ìäü
+ÈyµxíAIÛHâ¸–LÍ£ñ ƒ›T>M=FZ®â&ığ‚¨Äeÿ5ùnµzM„êxËöùs…y´ÃÃfŠ…ÛÌŞ7å ¯‚sÕWøbb+õØÒğóœ±xÿ¡òıïR÷y/ÓèüNéÚÎß«í»[ ã"ªÒkÊØY+İşg å:X„‘ÑÓ¯xœˆ~—ê&E,O/gtÀJn¦æØsÜ§¥ñ1óRôé]U˜õ«95/«Ñl#¿õ€ƒm¬Oâ]TèÛ)+hø‹30	×”£AÕá„ø˜pĞ^ÃÊ–×ˆĞkäïš’l˜7®>]Ûó®Æ÷útl£ºâ‰qĞÉX+J»øì	p˜ğ“³¤:S«î+)¦“Ñı˜»%9lñº(‹‹ì0RéÙ^ì{ìˆË{Znú„Ê¦@¤’y¶èŸÇ9(¨hy­øyrÍ@÷°:èCbr+! À%ğ7D,Ôãó?}ó*Íƒ‚¤„¯æ÷41œ;²ššìu‰K'TËÜ	4vâ[t×ÈÍÇl¶ÄHX„Æ¯TKÃyZÚfBàÎ!‡Ìv×|Q’²C0ü×—33™¥Ó²HŸ1k­ª·b£¾½¹ÀÕÿ$‰§­Nè7Òí!ğ%¤—?sS¼ĞíaŞìÎÅ5Fârà·hÃ‘¨šë%BÅéã©qŒ¨à¶í‡Ë&òŸ¶ğS
+¬„:ûÓ÷Ö£ó£öa™ğŒRxbZ<4”p4ìI^3¸Biõ±dñô’ôMÁtD	>ÍNW&'u,§(
+ÑÄÿT0¾Û Û5kEÃ,Ä†r¥vªõ¬Tò»á³Á3:iø€jïh ä¼$¬€×ƒóm³ãD3É‹^¹ ¸6UwW  FÎ¥Œ¸”àÿÆÈéÇş²‘˜Y£–ªŸu…íM	Q uÉeŒ’&HjÔï³õd1ç’ªÃxhÅ±M–
+ÃíQI<jªCĞÎàÄA¨ÙUüŒìàòöÿS`uUîlWÆUF°¼kıa9¬Ü©EI‡&dËõi	G_‰‰k°oğsª>Y3]€Íã;ZhÚa+@ï0®ÛÇùÍy_/oô³6çwhg‰F°P1’›$‡ƒ°Ój-m:ØÔĞôÿ}W¶ì_~1–[¹Ç…4ªGw ^€tO?Á4j¢vO7Bx…xÄ&Aì7G¼kR“ h7#Å,¶XÃ¸Ï’ÜZçÁı÷ÒcJ«HWT~0æu è
+¼„ğÁ"J XVÃr                                                                                                                                                                                                                                                                  ßk  ^    ÿÿÿÿÜ    k  ®S    ÿÿÿÿÜ   rl  ½l    ÿÿÿÿÜ   {k  Yï    ÿÿÿÿ(Ü   ®k  •Ğ    ÿÿÿÿ2Ü   »•  !ë    ÿÿÿÿ:Ü   ¼k  oí    ÿÿÿÿDÜ   l  Bâ    ÿÿÿÿNÜ   ûk  ×    ÿÿÿÿVÜ    ‚l  'V    ÿÿÿÿ^Ü    qk  CË    ÿÿÿÿdÜ   tk  ÇA    ÿÿÿÿlÜ   Ìj  Â    ÿÿÿÿtÜ    sl  Œ    ÿÿÿÿ|Ü   tl  !    ÿÿÿÿŠÜ   vl  w´    ÿÿÿÿ–Ü   l  f    ÿÿÿÿ¢Ü   µk  áÈ    ÿÿÿÿ¬Ü   =k  æ    ˜1 ²Ü    Rk  lå    ÿÿÿÿ¸Ü    ^l  1Î    ÿÿÿÿ¾Ü   ¤k  oË    ÿÿÿÿÈÜ   l  ù¡    ÿÿÿÿÒÜ   çk  •     ÿÿÿÿÜÜ    ™k  ÏS    ÿÿÿÿäÜ   œk  õ    ÿÿÿÿğÜ   Şk  Ñ×    ÿÿÿÿúÜ   •k  ,Q    ÿÿÿÿİ   k  \k    ÿÿÿÿİ    ¬‘ œ	    ÿÿÿÿİ   l  €O    ÿÿÿÿ$İ    l  ¼F    ÿÿÿÿ,İ   —k  @½    ÿÿÿÿ6İ   {l  'Ï    ÿÿÿÿ<İ   ak  Ø    ÿÿÿÿBİ   ç¡  ,ç    ÿÿÿÿHİ   ²  %Ø    ÿÿÿÿNİ    Ú O£    ÿÿÿÿTİ   el  m    ÿÿÿÿ^İ    ø~ ƒÏ    ÿÿÿÿdİ   ¬k  ‚½    ÿÿÿÿnİ   ºk  BÖ    ÿÿÿÿxİ   Èk  -ê    ÿÿÿÿ„İ    öj  L]    şD	 ˆİ   ùj  â@    ÿÿÿÿİ    í© ™X   À  ”İ   *k  ¥F    ÿÿÿÿœİ    œm  £¦    ÿÿÿÿ¢İ    3k  ãÕ    ÿÿÿÿ¨İ   6k  ÑÁ    ÿÿÿÿ²İ    0ª î    ÿÿÿÿ¸İ   ”l  ÃA    ÿÿÿÿÀİ    „œ ÖS
+   ì7 Äİ   ¿k  q+    ÿÿÿÿÌİ   –l  ·ÿ    ÿÿÿÿÔİ   Ÿf È”    ÿÿÿÿŞİ    . jÀ    ÿÿÿÿäİ   Èj  •    ÿÿÿÿìİ    ¥ ë£    ÿÿÿÿòİ   k  <    ÿÿÿÿúİ   yk  x^    ÿÿÿÿŞ   èj  ¹·    ÿÿÿÿŞ    +k  £¦    ÿÿÿÿŞ   ×j  ™    ÿÿÿÿŞ   lk  eÖ    ÿÿÿÿ$Ş   :k  DÅ    ÿÿÿÿ*Ş   ÎÀ  `    ÿÿÿÿ2Ş    ok  ¡Ä    ÿÿÿÿ8Ş   jˆ  ä    ÿÿÿÿBŞ   Bk  a¡    ÿÿÿÿLŞ   &k  9´    ÿÿÿÿRŞ   Õj  D    ÿÿÿÿZŞ   >l  `<    ÿÿÿÿbŞ   ÷k  zp    ÿÿÿÿlŞ    ?l  1Ö    ÿÿÿÿrŞ   Al  Î+    ÿÿÿÿzŞ    Fl  Õç    ÿÿÿÿ€Ş   l  Kà    ÿÿÿÿ†Ş   c, …    ÿÿÿÿŒŞ   Dk  ã¹    ÿÿÿÿ–Ş   k  \9    ÿÿÿÿŞ   0k  Q    ÿÿÿÿ¦Ş   à. ¤    ÿÿÿÿ°Ş    Çk  =    ÿÿÿÿ¸Ş   ÷j  eš    ÿÿÿÿÂŞ   Êk  #‹    ÿÿÿÿÌŞ   il  ‰    ÿÿÿÿÚŞ   l  ûº    ÿÿÿÿäŞ   3l  ã    ÿÿÿÿğŞ   ×k  1    ÿÿÿÿøŞ   al  ¯    ÿÿÿÿß    k  ì`    ÿÿÿÿß   k  p×    ÿÿÿÿß    éj  ²    ÿÿÿÿß   ëj  ×²    ÿÿÿÿ(ß   k  ö@    ÿÿÿÿ0ß   Gl  BÍ    ÿÿÿÿ:ß   l  ¥©    ÿÿÿÿDß     l  `    ÿÿÿÿJß   #l  Âi    ÿÿÿÿRß    æk  ÈÁ    Æ Xß   ék  L8    ÿÿÿÿ`ß    Ök   ´    ÿÿÿÿfß   Ùk  ¤*    ÿÿÿÿnß    ¨l  ²§    ÿÿÿÿtß    6l  7õ    ÿÿÿÿzß   9l  »k    ÿÿÿÿ‚ß    K #ê    ÿÿÿÿˆß   yl   k    ÿÿÿÿß   šk  “œ    ÿÿÿÿß    l  ZÃ    ÿÿÿÿ¨ß   Ñk  o°    ÿÿÿÿ®ß   Àj  D    ÿÿÿÿ¶ß   k  ª"    ÿÿÿÿ¾ß   šl  ‡    ÿÿÿÿÈß   &U Ö-    ÿÿÿÿĞß   “k  ÂÁ    ÿÿÿÿÚß   ©l  	M    ÿÿÿÿäß   *l  9™    ÿÿÿÿîß   Ll  6¿    ÿÿÿÿüß   4k  p²    ÿÿÿÿà   ÷û  ÿ    ÿÿÿÿà    Rl  ¨º    ÿÿÿÿà   Ul  õŒ    ÿÿÿÿà   k  u)    ÿÿÿÿ&à   Sk  ”<    ÿÿÿÿ.à   Sl  Ğ    ÿÿÿÿ6à    l  äE    ÿÿÿÿ>à   şy êG    ÿÿÿÿFà   şk  ³Í    ÿÿÿÿPà   7l  İş    ÿÿÿÿZà    k  íÒ    ÷ `à     k  ×ñ    ÿÿÿÿfà   "k  Ôr    ÿÿÿÿnà   k  Ú¥    ÿÿÿÿxà   Şj  `     ÿÿÿÿ‚à   §l  ˜    ÿÿÿÿŒà    Hl  ÿ+    ÿÿÿÿ”à    2l  X%    ÿÿÿÿœà   5l  ş.    ÿÿÿÿ¨à    ök  K
+    ÿÿÿÿ°à   ùk  œÑ    ÿÿÿÿ¼à 	   oX 'À    ÿÿÿÿÂà    Ïj  ¬ô    ÿÿÿÿÊà   @k  ÖŸ    ÿÿÿÿÔà    •l  ü«    ÿÿÿÿÚà   ˜l  ß    ÿÿÿÿæà   êm  E™    ÿÿÿÿğà   WŠ OÈ    „ öà    ~ +±    ÿÿÿÿüà   m      ÿÿÿÿá    Dm  ~?    ÿÿÿÿá   Fm  ¸    ÿÿÿÿá    	m  N    ÿÿÿÿá    m  \    ÿÿÿÿ(á   ûl  Ÿ6    ÿÿÿÿ0á    z2 eˆ   6I
+ 4á    é‹ ­     ÿÿÿÿ:á   ³m  Ôô    ÿÿÿÿBá   _n  İ”    ÿÿÿÿLá   [m  h    ÿÿÿÿVá   zm  m%    ÿÿÿÿ^á    Çl  |d    ÿÿÿÿfá   iº  §ª    ÿÿÿÿpá   on  4_    ÿÿÿÿxá    ®n  B\    ÿÿÿÿ|á   ½l  Œ±    ÿÿÿÿ‚á   äl  Pè    ÿÿÿÿá   m  Ã    ÿÿÿÿ˜á   n      ÿÿÿÿ á   n  4    ÿÿÿÿ¨á    Cn  ìw    ÿÿÿÿ¬á    ?n  Oô    ÿÿÿÿ²á   Bn  Ój    ÿÿÿÿºá    õ¶  ©¬    ÿÿÿÿÀá   †n  À     ÿÿÿÿÈá 
+   üw ƒ´    ÿÿÿÿÎá   ´l  ìb    ÿÿÿÿÜá   -n  èU    ÿÿÿÿäá   Àm  SÈ    ÿÿÿÿîá   Åm  ó     ÿÿÿÿøá    ¨ äİ    ÿÿÿÿşá   Äl  Ì    ÿÿÿÿâ    ãl  å1    ÿÿÿÿâ 
+   ¦ ¨R   Ş³ â   {n  ¢    ÿÿÿÿâ   wn                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ());
     }
 
     public void sendToWorld(PlayerInnerMsg msg, ActorRef actorRef) {
