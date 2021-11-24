@@ -77,7 +77,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ws.common.network.server.handler.tcp.MessageSendHolder;
 import ws.common.network.server.interfaces.Connection;
-import ws.common.network.utils.EnumUtils;
 import ws.common.table.table.interfaces.cell.TupleCell;
 import ws.common.utils.di.GlobalInjector;
 import ws.common.utils.message.interfaces.InnerMsg;
@@ -344,14 +343,14 @@ public class RoomActor extends DmActor {
             Cm_Room cm_room = (Cm_Room) msg.getMessage();
             RoomProtos.Sm_Room.Builder b = RoomProtos.Sm_Room.newBuilder();
             b = setAction(b, cm_room);
-            if (roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
-                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
-                if (roomPlayerCtrl.hasRole()) {
-                    LOGGER.debug("房间收到消息: RoomSimpleId={}, roleName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
-                } else {
-                    LOGGER.debug("房间收到消息: RoomSimpleId={}, playerName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), simplePlayer.getPlayerName(), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
-                }
-            }
+//            if (roomCtrl.containsPlayer(simplePlayer.getPlayerId())) {
+//                RoomPlayerCtrl roomPlayerCtrl = roomCtrl.getRoomPlayerCtrl(simplePlayer.getPlayerId());
+//                if (roomPlayerCtrl.hasRole()) {
+//                    LOGGER.debug("房间收到消息: RoomSimpleId={}, roleName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), Table_Acter_Row.getRoleNameByRoleId(roomPlayerCtrl.getRoleId(), roomCtrl.getDramaId()), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
+//                } else {
+//                    LOGGER.debug("房间收到消息: RoomSimpleId={}, playerName={}, playerId={}, action={}", roomCtrl.getTarget().getSimpleRoomId(), simplePlayer.getPlayerName(), simplePlayer.getPlayerId(), EnumUtils.protoActionToString(cm_room.getAction()));
+//                }
+//            }
             try {
                 switch (cm_room.getAction().getNumber()) {
                     case Action.CREAT_VALUE:
