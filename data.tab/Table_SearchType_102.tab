@@ -1,0 +1,20 @@
+ID	搜证轮数	分类ID	分类名字	分类图	角色ID
+Id	SrchNum	TypeId	Typename	TypePic	RoleId
+int	int	int	string	string	int
+1	1	1	叶冷星 照片	ylszp	
+2	2	2	叶冷星 宿舍	ylsss	
+3	1	3	姚青峰 厕所	yqfcs	
+4	2	4	姚青峰 音频	yqfyp	
+5	1	5	谢雨晴 书包	xyqsb	
+6	2	6	谢雨晴 流言	xyqly	
+7	1	7	吕思琦 抽屉	lsqct	
+8	2	8	吕思琦 纸条	lsqzt	
+9	1	9	李萱萱 照片	lxxzp	
+10	2	10	李萱萱 纸	lxxz	
+11	2	11	李萱萱 手	lxxs	
+12	1	12	皇甫青 备忘录	hfqbwl	
+13	2	13	皇甫青 录音	hfqly	
+14	1	14	白穆 蓝色笔记本	bmlsbjb	
+15	2	15	白穆 血	bmx	
+16	99	16	某人的记忆	mrdjy	
+17	99	17	姚青峰 家族	yqfjz	

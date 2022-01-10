@@ -1,0 +1,5 @@
+ID	搜证轮数	分类ID	分类名字	分类图	角色ID
+Id	SrchNum	TypeId	Typename	TypePic	RoleId
+int	int	int	string	string	int
+1	1	1	鱼缸	yg
+2	1	2	死者房间	szfj

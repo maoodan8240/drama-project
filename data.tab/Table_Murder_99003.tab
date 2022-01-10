@@ -1,0 +1,5 @@
+ID	第几次投凶	角色ID	角色名称	角色图片	角色大图	真凶	是否显示真凶
+Id	VoteNum	RoleId	RoleName	RolePic	RoleBigPic	Murder	Truth
+int	int	int	string	string	string	bool	bool
+1	1	1	法里斯	flstx	flslh	1	1
+2	1	2	萨拉	sltx	sllh	0	0

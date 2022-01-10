@@ -1,0 +1,7 @@
+ID	轮抽条件	条件1布尔	投凶条件	条件2布尔	结果
+Id	DraftCondition	C1bool	VoteCondition	C2bool	Result
+int	string	boolean	string	boolean	string
+1	Draft:1	0	Vote:2	0	badending
+2	Draft:1	0	Vote:2	1	goodending
+3	Draft:1	1	Vote:2	0	badending
+4	Draft:1	1	Vote:2	1	goodending

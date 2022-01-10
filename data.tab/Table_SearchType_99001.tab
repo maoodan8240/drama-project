@@ -1,0 +1,9 @@
+ID	搜证轮数	分类ID	分类名字	分类图	角色ID
+Id	SrchNum	TypeId	Typename	TypePic	RoleId
+int	int	int	string	string	int
+1	1	1	房间	fj
+2	1	2	死者尸体	szst
+3	1	3	萨拉	al
+4	1	4	托马斯	tms
+5	1	5	法里斯	fls
+

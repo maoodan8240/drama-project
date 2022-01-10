@@ -1,12 +1,14 @@
+import dm.relationship.base.IdAndCount;
+import drama.gameServer.features.actor.room.pojo.Auction;
 import org.junit.Test;
-import ws.common.utils.http.WsHttpClient;
 
 public class TestVote {
 
 
     @Test
     public void isVoteMurder() {
-        String s = WsHttpClient.httpSynSend_Get("http://121.36.23.124/conn_address/host_address");
-        System.out.println(s);
+        Auction auction = new Auction(23, 1, "11");
+        auction.getRoleIdAndAuctionPice().put(1, new IdAndCount(1, 100));
+        System.out.println(auction);
     }
 }

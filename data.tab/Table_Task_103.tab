@@ -1,0 +1,45 @@
+ID	角色id	姓名	任务内容	子投凶轮数（投中凶手或逃脱用）	任务目标角色	任务目标道具	任务得分	任务描述	解锁信息					
+Id	RoleId	Name	TaskType	SubVoteNum	TaskRoleId	TaskItem	Score	TaskDes	UnlockTask					
+int	int 	string	string	int	int	string	int	string	bool					
+1	1	陈怀安	HAVEITEM		5	33	30	成功把秘密文件交给接头人	1					
+2	1	陈怀安	DEAD		99		10	骆驼死亡						
+3	1	陈怀安	KILL		99		10	亲手杀死骆驼						
+4	1	陈怀安	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+5	1	陈怀安	CHOICE		3		20	获得丽丽娜依的芳心						
+6	1	陈怀安	ALIVE		1		10	活着走出孤城客栈						
+7	2	蒋古城	HAVEITEM		2	31	30	保住秘密文件	1					
+8	2	蒋古城	DEAD		99		10	骆驼死亡						
+9	2	蒋古城	KILL		99		10	亲手杀死骆驼						
+10	2	蒋古城	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+11	2	蒋古城	DEAD		7		20	西北军阀死亡						
+12	2	蒋古城	ALIVE		2		10	活着走出孤城客栈						
+13	3	丽丽娜依	DEAD		99		15	骆驼死亡	1					
+14	3	丽丽娜依	KILL		99		20	亲手杀死骆驼						
+15	3	丽丽娜依	DEAD		2		20	土匪余孽死亡						
+16	3	丽丽娜依	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+17	3	丽丽娜依	ALIVE				15	你选择的丈夫没有死亡						
+18	3	丽丽娜依	ALIVE		3		10	活着走出孤城客栈						
+19	4	柳湘人	HAVEITEM		4	33	30	获得秘密文件	1					
+20	4	柳湘人	DEAD		99		10	骆驼死亡						
+21	4	柳湘人	KILL		99		10	亲手杀死骆驼						
+22	4	柳湘人	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+23	4	柳湘人	DEAD		5		20	蓝衣社成员死亡						
+24	4	柳湘人	ALIVE		4		10	活着走出孤城客栈						
+25	5	楼小兰	HAVEITEM		5	33	30	获得秘密文件	1					
+26	5	楼小兰	DEAD		99		10	骆驼死亡						
+27	5	楼小兰	KILL		99		10	亲手杀死骆驼						
+28	5	楼小兰	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+29	5	楼小兰	DEAD		4		20	救国会成员死亡						
+30	5	楼小兰	ALIVE		5		10	活着走出孤城客栈						
+31	6	铁男	HAVEITEM		6	33	30	获得秘密文件	1					
+32	6	铁男	DEAD		99		10	骆驼死亡						
+33	6	铁男	KILL		99		10	亲手杀死骆驼						
+34	6	铁男	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+35	6	铁男	CHOICE		3		20	获得丽丽娜依芳心						
+36	6	铁男	ALIVE		6		10	活着走出孤城客栈						
+37	7	夜神	HAVEITEM		7	31	30	获得秘密文件	1					
+38	7	夜神	DEAD		99		10	骆驼死亡						
+39	7	夜神	KILL		99		10	亲手杀死骆驼						
+40	7	夜神	VOTEMURDER,ESCAPE	1			20	投中凶手（逃脱指认）						
+41	7	夜神	DEAD		2		20	土匪余孽死亡						
+42	7	夜神	ALIVE		7		10	活着走出孤城客栈						

@@ -1,0 +1,7 @@
+唯一id	流程状态	状态次数	解锁线索	标题	提示文案	配音提示文案	配音提示	下一阶段时间锁（指定时间后才能点击下一阶段按钮）	player1剧本	谢雨晴剧本	吕思琦剧本	叶冷星剧本	李萱萱剧本	皇甫青剧本	白穆剧本	姚青峰任务	谢雨晴任务	吕思琦任务	叶冷星任务	李萱萱任务	皇甫青任务	白穆任务
+Id	Status	Num	UnlockClueId	Title	Tips	DubTips	Dub	NextSTime	Text1	Text2	Text3	Text4	Text5	Text6	Text7	Task1	Task2	Task3	Task4	Task5	Task6	Task7
+int	string	int	int	string	string	string	bool	int	string	string	string	string	string	string	string	string	string	string	string	string	string	string
+1	SEARCH	1		搜证环节	搜查案发现场获得关键线索。				案发现场档案,罗尔夫的证词,乔伊的证词,韦伯斯特的证词,真相
+2	TALK	1		侦破环节	根据线索还原作案手法，抓住真凶。				案发现场档案,罗尔夫的证词,乔伊的证词,韦伯斯特的证词,真相
+3	VOTE	1		投凶	经过细致的调查分析，相信你已经找到了凶手，大胆的指认出来吧！				案发现场档案,罗尔夫的证词,乔伊的证词,韦伯斯特的证词,真相
+4	ENDING	1		故事结束	感谢体验本次案件《无死角的房间》。剧本里可以查看真相。				案发现场档案,罗尔夫的证词,乔伊的证词,韦伯斯特的证词,真相
